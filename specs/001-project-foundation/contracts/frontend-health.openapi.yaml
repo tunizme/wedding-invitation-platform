@@ -1,0 +1,26 @@
+openapi: 3.1.0
+info:
+  title: Wedding Invitation Platform Frontend Health
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/health:
+    get:
+      operationId: getFrontendHealth
+      responses:
+        '200':
+          description: Frontend is reachable; API and DB are not queried.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [status, component, timestamp]
+                properties:
+                  status: { type: string, const: ok }
+                  component: { type: string, const: frontend }
+                  timestamp: { type: string, format: date-time }

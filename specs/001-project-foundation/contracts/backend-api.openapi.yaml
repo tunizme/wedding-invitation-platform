@@ -1,0 +1,53 @@
+openapi: 3.1.0
+info:
+  title: Wedding Invitation Platform Foundation API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3001/api/v1
+paths:
+  /health/live:
+    get:
+      operationId: getBackendLiveness
+      responses:
+        '200':
+          description: Backend process is live; no dependency is queried.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Liveness' }
+  /health/ready:
+    get:
+      operationId: getBackendReadiness
+      responses:
+        '200':
+          description: Backend and PostgreSQL are ready.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Readiness' }
+        '503':
+          description: Backend responds but PostgreSQL is not ready.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Readiness' }
+components:
+  schemas:
+    Liveness:
+      type: object
+      additionalProperties: false
+      required: [status, component, timestamp]
+      properties:
+        status: { type: string, const: ok }
+        component: { type: string, const: backend }
+        timestamp: { type: string, format: date-time }
+    Readiness:
+      type: object
+      additionalProperties: false
+      required: [status, checks, timestamp]
+      properties:
+        status: { type: string, enum: [ready, not_ready] }
+        checks:
+          type: object
+          additionalProperties: false
+          required: [database]
+          properties:
+            database: { type: string, enum: [up, down] }
+        timestamp: { type: string, format: date-time }

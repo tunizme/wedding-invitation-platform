@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24'
+  DATABASE_URL: postgresql://wedding_ci:ci-only@127.0.0.1:5432/wedding_ci
+  FRONTEND_ORIGIN: http://localhost:3000
+  NEXT_PUBLIC_API_BASE_URL: http://localhost:3001/api/v1
+
+jobs:
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check:web
+      - run: pnpm lint:web
+      - run: pnpm typecheck:web
+      - run: pnpm test:web
+      - run: pnpm build:web
+
+  backend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check:api
+      - run: pnpm lint:api
+      - run: pnpm typecheck:api
+      - run: pnpm test:api
+      - run: pnpm build:api
+
+  backend-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: wedding_ci
+          POSTGRES_USER: wedding_ci
+          POSTGRES_PASSWORD: ci-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U wedding_ci -d wedding_ci"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @wedding/api migration:run
+      - run: pnpm --filter @wedding/api test:integration
+
+  full-stack-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build and start full stack
+        run: docker compose --profile ci up -d --build --wait
+      - name: Check component health
+        run: pnpm health
+      - name: Diagnostics
+        if: failure()
+        run: docker compose --profile ci ps && docker compose --profile ci logs --no-color
+      - name: Cleanup
+        if: always()
+        run: docker compose --profile ci down --volumes --remove-orphans

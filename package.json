@@ -1,0 +1,42 @@
+{
+  "name": "wedding-invitation-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev": "node scripts/dev.mjs all",
+    "dev:web": "pnpm --filter @wedding/web dev",
+    "dev:api": "node scripts/dev.mjs api",
+    "infra:up": "node scripts/infra.mjs up",
+    "infra:down": "node scripts/infra.mjs down",
+    "infra:reset": "node scripts/infra.mjs reset",
+    "health": "node scripts/health-check.mjs",
+    "smoke:local": "node scripts/local-smoke.mjs",
+    "format": "pnpm -r --if-present format",
+    "format:web": "pnpm --filter @wedding/web format",
+    "format:api": "pnpm --filter @wedding/api format",
+    "format:check": "pnpm -r --if-present format:check",
+    "format:check:web": "pnpm --filter @wedding/web format:check",
+    "format:check:api": "pnpm --filter @wedding/api format:check",
+    "lint": "pnpm -r --if-present lint",
+    "lint:web": "pnpm --filter @wedding/web lint",
+    "lint:api": "pnpm --filter @wedding/api lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "typecheck:web": "pnpm --filter @wedding/web typecheck",
+    "typecheck:api": "pnpm --filter @wedding/api typecheck",
+    "test": "pnpm -r --if-present test",
+    "test:web": "pnpm --filter @wedding/web test",
+    "test:api": "pnpm --filter @wedding/api test",
+    "test:scripts": "node --test scripts/tests/*.test.mjs",
+    "test:health:integration": "node --test scripts/tests/health-failures.integration.test.mjs",
+    "test:health:performance": "node --test scripts/tests/health-performance.test.mjs",
+    "build": "pnpm -r --if-present build",
+    "build:web": "pnpm --filter @wedding/web build",
+    "build:api": "pnpm --filter @wedding/api build",
+    "scope:check": "node scripts/scope-check.mjs"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
