@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { rootDirectory } from './lib.mjs';
 
-const forbidden = /\b(authentication|authorization|invitation editor|payment provider)\b|\bvnpay/i;
-const allowedPaths = /^(apps\/(web|api)\/src\/|apps\/(web|api)\/package\.json$)/;
+// Feature 003 explicitly approves IAM; invitation editing and payments remain excluded.
+const forbidden = /\b(invitation editor|payment provider)\b|\bvnpay/i;
+const allowedPaths =
+  /^(apps\/(web|api)\/src\/|apps\/(web|api)\/package\.json$)/;
 
 export const isScopePath = (path) => allowedPaths.test(path);
 export const hasForbiddenScope = (content) => forbidden.test(content);
@@ -11,20 +13,27 @@ export const hasForbiddenScope = (content) => forbidden.test(content);
 export function scopeViolations(paths) {
   return paths
     .filter(isScopePath)
-    .filter((path) => hasForbiddenScope(readFileSync(`${rootDirectory}/${path}`, 'utf8')));
+    .filter((path) =>
+      hasForbiddenScope(readFileSync(`${rootDirectory}/${path}`, 'utf8')),
+    );
 }
 
 export function trackedScopeFiles() {
   let output;
   try {
-    output = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
-      cwd: rootDirectory,
-      encoding: 'utf8',
-    });
+    output = execFileSync(
+      'git',
+      ['ls-files', '--cached', '--others', '--exclude-standard'],
+      {
+        cwd: rootDirectory,
+        encoding: 'utf8',
+      },
+    );
   } catch (error) {
     // Some restricted runners report EPERM after git exits successfully but
     // still provide complete stdout. Preserve deterministic scanner behavior.
-    if (!error || typeof error !== 'object' || !('stdout' in error)) throw error;
+    if (!error || typeof error !== 'object' || !('stdout' in error))
+      throw error;
     output = String(error.stdout);
   }
   return output.trim().split('\n').filter(Boolean);
@@ -33,7 +42,9 @@ export function trackedScopeFiles() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const violations = scopeViolations(trackedScopeFiles());
   if (violations.length > 0) {
-    console.error(`Out-of-scope implementation detected:\n${violations.join('\n')}`);
+    console.error(
+      `Out-of-scope implementation detected:\n${violations.join('\n')}`,
+    );
     process.exitCode = 1;
   } else {
     console.log('Scope check passed.');

@@ -2,7 +2,14 @@ import { run } from './lib.mjs';
 
 export async function infrastructure(action, args = process.argv.slice(3)) {
   if (action === 'up') {
-    await run('docker', ['compose', 'up', '-d', '--wait', 'postgres']);
+    await run('docker', [
+      'compose',
+      'up',
+      '-d',
+      '--wait',
+      'postgres',
+      'mailpit',
+    ]);
     return;
   }
   if (action === 'down') {
@@ -11,7 +18,9 @@ export async function infrastructure(action, args = process.argv.slice(3)) {
   }
   if (action === 'reset') {
     if (!args.includes('--confirm')) {
-      throw new Error('Database reset deletes the local PostgreSQL volume. Re-run with: pnpm infra:reset -- --confirm');
+      throw new Error(
+        'Database reset deletes the local PostgreSQL volume. Re-run with: pnpm infra:reset -- --confirm',
+      );
     }
     await run('docker', ['compose', 'down', '--volumes', '--remove-orphans']);
     return;

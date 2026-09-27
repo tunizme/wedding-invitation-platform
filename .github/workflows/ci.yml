@@ -71,7 +71,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @wedding/api migration:run
-      - run: pnpm --filter @wedding/api test:integration
+      - run: node apps/api/scripts/with-test-iam.cjs pnpm validate:iam --phase US7
+        env:
+          IAM_TEST_DATABASE_URL: postgresql://wedding_ci:ci-only@127.0.0.1:5432/wedding_ci
 
   full-stack-health:
     runs-on: ubuntu-latest

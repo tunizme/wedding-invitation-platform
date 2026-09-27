@@ -5,6 +5,8 @@
   "packageManager": "pnpm@12.3.4",
   "engines": { "node": ">=24 <25" },
   "scripts": {
+    "validate:iam": "node scripts/iam-validate.mjs",
+    "validate:iam:mail": "node scripts/iam-mail-smoke.mjs",
     "dev": "node scripts/dev.mjs all",
     "dev:web": "pnpm --filter @wedding/web dev",
     "dev:api": "node scripts/dev.mjs api",

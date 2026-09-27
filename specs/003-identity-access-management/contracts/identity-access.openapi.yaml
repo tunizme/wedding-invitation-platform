@@ -1,0 +1,825 @@
+openapi: 3.1.0
+info:
+  title: Wedding Invitation Platform Identity & Access API
+  version: 0.1.0
+  description: >-
+    Versioned IAM contract. Passwords, tokens, proofs, authorization codes and secrets are never
+    returned except the short-lived Access Token and CSRF token explicitly defined by session
+    responses. Refresh credentials are carried only by HttpOnly cookies.
+servers:
+  - url: http://localhost:3001/api/v1
+tags:
+  - { name: Registration }
+  - { name: Session }
+  - { name: OAuth }
+  - { name: Profile }
+  - { name: Admin }
+paths:
+  /auth/registrations:
+    post:
+      tags: [Registration]
+      operationId: registerLocal
+      summary: Register a LOCAL Customer without creating a session
+      description: Browser registration requires the configured exact frontend Origin and an application/json body.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '202':
+          description: Generic response for both a new and an already-used normalized email.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericAccepted' }
+        '403':
+          description: Missing or untrusted Origin, or non-JSON request.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/email-verifications:
+    post:
+      tags: [Registration]
+      operationId: requestLocalEmailVerification
+      summary: Request or resend LOCAL email verification with a generic response
+      description: Requires the exact configured frontend Origin and an application/json body; no session or CSRF token is required.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailRequest' }
+      responses:
+        '202':
+          description: Generic response independent of account existence/state.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericAccepted' }
+        '403':
+          description: Missing or untrusted Origin, or non-JSON request.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/email-verifications/confirm:
+    post:
+      tags: [Registration]
+      operationId: confirmLocalEmailVerification
+      description: Requires the exact configured frontend Origin and an application/json body; no session or CSRF token is required.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProofRequest' }
+      responses:
+        '204': { description: Email verified; no session is created. }
+        '400': { $ref: '#/components/responses/InvalidProofProblem' }
+        '403':
+          description: Missing or untrusted Origin, or non-JSON request.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/password-resets:
+    post:
+      tags: [Registration]
+      operationId: requestPasswordReset
+      summary: Request a password reset with a non-enumerating response
+      description: Requires the exact configured frontend Origin and an application/json body; no session or CSRF token is required.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailRequest' }
+      responses:
+        '202':
+          description: Generic response for existing/non-existing/ineligible accounts.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericAccepted' }
+        '403':
+          description: Missing or untrusted Origin, or non-JSON request.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/password-resets/confirm:
+    post:
+      tags: [Registration]
+      operationId: confirmPasswordReset
+      description: Requires the exact configured frontend Origin and an application/json body; no session or CSRF token is required.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordResetConfirmRequest' }
+      responses:
+        '204': { description: Password changed and all Refresh Token sessions revoked. }
+        '400': { $ref: '#/components/responses/InvalidProofProblem' }
+        '403':
+          description: Missing or untrusted Origin, or non-JSON request.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/login:
+    post:
+      tags: [Session]
+      operationId: loginLocal
+      description: >-
+        On success sets the host-only HttpOnly refresh cookie. Unknown email, wrong password,
+        LOCKED account and other non-actionable failures share a safe credential error. Requires
+        the exact configured frontend Origin and an application/json body.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Authenticated; refresh cookie is set.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/RefreshSetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessSession' }
+        '401': { $ref: '#/components/responses/InvalidCredentialsProblem' }
+        '403':
+          description: Missing/untrusted Origin, a non-JSON request, or correct LOCAL credentials whose email still requires verification.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/csrf:
+    get:
+      tags: [Session]
+      operationId: getSessionCsrfToken
+      summary: Bootstrap the in-memory CSRF token for the current refresh session
+      security:
+        - refreshCookie: []
+      responses:
+        '200':
+          description: Stable HMAC-derived session CSRF token after valid current refresh credential verification; no-store. Reload/rotation does not change the context seed.
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CsrfToken' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+
+  /auth/refresh:
+    post:
+      tags: [Session]
+      operationId: refreshSession
+      description: >-
+        Atomically consumes the current Refresh Token and sets its successor. Reuse returns the
+        same generic authentication problem and revokes the entire session. Requires the exact
+        configured frontend Origin.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      security:
+        - refreshCookie: []
+          csrfHeader: []
+      responses:
+        '200':
+          description: Refresh rotation succeeded.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/RefreshSetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessSession' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/logout:
+    post:
+      tags: [Session]
+      operationId: logoutCurrentSession
+      description: >-
+        Exact allowed Origin is always required. Missing, malformed or unresolvable refresh
+        credential, or a revoked/expired session: clear cookie and return 204 without CSRF.
+        An active session requires both its refresh credential and a valid context-bound
+        X-CSRF-Token before revocation. No Access Token is required. The empty security
+        alternative applies only to the no-active-session branch, never to active revocation.
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      security:
+        - refreshCookie: []
+          csrfHeader: []
+        - {}
+      responses:
+        '204':
+          description: Session absent or revoked; refresh cookie is cleared.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/ClearRefreshCookie' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+
+  /auth/logout-all:
+    post:
+      tags: [Session]
+      operationId: logoutAllSessions
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Every Refresh Token session for the authenticated User is revoked.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/ClearRefreshCookie' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+
+  /auth/oauth/{provider}/start:
+    get:
+      tags: [OAuth]
+      operationId: startOAuth
+      summary: Create a one-time OAuth transaction and redirect to an allowlisted provider
+      parameters:
+        - $ref: '#/components/parameters/Provider'
+      responses:
+        '302':
+          description: Redirect to provider authorization endpoint; transaction cookie is set.
+          headers:
+            Location: { schema: { type: string, format: uri } }
+            Set-Cookie:
+              description: Short-lived HttpOnly OAuth transaction binding cookie.
+              schema: { type: string }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/oauth/{provider}/callback:
+    get:
+      tags: [OAuth]
+      operationId: completeOAuthCallback
+      description: >-
+        Provider-facing callback. Query values are redacted from access/application logs. Success
+        either sets a refresh session or a bounded onboarding cookie, then redirects without an
+        internal token/code in the URL.
+      parameters:
+        - $ref: '#/components/parameters/Provider'
+        - name: code
+          in: query
+          required: false
+          schema: { type: string, minLength: 1, maxLength: 4096 }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string, minLength: 40, maxLength: 512 }
+        - name: error
+          in: query
+          required: false
+          schema: { type: string, maxLength: 100 }
+      responses:
+        '303':
+          description: Fixed allowlisted frontend result/onboarding redirect with no credential in URL.
+          headers:
+            Location: { schema: { type: string, format: uri } }
+            Set-Cookie:
+              description: Refresh cookie or pending-onboarding cookie; provider tokens are discarded.
+              schema: { type: string }
+        '400':
+          description: Invalid, expired, replayed, cancelled or provider-rejected transaction.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/social-onboarding:
+    get:
+      tags: [OAuth]
+      operationId: getSocialOnboarding
+      security:
+        - onboardingCookie: []
+      responses:
+        '200':
+          description: Safe onboarding state and session-bound CSRF token.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SocialOnboarding' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+
+  /auth/social-onboarding/email:
+    post:
+      tags: [OAuth]
+      operationId: submitSocialOnboardingEmail
+      security:
+        - onboardingCookie: []
+          csrfHeader: []
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmailRequest' }
+      responses:
+        '202':
+          description: Verification delivery accepted without exposing account/provider collision.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericAccepted' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/social-onboarding/verifications:
+    post:
+      tags: [OAuth]
+      operationId: resendSocialOnboardingVerification
+      security:
+        - onboardingCookie: []
+          csrfHeader: []
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      responses:
+        '202':
+          description: Generic resend response.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericAccepted' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/social-onboarding/verifications/confirm:
+    post:
+      tags: [OAuth]
+      operationId: confirmSocialOnboardingVerification
+      security:
+        - onboardingCookie: []
+          csrfHeader: []
+      parameters:
+        - name: Origin
+          in: header
+          required: true
+          schema: { type: string, format: uri }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProofRequest' }
+      responses:
+        '200':
+          description: User, identity and session created atomically; refresh cookie is set and onboarding cookie is cleared.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/RefreshSetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessSession' }
+        '400': { $ref: '#/components/responses/InvalidProofProblem' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+        '409':
+          description: After valid proof and browser binding only; generic ONBOARDING_CANNOT_COMPLETE for email/identity conflict, no account/provider detail, linking or partial account.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /me:
+    get:
+      tags: [Profile]
+      operationId: getMyProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Safe authenticated profile.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+    patch:
+      tags: [Profile]
+      operationId: updateMyProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdateRequest' }
+      responses:
+        '200':
+          description: Only displayName and phoneNumber may change.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /me/password:
+    post:
+      tags: [Profile]
+      operationId: changeMyPassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordChangeRequest' }
+      responses:
+        '204':
+          description: Password changed; every Refresh Token revoked and current cookie cleared.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/ClearRefreshCookie' }
+        '400':
+          description: Current password invalid or operation not applicable to social-only account.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /admin/customers:
+    get:
+      tags: [Admin]
+      operationId: listCustomers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: cursor
+          in: query
+          schema: { type: string, maxLength: 1024 }
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 100 }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/UserStatus' }
+      responses:
+        '200':
+          description: Keyset-paginated CUSTOMER-only result.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerPage' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '403': { $ref: '#/components/responses/AuthorizationProblem' }
+        '422': { $ref: '#/components/responses/ValidationProblem' }
+
+  /admin/customers/{customerId}:
+    get:
+      tags: [Admin]
+      operationId: getCustomerDetail
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Safe Customer detail without hash/token/secret.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminCustomer' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '403': { $ref: '#/components/responses/AuthorizationProblem' }
+        '404': { $ref: '#/components/responses/NotFoundProblem' }
+
+  /admin/customers/{customerId}/lock:
+    post:
+      tags: [Admin]
+      operationId: lockCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '204': { description: 'Customer locked, all sessions revoked, audit event appended.' }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '403': { $ref: '#/components/responses/AuthorizationProblem' }
+        '404': { $ref: '#/components/responses/NotFoundProblem' }
+
+  /admin/customers/{customerId}/unlock:
+    post:
+      tags: [Admin]
+      operationId: unlockCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '204': { description: Customer unlocked and audited; no old session is restored. }
+        '401': { $ref: '#/components/responses/AuthenticationProblem' }
+        '403': { $ref: '#/components/responses/AuthorizationProblem' }
+        '404': { $ref: '#/components/responses/NotFoundProblem' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: __Secure-wedding_rt
+      description: Production name; local development uses an unprefixed configured name.
+    onboardingCookie:
+      type: apiKey
+      in: cookie
+      name: __Secure-wedding_onboarding
+      description: Short-lived HttpOnly pending-onboarding binding.
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+
+  parameters:
+    Provider:
+      name: provider
+      in: path
+      required: true
+      schema: { type: string, enum: [google, facebook] }
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  headers:
+    RefreshSetCookie:
+      description: Host-only HttpOnly refresh cookie; Secure in production; no Domain; bounded Max-Age.
+      schema: { type: string }
+    ClearRefreshCookie:
+      description: Same cookie attributes with Max-Age=0.
+      schema: { type: string }
+
+  responses:
+    AuthenticationProblem:
+      description: Missing, invalid, expired or revoked authentication credential.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InvalidCredentialsProblem:
+      description: Generic invalid credentials response that does not disclose account existence/status.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    AuthorizationProblem:
+      description: Authenticated principal lacks required role or policy permission.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CsrfProblem:
+      description: Missing/invalid Origin or session-bound CSRF token.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InvalidProofProblem:
+      description: Generic invalid, expired, used, revoked or wrong-purpose proof.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationProblem:
+      description: Request validation failed without echoing secret values.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    RateLimitedProblem:
+      description: Bounded authentication rate exceeded.
+      headers:
+        Retry-After: { schema: { type: integer, minimum: 1 } }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFoundProblem:
+      description: Resource not found or hidden by non-enumerating policy.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 8, maxLength: 128, writeOnly: true }
+    EmailRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+    ProofRequest:
+      type: object
+      additionalProperties: false
+      required: [proof]
+      properties:
+        proof: { type: string, minLength: 40, maxLength: 512, writeOnly: true }
+    PasswordResetConfirmRequest:
+      type: object
+      additionalProperties: false
+      required: [proof, newPassword]
+      properties:
+        proof: { type: string, minLength: 40, maxLength: 512, writeOnly: true }
+        newPassword: { type: string, minLength: 8, maxLength: 128, writeOnly: true }
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 1, maxLength: 128, writeOnly: true }
+    PasswordChangeRequest:
+      type: object
+      additionalProperties: false
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string, minLength: 1, maxLength: 128, writeOnly: true }
+        newPassword: { type: string, minLength: 8, maxLength: 128, writeOnly: true }
+    ProfileUpdateRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        displayName:
+          oneOf:
+            - { type: string, minLength: 1, maxLength: 100 }
+            - { type: 'null' }
+        phoneNumber:
+          oneOf:
+            - { type: string, minLength: 1, maxLength: 32 }
+            - { type: 'null' }
+    GenericAccepted:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message:
+          type: string
+          const: If the request is eligible, follow the instructions sent to the email address.
+    CsrfToken:
+      type: object
+      additionalProperties: false
+      required: [csrfToken]
+      properties:
+        csrfToken: { type: string, minLength: 40, maxLength: 512 }
+    AccessSession:
+      type: object
+      additionalProperties: false
+      required: [accessToken, tokenType, expiresIn, csrfToken, user]
+      properties:
+        accessToken: { type: string }
+        tokenType: { type: string, const: Bearer }
+        expiresIn: { type: integer, const: 900 }
+        csrfToken: { type: string }
+        user: { $ref: '#/components/schemas/UserProfile' }
+    SocialOnboarding:
+      type: object
+      additionalProperties: false
+      required: [provider, status, expiresAt, csrfToken]
+      properties:
+        provider: { $ref: '#/components/schemas/Provider' }
+        status:
+          type: string
+          enum: [PENDING_EMAIL, PENDING_VERIFICATION]
+        emailCandidate:
+          oneOf:
+            - { type: string, format: email }
+            - { type: 'null' }
+        expiresAt: { type: string, format: date-time }
+        csrfToken: { type: string }
+    UserProfile:
+      type: object
+      additionalProperties: false
+      required:
+        [id, email, emailVerified, loginMethod, role, status, displayName, phoneNumber, avatarUrl]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        emailVerified: { type: boolean }
+        loginMethod: { $ref: '#/components/schemas/LoginMethod' }
+        role: { $ref: '#/components/schemas/UserRole' }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        displayName:
+          oneOf: [{ type: string }, { type: 'null' }]
+        phoneNumber:
+          oneOf: [{ type: string }, { type: 'null' }]
+        avatarUrl:
+          oneOf: [{ type: string, format: uri }, { type: 'null' }]
+    AdminCustomer:
+      type: object
+      additionalProperties: false
+      required:
+        [id, email, emailVerified, loginMethod, role, status, displayName, phoneNumber, avatarUrl, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        emailVerified: { type: boolean }
+        loginMethod: { $ref: '#/components/schemas/LoginMethod' }
+        role: { $ref: '#/components/schemas/UserRole' }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        displayName:
+          oneOf: [{ type: string }, { type: 'null' }]
+        phoneNumber:
+          oneOf: [{ type: string }, { type: 'null' }]
+        avatarUrl:
+          oneOf: [{ type: string, format: uri }, { type: 'null' }]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CustomerPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AdminCustomer' }
+        page:
+          type: object
+          additionalProperties: false
+          required: [hasMore, nextCursor]
+          properties:
+            hasMore: { type: boolean }
+            nextCursor:
+              oneOf: [{ type: string }, { type: 'null' }]
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [type, title, status, code, requestId]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string }
+        code: { type: string, pattern: '^[A-Z][A-Z0-9_]+$' }
+        requestId: { type: string, maxLength: 100 }
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [field, code]
+            properties:
+              field: { type: string }
+              code: { type: string }
+    Provider:
+      type: string
+      enum: [GOOGLE, FACEBOOK]
+    LoginMethod:
+      type: string
+      enum: [LOCAL, GOOGLE, FACEBOOK]
+    UserRole:
+      type: string
+      enum: [CUSTOMER, ADMIN]
+    UserStatus:
+      type: string
+      enum: [ACTIVE, LOCKED]

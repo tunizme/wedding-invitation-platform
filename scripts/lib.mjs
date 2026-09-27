@@ -4,6 +4,20 @@ import { spawn } from 'node:child_process';
 
 export const rootDirectory = new URL('../', import.meta.url).pathname;
 
+export function parseEnvValue(raw) {
+  if (raw.length >= 2 && raw.startsWith("'") && raw.endsWith("'")) {
+    return raw.slice(1, -1);
+  }
+  if (raw.length >= 2 && raw.startsWith('"') && raw.endsWith('"')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return raw.slice(1, -1);
+    }
+  }
+  return raw;
+}
+
 export function parseEnvFile(path) {
   if (!existsSync(path)) return {};
   return Object.fromEntries(
@@ -12,7 +26,10 @@ export function parseEnvFile(path) {
       .filter((line) => line && !line.trimStart().startsWith('#') && line.includes('='))
       .map((line) => {
         const index = line.indexOf('=');
-        return [line.slice(0, index).trim(), line.slice(index + 1).trim()];
+        return [
+          line.slice(0, index).trim(),
+          parseEnvValue(line.slice(index + 1).trim()),
+        ];
       }),
   );
 }

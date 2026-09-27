@@ -1,15 +1,23 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ProblemFilter } from './common/errors/problem.filter';
+import { requestValidationPipe } from './common/errors/validation';
 
 export async function createApplication() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
   app.setGlobalPrefix('api/v1');
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
-  app.enableCors({ origin: config.getOrThrow<string>('FRONTEND_ORIGIN') });
+  app.useGlobalPipes(requestValidationPipe());
+  app.useGlobalFilters(new ProblemFilter());
+  app.enableCors({
+    origin: config.getOrThrow<string>('FRONTEND_ORIGIN'),
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-CSRF-Token'],
+    exposedHeaders: ['Retry-After'],
+  });
   app.enableShutdownHooks();
 
   const openApi = new DocumentBuilder()

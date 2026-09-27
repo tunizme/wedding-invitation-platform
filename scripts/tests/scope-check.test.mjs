@@ -13,5 +13,13 @@ test('scope scanner only covers source and direct manifests', () => {
 
 test('scope scanner recognizes excluded feature implementation terms', () => {
   assert.equal(hasForbiddenScope('const vnpayClient = createClient()'), true);
+  assert.equal(hasForbiddenScope('invitation editor'), true);
+  assert.equal(hasForbiddenScope('payment provider'), true);
   assert.equal(hasForbiddenScope('export class HealthService {}'), false);
+});
+
+test('approved IAM authentication and authorization are in scope', () => {
+  assert.equal(hasForbiddenScope('authentication authorization'), false);
+  assert.equal(hasForbiddenScope('Google Facebook email verification'), false);
+  assert.equal(hasForbiddenScope('authentication with payment provider'), true);
 });

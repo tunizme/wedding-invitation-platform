@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --configLoader runner --project unit",
     "test:integration": "vitest run --configLoader runner --project integration",
+    "test:contract": "vitest run --configLoader runner --project contract",
+    "test:iam": "vitest run --configLoader runner --project unit --project contract --project integration identity-access",
     "migration:create": "typeorm-ts-node-commonjs migration:create",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate src/infrastructure/database/migrations/Generated -d src/infrastructure/database/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/database/data-source.ts",
@@ -19,6 +21,12 @@
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infrastructure/database/data-source.ts"
   },
   "dependencies": {
+    "@nestjs/jwt": "12.0.2",
+    "argon2": "0.45.1",
+    "google-auth-library": "11.1.0",
+    "jsonwebtoken": "9.0.3",
+    "nodemailer": "10.0.10",
+    "resend": "6.28.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -34,6 +42,12 @@
     "typeorm": "^0.3.27"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/nodemailer": "8.0.2",
+    "@apidevtools/swagger-parser": "13.1.0",
+    "ajv": "8.18.0",
+    "ajv-formats": "3.0.1",
+    "js-yaml": "4.3.2",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
     "@types/express": "^5.0.0",

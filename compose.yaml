@@ -1,6 +1,18 @@
 name: ${COMPOSE_PROJECT_NAME:-wedding-foundation}
 
 services:
+  mailpit:
+    image: axllent/mailpit:v1.31.2
+    ports:
+      - '127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025'
+      - '127.0.0.1:${MAILPIT_HTTP_PORT:-8025}:8025'
+    environment:
+      MP_MAX_MESSAGES: 500
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 2s
+      timeout: 3s
+      retries: 20
   postgres:
     image: postgres:17-alpine
     environment:
@@ -8,13 +20,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-wedding_local}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
-          "CMD-SHELL",
+          'CMD-SHELL',
           "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} && grep -qx '1' /var/lib/postgresql/data/postmaster.pid",
         ]
       interval: 2s
@@ -34,16 +46,16 @@ services:
       FRONTEND_ORIGIN: http://web:3000
     command:
       [
-        "node",
-        "apps/api/node_modules/typeorm/cli.js",
-        "migration:run",
-        "-d",
-        "apps/api/dist/infrastructure/database/data-source.js",
+        'node',
+        'apps/api/node_modules/typeorm/cli.js',
+        'migration:run',
+        '-d',
+        'apps/api/dist/infrastructure/database/data-source.js',
       ]
     depends_on:
       postgres:
         condition: service_healthy
-    restart: "no"
+    restart: 'no'
 
   api:
     profiles: [ci]
@@ -51,17 +63,26 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     environment:
+      NODE_ENV: test
       DATABASE_URL: postgresql://${POSTGRES_USER:-wedding_local}:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/${POSTGRES_DB:-wedding_local}
       FRONTEND_ORIGIN: http://web:3000
       API_PORT: 3001
+      IAM_SMTP_HOST: mailpit
+    command:
+      [
+        'node',
+        'apps/api/scripts/with-test-iam.cjs',
+        'node',
+        'apps/api/dist/main.js',
+      ]
     ports:
-      - "127.0.0.1:${API_PORT:-3001}:3001"
+      - '127.0.0.1:${API_PORT:-3001}:3001'
     healthcheck:
       test:
         [
-          "CMD",
-          "node",
-          "-e",
+          'CMD',
+          'node',
+          '-e',
           "fetch('http://localhost:3001/api/v1/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 2s
@@ -70,6 +91,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
 
   web:
     profiles: [ci]
@@ -83,13 +106,13 @@ services:
       WEB_PORT: 3000
       HOSTNAME: 0.0.0.0
     ports:
-      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+      - '127.0.0.1:${WEB_PORT:-3000}:3000'
     healthcheck:
       test:
         [
-          "CMD",
-          "node",
-          "-e",
+          'CMD',
+          'node',
+          '-e',
           "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 2s

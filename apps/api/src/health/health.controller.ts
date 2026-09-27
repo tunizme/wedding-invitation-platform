@@ -1,9 +1,12 @@
-import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { HealthService } from './health.service';
+import { Public } from '../modules/identity-access/authorization/auth.guard';
 
 @ApiTags('health')
 @Controller('health')
+@Public()
 export class HealthController {
   constructor(private readonly health: HealthService) {}
 
@@ -18,10 +21,10 @@ export class HealthController {
   @ApiOperation({ summary: 'PostgreSQL-aware readiness probe' })
   @ApiResponse({ status: 200 })
   @ApiResponse({ status: 503 })
-  async readiness() {
+  async readiness(@Res({ passthrough: true }) response: Response) {
     const result = await this.health.readiness();
     if (result.status === 'not_ready') {
-      throw new HttpException(result, HttpStatus.SERVICE_UNAVAILABLE);
+      response.status(503);
     }
     return result;
   }

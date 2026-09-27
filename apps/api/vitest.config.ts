@@ -7,8 +7,20 @@ const shared = {
 
 export default defineConfig({
   test: {
+    passWithNoTests: false,
     projects: [
-      { test: { ...shared, name: 'unit', include: ['test/unit/**/*.spec.ts'] } },
+      {
+        test: { ...shared, name: 'unit', include: ['test/unit/**/*.spec.ts'] },
+      },
+      {
+        test: {
+          ...shared,
+          name: 'contract',
+          include: ['test/contract/**/*.spec.ts'],
+          testTimeout: 30_000,
+          hookTimeout: 30_000,
+        },
+      },
       {
         test: {
           ...shared,
