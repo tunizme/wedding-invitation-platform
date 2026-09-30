@@ -266,18 +266,18 @@ PostgreSQL dùng schema/database disposable riêng từng run, không tác độ
 
 ### Tests — viết trước implementation
 
-- [ ] T088 [P] [US10] Viết bốn Admin operations contract/search/filter/pagination/safe detail tại apps/api/test/contract/identity-access/admin.spec.ts.
-- [ ] T089 [P] [US10] Viết role/target/audit rollback/lock-login-refresh-reset races và repeated-request audit CHANGED/NO_CHANGE, audit-failure rollback integration tại apps/api/test/integration/identity-access/admin.spec.ts.
-- [ ] T090 [P] [US10] Viết Admin list/detail/lock/unlock/unauthorized UI tests tại apps/web/tests/identity-access/admin.test.tsx.
+- [X] T088 [P] [US10] Viết bốn Admin operations contract/search/filter/pagination/safe detail tại apps/api/test/contract/identity-access/admin.spec.ts.
+- [X] T089 [P] [US10] Viết role/target/audit rollback/lock-login-refresh-reset races và repeated-request audit CHANGED/NO_CHANGE, audit-failure rollback integration tại apps/api/test/integration/identity-access/admin.spec.ts.
+- [X] T090 [P] [US10] Viết Admin list/detail/lock/unlock/unauthorized UI tests tại apps/web/tests/identity-access/admin.test.tsx.
 
 ### Implementation
 
-- [ ] T091 [US10] Tạo bootstrap ADMIN operational command tại apps/api/src/modules/identity-access/admin/bootstrap-admin.command.ts và procedure docs/iam-operations.md; hidden password input, không CLI password/default secret, không ngầm promote existing Customer, ghi rõ verified-email provisioning.
-- [ ] T092 [US10] Triển khai keyset q/filter-bound cursor CUSTOMER query và safe detail tại apps/api/src/modules/identity-access/admin/customer-query.service.ts; test100k rows/2s tại apps/api/test/integration/identity-access/admin-performance.spec.ts.
-- [ ] T093 [US10] Triển khai actor/target UUID-order locks, status/revoke/audit atomic tại apps/api/src/modules/identity-access/admin/customer-status.service.ts; target chỉ CUSTOMER, audit cả no-op với requested action/previous-new status/outcome/request ID, lock luôn revoke toàn bộ; unlock không hồi sinh session.
-- [ ] T094 [US10] Expose role-guarded Admin routes tại apps/api/src/modules/identity-access/admin/customer.controller.ts; không delete/change-role/edit-profile.
-- [ ] T095 [US10] Tạo apps/web/src/app/admin/customers/page.tsx và apps/web/src/app/admin/customers/[customerId]/page.tsx với search/filter/cursor/loading/empty/error/confirmation.
-- [ ] T096 [US10] Kiểm thử bootstrap idempotency/privilege rejection/no secret trên disposable DB tại apps/api/test/integration/identity-access/bootstrap-admin.spec.ts.
+- [X] T091 [US10] Tạo bootstrap ADMIN operational command tại apps/api/src/modules/identity-access/admin/bootstrap-admin.command.ts và procedure docs/iam-operations.md; hidden password input, không CLI password/default secret, không ngầm promote existing Customer, ghi rõ verified-email provisioning.
+- [X] T092 [US10] Triển khai keyset q/filter-bound cursor CUSTOMER query và safe detail tại apps/api/src/modules/identity-access/admin/customer-query.service.ts; test100k rows/2s tại apps/api/test/integration/identity-access/admin-performance.spec.ts.
+- [X] T093 [US10] Triển khai actor/target UUID-order locks, status/revoke/audit atomic tại apps/api/src/modules/identity-access/admin/customer-status.service.ts; target chỉ CUSTOMER, audit cả no-op với requested action/previous-new status/outcome/request ID, lock luôn revoke toàn bộ; unlock không hồi sinh session.
+- [X] T094 [US10] Expose role-guarded Admin routes tại apps/api/src/modules/identity-access/admin/customer.controller.ts; không delete/change-role/edit-profile.
+- [X] T095 [US10] Tạo apps/web/src/app/admin/customers/page.tsx và apps/web/src/app/admin/customers/[customerId]/page.tsx với search/filter/cursor/loading/empty/error/confirmation.
+- [X] T096 [US10] Kiểm thử bootstrap idempotency/privilege rejection/no secret trên disposable DB tại apps/api/test/integration/identity-access/bootstrap-admin.spec.ts.
 
 **Checkpoint**: `pnpm validate:iam --phase US10` — timeout 15 phút; áp dụng cleanup theo Verification protocol. Chỉ đánh dấu hoàn tất khi đạt Independent Test và lưu evidence liên quan.
 
@@ -287,14 +287,14 @@ PostgreSQL dùng schema/database disposable riêng từng run, không tác độ
 
 **Independent Test**: Toàn critical flow, migration, browser security và independent CI có bằng chứng.
 
-- [ ] T097 Triển khai retention worker bounded batches/FK order/history safety/ciphertext cleanup tại apps/api/src/modules/identity-access/infrastructure/retention.worker.ts và tests apps/api/test/integration/identity-access/retention.spec.ts.
-- [ ] T098 Bổ sung full-flow registration→verify→login→refresh→profile→reset→Admin lock/unlock tại apps/api/test/integration/identity-access/full-flow.spec.ts; map72 FR/65 scenarios trong specs/003-identity-access-management/validation-results.md.
-- [ ] T099 Kiểm thử browser thật HTTPS same-site cookie/CORS/CSRF/multi-tab/OAuth handoff/memory-only storage; ghi procedure và actual evidence trong specs/003-identity-access-management/quickstart.md và specs/003-identity-access-management/validation-results.md.
-- [ ] T100 Kiểm tra app/proxy/tracing/callback/body logs và frontend bundle secret hygiene tại apps/api/test/integration/identity-access/secret-hygiene.spec.ts; sửa redaction/no-store tại apps/api/src/common/logging/redaction.ts.
-- [ ] T101 Đo p95 login/refresh/profile dưới 500ms, Admin search SC-010 và usability SC-002/003/013 theo protocol end-to-end đã xác nhận, tối thiểu 20 người riêng biệt mỗi flow, không loại mail/provider waiting; ghi sample size/môi trường/provider timing/results vào specs/003-identity-access-management/validation-results.md; không suy ra usability pass từ unit tests.
-- [ ] T102 Cập nhật .github/workflows/ci.yml, compose.yaml và docs/ci.md cho contract/integration/ephemeral keys/Mailpit cleanup; giữ bốn jobs độc lập, không deploy/publish.
-- [ ] T103 Hoàn thiện README.md, docs/iam-operations.md và specs/003-identity-access-management/quickstart.md về domain/key rotation/old-key retention/mail failure/bootstrap/retention/rollback warning và commands thực tế.
-- [ ] T104 Chạy format/lint/typecheck/unit/contract/PostgreSQL integration/build/scope/health cùng empty/baseline migration qua scripts/iam-validate.mjs; lưu kết quả và limitations vào specs/003-identity-access-management/validation-results.md.
+- [X] T097 Triển khai retention worker bounded batches/FK order/history safety/ciphertext cleanup tại apps/api/src/modules/identity-access/infrastructure/retention.worker.ts và tests apps/api/test/integration/identity-access/retention.spec.ts.
+- [X] T098 Bổ sung full-flow registration→verify→login→refresh→profile→reset→Admin lock/unlock tại apps/api/test/integration/identity-access/full-flow.spec.ts; map72 FR/65 scenarios trong specs/003-identity-access-management/validation-results.md.
+- [ ] T099 **PENDING — user-deferred** Kiểm thử browser thật HTTPS same-site cookie/CORS/CSRF/multi-tab/OAuth handoff/memory-only storage; ghi procedure và actual evidence trong specs/003-identity-access-management/quickstart.md và specs/003-identity-access-management/validation-results.md.
+- [X] T100 Kiểm tra app/proxy/tracing/callback/body logs và frontend bundle secret hygiene tại apps/api/test/integration/identity-access/secret-hygiene.spec.ts; sửa redaction/no-store tại apps/api/src/common/logging/redaction.ts.
+- [ ] T101 **PENDING — user-deferred** Đo p95 login/refresh/profile dưới 500ms, Admin search SC-010 và usability SC-002/003/013 theo protocol end-to-end đã xác nhận, tối thiểu 20 người riêng biệt mỗi flow, không loại mail/provider waiting; ghi sample size/môi trường/provider timing/results vào specs/003-identity-access-management/validation-results.md; không suy ra usability pass từ unit tests.
+- [X] T102 Cập nhật .github/workflows/ci.yml, compose.yaml và docs/ci.md cho contract/integration/ephemeral keys/Mailpit cleanup; giữ bốn jobs độc lập, không deploy/publish.
+- [X] T103 Hoàn thiện README.md, docs/iam-operations.md và specs/003-identity-access-management/quickstart.md về domain/key rotation/old-key retention/mail failure/bootstrap/retention/rollback warning và commands thực tế.
+- [X] T104 Chạy format/lint/typecheck/unit/contract/PostgreSQL integration/build/scope/health cùng empty/baseline migration qua scripts/iam-validate.mjs; lưu kết quả và limitations vào specs/003-identity-access-management/validation-results.md.
 
 **Checkpoint**: `pnpm validate:iam --phase all` — timeout 30 phút; áp dụng cleanup theo Verification protocol. Chỉ đánh dấu hoàn tất khi đạt Independent Test và lưu evidence liên quan.
 
@@ -411,3 +411,16 @@ US1 riêng chỉ là demo đăng ký/gửi email, chưa phải IAM dùng đượ
 - [X] T108 Fail closed khi `ExternalIdentity.provider` không khớp với `User.login_method` được liên kết, không cấp session hoặc tạo account thay thế, đồng thời bổ sung integration coverage cho quan hệ linked-user bị thiếu hoặc không nhất quán trong `apps/api/src/modules/identity-access/application/resolve-social-identity.service.ts` và `apps/api/test/integration/identity-access/google.spec.ts`, per FR-002, BR-004 và `spec.md` Edge Cases về tính toàn vẹn social identity (partial)
 - [X] T109 Đảm bảo thay đổi khi resolve OAuth và chuyển `OAuthTransaction` đã claim từ `PROCESSING` sang `CONSUMED` diễn ra trong cùng transaction cho các kết quả existing-session, new-account và onboarding; bổ sung kiểm thử inject lỗi finalization để chứng minh không còn `User`, `ExternalIdentity`, `Session` hoặc onboarding context mồ côi trong `apps/api/src/modules/identity-access/oauth/oauth.controller.ts`, `apps/api/src/modules/identity-access/oauth/oauth-transaction.service.ts` và các OAuth integration suite, per BR-004 và `plan.md` cross-cutting transaction rules (partial)
 - [X] T110 Thực thi các luồng đăng nhập lần đầu, đăng nhập lặp lại và provider từ chối bằng Facebook test app thật theo chính sách direct-email/fallback hiện tại; sau đó ghi lại evidence đã loại bỏ dữ liệu nhạy cảm và phiên bản Graph API được kiểm thử, không chứa secret, trong `specs/003-identity-access-management/validation-results.md`, per T081, FR-064 và SC-012 (missing)
+
+---
+
+## Phase 16: Convergence
+
+**Mục đích**: Khép các khoảng trống release evidence, CI portability và retention lifecycle còn lại sau Phase 13–15.
+
+- [X] T111 **CRITICAL** Làm cho health validation chạy đúng trên cả local Docker Compose và GitHub Actions service-container: cho `scripts/health-check.mjs` probe PostgreSQL trực tiếp qua cấu hình rõ ràng trong CI mà không log connection secret, vẫn giữ Compose probe cho local; bổ sung regression coverage và cập nhật `.github/workflows/ci.yml` để `node apps/api/scripts/with-test-iam.cjs pnpm validate:iam --phase all` thực sự pass/fail theo dependency readiness, per Constitution III/V, `plan.md` independent deployable/CI decisions và T102/T104 (contradicts)
+- [ ] T112 **PENDING — user-deferred** Hoàn tất T099 bằng cách chạy browser thật trên deployment HTTPS production-like với sibling same-site domains; xác minh cookie HttpOnly/Secure, exact-origin CORS, CSRF allow/deny, multi-tab refresh coordination, OAuth handoff không mang token trong URL và access token chỉ ở memory, rồi ghi procedure, môi trường và sanitized actual evidence vào `specs/003-identity-access-management/quickstart.md` và `specs/003-identity-access-management/validation-results.md`, per FR-045, FR-062, SC-011 và T099 (missing)
+- [ ] T113 **PENDING — user-deferred** Hoàn tất phần usability còn thiếu của T101 bằng protocol end-to-end với tối thiểu 20 người riêng biệt cho từng flow LOCAL registration, Google/Facebook login và conflict/onboarding failure; tính thời gian gồm mail/provider waiting, ghi sample size/pass rate/provider timing/môi trường và chứng minh ngưỡng SC-002/SC-003/SC-013 trong `specs/003-identity-access-management/validation-results.md`, không suy diễn từ automated tests, per T101 (missing)
+- [X] T114 Materialize hoặc cleanup an toàn các `auth_challenges` `ACTIVE`/`PENDING_DELIVERY` đã quá hạn trước khi áp dụng retention, bảo toàn outbox/FK ordering và cho phép xóa pending onboarding hết hạn; bổ sung integration coverage cho challenge expiry, linked outbox và bounded batches trong `apps/api/src/modules/identity-access/infrastructure/retention.worker.ts` và `apps/api/test/integration/identity-access/retention.spec.ts`, per `plan.md` retention decision, data-model Challenge retention và T097 (partial)
+- [X] T115 Khôi phục lifecycle cho `oauth_transactions` `PENDING`/`PROCESSING` bị stale sau expiry hoặc worker/process crash: chuyển sang terminal state có điều kiện, xóa PKCE ciphertext/key metadata ngay khi terminal và purge theo bounded 24-hour policy; bổ sung concurrency/crash regression tests chứng minh transaction đang xử lý hợp lệ không bị thu hồi, per FR-020, FR-061, `plan.md` retention decision và T097 (partial)
+- [X] T116 Ghi structured retention failure metrics gồm `failure=true`, duration và safe per-run counts khi transaction cleanup rollback/fail, đồng thời giữ lỗi retryable cho scheduler và không lộ SQL/secret; bổ sung tests cho success, injected failure, rollback và chu kỳ kế tiếp trong retention worker suite, per `plan.md` observability/retention decision, data-model cleanup metrics và T097 (partial)

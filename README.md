@@ -2,7 +2,8 @@
 
 Monorepo nền tảng cho sản phẩm tạo thiệp cưới online. Frontend là Next.js + TypeScript; backend là NestJS modular monolith + TypeScript, cung cấp REST API; PostgreSQL local chạy bằng Docker Compose.
 
-Foundation chưa chứa Authentication, Authorization, Invitation Editor, payment hoặc VNPay integration.
+Repository hiện có bounded module Identity & Access Management (IAM). Invitation Editor, payment
+và VNPay vẫn ngoài phạm vi.
 
 ## Prerequisites
 
@@ -103,6 +104,34 @@ Health response không chứa credential, connection string, internal host, stac
 
 Không commit actual env files hoặc secret. Frontend và backend fail fast với tên field cùng hướng khắc phục khi required config thiếu/sai, không echo secret value.
 
+## Identity & Access Management
+
+IAM hỗ trợ LOCAL registration/email verification/password recovery, Google/Facebook login,
+refresh rotation, profile và Admin Customer lock/unlock. Access Token chỉ ở browser memory;
+Refresh Token là opaque HttpOnly cookie. PostgreSQL giữ identity, session history, proof, outbox,
+rate-limit và audit; Mailpit chỉ dùng local/CI.
+
+```bash
+# Local infrastructure and explicit migration
+POSTGRES_PORT=55432 pnpm infra:up
+pnpm --filter @wedding/api migration:run
+
+# Disposable PostgreSQL validation (never point this at production)
+IAM_TEST_DATABASE_URL=postgresql://wedding_local:local-development-only@127.0.0.1:55432/wedding_local \
+  node apps/api/scripts/with-test-iam.cjs pnpm validate:iam --phase all
+
+# Local SMTP/Mailpit smoke after API build
+pnpm build:api
+IAM_TEST_DATABASE_URL=postgresql://wedding_local:local-development-only@127.0.0.1:55432/wedding_local \
+  pnpm validate:iam:mail
+```
+
+`validate:iam` creates and drops only its random `iam_test_*` schema. IAM migration rollback is
+guarded for such disposable test schemas and must not be used to remove production IAM history.
+Key rotation, bootstrap ADMIN, mail failure, retention and recovery procedures are in
+`docs/iam-operations.md`; complete validation and browser/usability limitations are in
+`specs/003-identity-access-management/quickstart.md`.
+
 ## Troubleshooting
 
 ### Missing hoặc invalid configuration
@@ -148,7 +177,7 @@ pnpm build
 pnpm scope:check
 ```
 
-GitHub Actions có bốn independent jobs: `frontend-checks`, `backend-checks`, `backend-integration`, `full-stack-health`. Workflow không deploy, publish artifact hoặc chạy business E2E. Merge enforcement là optional trong rapid development; `.github/rulesets/main.json` chỉ là dormant future template. Chính sách xem xét lại và hướng dẫn opt-in nằm tại `docs/ci.md`.
+GitHub Actions có bốn independent jobs: `frontend-checks`, `backend-checks`, `backend-integration`, `full-stack-health`. IAM integration dùng PostgreSQL/Mailpit disposable và ephemeral keys; workflow không deploy hoặc publish artifact. Merge enforcement là optional trong rapid development; `.github/rulesets/main.json` chỉ là dormant future template. Chính sách xem xét lại và hướng dẫn opt-in nằm tại `docs/ci.md`.
 
 Protocol nhiều participant tại `docs/onboarding-validation.md` là optional future usability study,
 không phải completion gate của rapid development.

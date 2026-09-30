@@ -14,6 +14,7 @@
     "test:integration": "vitest run --configLoader runner --project integration",
     "test:contract": "vitest run --configLoader runner --project contract",
     "test:iam": "vitest run --configLoader runner --project unit --project contract --project integration identity-access",
+    "bootstrap:admin": "ts-node src/modules/identity-access/admin/bootstrap-admin.command.ts",
     "migration:create": "typeorm-ts-node-commonjs migration:create",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate src/infrastructure/database/migrations/Generated -d src/infrastructure/database/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/database/data-source.ts",

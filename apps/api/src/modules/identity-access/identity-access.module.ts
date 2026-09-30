@@ -40,6 +40,10 @@ import { OAuthController } from './oauth/oauth.controller';
 import { ProfileService } from './profile/profile.service';
 import { ChangePasswordService } from './profile/change-password.service';
 import { ProfileController } from './profile/profile.controller';
+import { CustomerController } from './admin/customer.controller';
+import { CustomerQueryService } from './admin/customer-query.service';
+import { CustomerStatusService } from './admin/customer-status.service';
+import { RetentionWorker } from './infrastructure/retention.worker';
 
 export { AuthGuard, Public } from './authorization/auth.guard';
 export { Roles, RolesGuard } from './authorization/roles.guard';
@@ -61,8 +65,26 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
     SocialOnboardingController,
     OAuthController,
     ProfileController,
+    CustomerController,
   ],
   providers: [
+    {
+      provide: RetentionWorker,
+      inject: [DataSource, IDENTITY_CONFIG],
+      useFactory: (db: DataSource, config: IdentityEnvironment) =>
+        new RetentionWorker(db, config),
+    },
+    {
+      provide: CustomerQueryService,
+      inject: [DataSource, IDENTITY_CONFIG],
+      useFactory: (db: DataSource, config: IdentityEnvironment) =>
+        new CustomerQueryService(db, config),
+    },
+    {
+      provide: CustomerStatusService,
+      inject: [DataSource],
+      useFactory: (db: DataSource) => new CustomerStatusService(db),
+    },
     {
       provide: ProfileService,
       inject: [DataSource],

@@ -583,3 +583,108 @@ Graph version. It did not retain or print the Facebook account, email, provider 
 authorization code, access token, app ID, app secret, state or browser-binding value.
 This completes T110 and supplies Facebook evidence for FR-064/SC-012; automated adapter
 coverage continues to validate the missing/invalid-email fallback policy separately.
+
+## 2026-09-28 — Phase 13 automated implementation and evidence status
+
+Retention now runs as an application lifecycle worker with validated policy bounds and at most
+1,000 rows per relation per cycle. PostgreSQL coverage verifies outbox → challenge → onboarding
+and refresh credential → session deletion order, terminal OAuth ciphertext cleanup, bounded work,
+metrics shape and preservation of refresh history inside the reuse window.
+
+The cross-slice test executes registration → delivered email verification → pre/post-verification
+login → refresh rotation → profile mutation → password reset/session revocation → Admin lock and
+unlock/audit → required re-login. Secret-hygiene coverage strips callback query/fragment and log
+control data, rejects raw request/error logging patterns, requires API `no-store`, checks frontend
+environment reads and scans an existing browser bundle for backend secret markers. CI retains four
+independent jobs; backend integration now uses PostgreSQL 17, pinned Mailpit, ephemeral IAM keys,
+the all-phase runner and recipient-scoped mail cleanup.
+
+### Requirements and acceptance mapping
+
+The 72 functional requirements are mapped without treating a grouped row as a reduced count:
+
+| Requirement IDs | Primary automated/runtime evidence |
+| --- | --- |
+| FR-001–FR-007 | foundation schema/guards, authorization matrix, Admin bootstrap/status suites |
+| FR-008–FR-016 | registration and login contract/integration/UI suites |
+| FR-017–FR-033 | Google, Facebook and social-onboarding contract/integration/UI suites |
+| FR-034–FR-045 | session, refresh/reuse, revocation-race and browser-security suites |
+| FR-046–FR-052 | profile/password contract/integration/UI suites |
+| FR-053–FR-060 | authorization/ownership and Admin query/status/audit suites |
+| FR-061–FR-065 | secret hygiene, deployment-shape procedure, phase runner, provider evidence and migration suites |
+| FR-066–FR-070 | verification, recovery and recovery-race suites |
+| FR-071 | atomic social completion and proof-consumption suites |
+| FR-072 | generic registration response and duplicate-email suites |
+
+All 65 numbered acceptance scenarios are mapped by their owning story and exact suite family:
+
+| Story scenarios | Count | Evidence |
+| --- | ---: | --- |
+| US1 registration | 6 | `registration.spec.ts`, `register.test.tsx` |
+| US2 verification/recovery | 7 | `verification.spec.ts`, `recovery-races.spec.ts`, `verification.test.tsx` |
+| US3 local login | 6 | `login.spec.ts`, `login.test.tsx` |
+| US4 session lifecycle | 8 | `session.spec.ts`, `revocation-races.spec.ts`, `session.test.tsx` |
+| US5 social onboarding | 6 | `social-onboarding.spec.ts`, `social-onboarding.test.tsx` |
+| US6 Google | 7 | `google.spec.ts`, `google.test.tsx`, sanitized real-provider record above |
+| US7 Facebook | 6 | `facebook.spec.ts`, `facebook.test.tsx`, sanitized real-provider record above |
+| US8 profile/password | 7 | `profile.spec.ts`, `profile.test.tsx` |
+| US9 role/ownership | 5 | `authorization.spec.ts`, `authorization.test.tsx` |
+| US10 Admin Customer | 7 | `admin.spec.ts`, `admin-performance.spec.ts`, `bootstrap-admin.spec.ts`, `admin.test.tsx` |
+| **Total** | **65** | Full-flow regression crosses US1/2/3/4/8/10; no scenario is counted as browser/usability evidence. |
+
+### Evidence executed so far
+
+Environment: Node.js 24.21.0, PostgreSQL 17 on local loopback port 55432, runner-owned random
+schema, controlled email sender, provider doubles only for this Phase 13 automated run.
+
+| Check | Result |
+| --- | --- |
+| New Phase 13 focused PostgreSQL run | PASS: 8/8 tests across retention, full-flow, secret-hygiene and latency files |
+| Login/refresh/profile latency | PASS in integration environment: 20 samples per operation, each measured p95 below 500 ms |
+| Admin query SC-010 | Covered by 100,000-Customer PostgreSQL test with first filtered page required below 2 seconds |
+| `pnpm validate:iam --phase all` | PASS: 267/267 selected API tests, 60/60 IAM web tests, 25/25 API unit tests, 65/65 full web tests, 121/121 complete PostgreSQL integration tests |
+| Format/lint/typecheck/build/scope | PASS for both applications; production API/web builds and scope scan passed |
+| Migration/health | PASS: empty/foundation lifecycle coverage plus temporary compiled API/web and PostgreSQL health 4/4 (frontend 52 ms, API live 19 ms, ready 20 ms, PostgreSQL 167 ms) |
+| Compiled API → SMTP → Mailpit | PASS: registration → verification → reset → login → refresh rotation → logout; recipient-scoped messages and random schema cleaned |
+| Production-like HTTPS browser matrix (T099) | **PENDING — user-deferred**: this workspace run has no deployed HTTPS sibling-domain environment/browser session; procedure is committed in quickstart, no automated inference recorded |
+| Usability SC-002/SC-003/SC-013 (T101) | **PENDING — user-deferred**: 20 distinct participants per flow and their mail/provider/UI timing have not been supplied or executed; sample size is 0, no pass rate inferred |
+
+The first all-phase attempt exposed a runner defect: a redundant complete integration pass used
+parallel workers against one shared schema, so suite cleanup deadlocked and mutated neighboring
+fixtures after the selected sequential pass had already passed 267/267. The runner now enforces
+`maxWorkers=1` for every shared-schema PostgreSQL pass and starts temporary compiled API/web
+processes before invoking the real health command. The corrected rerun produced the PASS results
+above and cleaned the schema/processes in `finally`.
+
+Mail smoke initially found a stale operational assertion expecting the pre-US9 JWT projection
+field `sub`; runtime now intentionally exposes immutable principal field `userId`. The smoke was
+updated to the current trust boundary and now reports a safe stage/status on failure without
+printing credentials or message content.
+
+T099 and T101 remain unchecked. T104 is complete for automated checks, but Phase 13 and Feature 003 are not declared
+release-ready even if the all-phase automated checkpoint passes. No extension hooks are configured
+(`.specify/extensions.yml` absent).
+
+## 2026-09-28 — Phase 16 automated convergence (T111, T114–T116)
+
+The root health runner now has two explicit PostgreSQL probe modes. Local and full-stack Compose
+validation retain the default `compose` probe; the `backend-integration` service-container job sets
+`DATABASE_HEALTH_MODE=direct` and uses the runner-owned `DATABASE_URL`. The direct probe uses the API
+PostgreSQL driver with bounded connect/query/statement timeouts, always closes its client and emits
+only a fixed safe failure message. Unit regression and an actual direct probe against PostgreSQL 17
+passed; `validate:iam --phase all` also exited successfully with direct mode, covering the temporary
+compiled API/web health stack without requiring a Compose-owned database container.
+
+Retention now terminalizes expired active/pending challenges and linked nonterminal outbox rows,
+materializes expired pending onboarding records, and then applies the existing bounded FK deletion
+order. Stale OAuth `PENDING` work expires immediately after TTL; `PROCESSING` work receives a
+one-minute in-flight grace period before crash recovery terminalizes it and clears PKCE ciphertext.
+Cleanup failures log structured `failure=true` metrics with duration and empty rolled-back counts,
+never the database error/URL, then rethrow so the scheduler can retry. The focused PostgreSQL suite
+passed 6/6, including injected rollback followed by a successful next run; API lint/typecheck and
+root health/validator tests also passed.
+
+T099/T112 and the usability portion of T101/T113 remain **PENDING — user-deferred** for the same external evidence
+requirements recorded above: no production-like HTTPS sibling-domain browser target is available,
+and no cohort of 20 distinct participants per flow has been supplied. No browser/usability pass is
+inferred from the automated results. No extension hooks are configured.

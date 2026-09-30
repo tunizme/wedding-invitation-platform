@@ -47,6 +47,17 @@ export interface IdentityEnvironment {
     verification: 86400;
     reset: 1800;
   }>;
+  retention: Readonly<{
+    batchSize: number;
+    oauthHours: number;
+    onboardingExpiredDays: number;
+    onboardingCompletedDays: number;
+    challengeDays: number;
+    sessionDays: number;
+    rateBucketHours: number;
+    outboxDays: number;
+    auditDays: number;
+  }>;
 }
 
 const invalid = (key: string): never => {
@@ -190,6 +201,43 @@ export function validateIdentityEnvironment(
     if (values[key] !== undefined && Number(values[key]) !== seconds)
       invalid(key);
   }
+  const boundedInteger = (
+    key: string,
+    fallback: number,
+    minimum: number,
+    maximum: number,
+  ) => {
+    const value = Number(values[key] ?? fallback);
+    if (!Number.isInteger(value) || value < minimum || value > maximum)
+      return invalid(key);
+    return value;
+  };
+  const retention = Object.freeze({
+    batchSize: boundedInteger('IAM_RETENTION_BATCH_SIZE', 1000, 1, 1000),
+    oauthHours: boundedInteger('IAM_RETENTION_OAUTH_HOURS', 24, 24, 168),
+    onboardingExpiredDays: boundedInteger(
+      'IAM_RETENTION_ONBOARDING_EXPIRED_DAYS',
+      7,
+      7,
+      30,
+    ),
+    onboardingCompletedDays: boundedInteger(
+      'IAM_RETENTION_ONBOARDING_COMPLETED_DAYS',
+      30,
+      30,
+      90,
+    ),
+    challengeDays: boundedInteger('IAM_RETENTION_CHALLENGE_DAYS', 30, 30, 90),
+    sessionDays: boundedInteger('IAM_RETENTION_SESSION_DAYS', 30, 30, 90),
+    rateBucketHours: boundedInteger(
+      'IAM_RETENTION_RATE_BUCKET_HOURS',
+      24,
+      24,
+      168,
+    ),
+    outboxDays: boundedInteger('IAM_RETENTION_OUTBOX_DAYS', 30, 30, 90),
+    auditDays: boundedInteger('IAM_RETENTION_AUDIT_DAYS', 730, 365, 730),
+  });
   return Object.freeze({
     production,
     issuer: required('IAM_JWT_ISSUER'),
@@ -212,5 +260,6 @@ export function validateIdentityEnvironment(
     facebookClientSecret: facebook.clientSecret,
     rates: Object.freeze(rates),
     ttl: Object.freeze(ttl),
+    retention,
   });
 }

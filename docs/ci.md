@@ -5,6 +5,20 @@ sát bốn kết quả độc lập: `frontend-checks`, `backend-checks`, `backe
 `full-stack-health`. Một check thất bại phải hiển thị failure domain tương ứng để sửa lỗi, nhưng
 rapid-development policy hiện tại không yêu cầu GitHub tự động chặn merge.
 
+`backend-integration` chạy PostgreSQL 17 và Mailpit đã pin, apply migration trên database CI,
+sau đó chạy `validate:iam --phase all` trong schema ngẫu nhiên do runner sở hữu. Job đặt
+`DATABASE_HEALTH_MODE=direct` để health runner kiểm tra GitHub service-container qua
+`DATABASE_URL`; local và `full-stack-health` giữ mặc định `compose` để kiểm tra container do
+project quản lý. Cả hai probe đều bounded và không in connection URL. IAM key/JWT key
+được tạo tạm trong process con bằng `with-test-iam.cjs`, không được lưu thành secret hay artifact.
+Mail smoke chỉ xóa message gửi tới địa chỉ ngẫu nhiên của chính lượt chạy; schema test luôn được
+drop trong `finally`. Job không xóa hoặc tái sử dụng persistent production data.
+
+`full-stack-health` vẫn là job thứ tư độc lập. Compose profile `ci` đợi PostgreSQL, migration,
+Mailpit, API và web theo dependency health; bước `if: always()` dừng container, xóa volume CI và
+orphan sau cả success lẫn failure. Workflow không có credential provider thật và không thay thế
+browser/real-provider/usability evidence.
+
 Thiếu repository ruleset không phải completion blocker trong giai đoạn này. File
 `.github/rulesets/main.json` chỉ là dormant desired-state template cho một quyết định tương lai;
 giá trị `enforcement: active` trong template không chứng minh repository đang có ruleset active.

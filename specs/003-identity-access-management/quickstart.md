@@ -198,6 +198,57 @@ If target domains are unrelated sites, stop: update plan/security contract inste
 
 Run cleanup in dry-run/controlled test mode with expired fixtures. Confirm bounded batches, configured retention, outbox ciphertext clearing and no deletion of refresh history before session reuse window closes. Observe duration/failure/row metrics and PostgreSQL autovacuum/bloat for high-churn tables.
 
+Automated coverage is `retention.spec.ts`. It creates only expired fixtures in the runner-owned
+schema, verifies FK deletion order, the 1,000-row upper bound, expired challenge/outbox/onboarding
+terminalization, stale OAuth crash recovery with an in-flight grace window, terminal ciphertext
+cleanup, structured rollback/failure metrics and preservation of session/refresh history still
+inside the reuse window. Production cleanup is not a manual SQL run; use the application worker
+and its safe metrics.
+
+## Production-like browser procedure
+
+This check must run against HTTPS frontend/API sibling domains under the same registrable domain,
+with test provider accounts and browser developer tools or an approved browser automation trace.
+Use fresh browser profiles and retain only sanitized assertions, never cookies/tokens/callback URLs.
+
+1. Register, verify and login. Confirm refresh cookie is host-only, `Secure`, `HttpOnly`,
+   `SameSite=Lax`, correct Path, and absent from `document.cookie`, localStorage, sessionStorage,
+   IndexedDB and Cache Storage. Confirm Access Token disappears after reload and is restored only
+   through CSRF bootstrap/refresh into memory.
+2. From the exact frontend origin, verify credentialed CORS and refresh. Repeat with missing and
+   hostile Origin, wildcard expectations, missing/wrong-context CSRF and a cross-site page; all
+   protected mutations must fail without changing session state.
+3. Open two tabs, force concurrent business requests and one refresh rotation. Confirm one
+   cross-tab refresh result, no token branch, no retry loop and safe login fallback after a lost
+   response.
+4. Run Google and Facebook first/repeat/rejected handoffs. Confirm provider code/state never reach
+   frontend history/storage/log evidence; redirects are fixed and the internal refresh/onboarding
+   cookie performs the handoff.
+5. Logout with active, expired and missing credentials. Confirm active logout requires CSRF,
+   no-session logout with allowed Origin is idempotent, and another session is untouched.
+6. Export a sanitized result matrix with browser/version, frontend/API origins, timestamp and
+   PASS/FAIL per assertion. Delete the test profile and log out provider accounts.
+
+If the domains are not same-site or HTTPS, stop and revise the approved security design; do not
+silently switch production cookies to `SameSite=None`.
+
+## Phase 13 all-phase validation
+
+```bash
+POSTGRES_PORT=55432 pnpm infra:up
+pnpm build:api
+IAM_TEST_DATABASE_URL=postgresql://wedding_local:local-development-only@127.0.0.1:55432/wedding_local \
+  node apps/api/scripts/with-test-iam.cjs pnpm validate:iam --phase all
+IAM_TEST_DATABASE_URL=postgresql://wedding_local:local-development-only@127.0.0.1:55432/wedding_local \
+  pnpm validate:iam:mail
+pnpm infra:down
+```
+
+The all runner checks required files, uses one random disposable schema, runs contract/integration
+and frontend regression, format/lint/typecheck/unit/build/scope/health, and always drops only its
+own schema. Provider, production-like browser and 20-participant usability evidence remain separate
+and must never be inferred from this automated PASS.
+
 ## Full-stack smoke and cleanup
 
 ```bash

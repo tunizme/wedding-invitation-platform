@@ -13,6 +13,9 @@ const {
   CredentialCrypto,
 } = require('../dist/modules/identity-access/infrastructure/credential-crypto');
 
+let safeStage = 'startup';
+let safeDetail = '';
+
 async function main() {
   if (
     process.env.NODE_ENV !== 'test' ||
@@ -32,6 +35,7 @@ async function main() {
   };
   const app = await createApplication();
   try {
+    safeStage = 'migration';
     const db = app.get(DataSource);
     await db.runMigrations();
     await app.listen(0, '127.0.0.1');
@@ -49,6 +53,7 @@ async function main() {
     );
     assert.equal(response.status, 202);
     assert.equal(response.headers.get('set-cookie'), null);
+    safeStage = 'verification-delivery';
     let messages = [];
     for (let attempt = 0; attempt < 60; attempt++) {
       messages = (await get(search)).messages;
@@ -89,6 +94,7 @@ async function main() {
         signal: AbortSignal.timeout(10000),
       });
     const awaitBase = await app.getUrl();
+    safeStage = 'verification-confirm';
     const verified = await post('email-verifications/confirm', { proof });
     assert.equal(verified.status, 204);
     assert.equal(verified.headers.get('set-cookie'), null);
@@ -106,6 +112,7 @@ async function main() {
     const resetRequest = await post('password-resets', { email });
     assert.equal(resetRequest.status, 202);
     assert.equal(resetRequest.headers.get('set-cookie'), null);
+    safeStage = 'reset-delivery';
     let resetMessage;
     for (let attempt = 0; attempt < 60; attempt++) {
       const found = (await get(search)).messages.find(
@@ -138,6 +145,7 @@ async function main() {
       createHash('sha256').update(resetProof).digest(),
     );
     const newPassword = '  Smoke replacement 🔐  ';
+    safeStage = 'reset-confirm';
     const resetResponse = await post('password-resets/confirm', {
       proof: resetProof,
       newPassword,
@@ -171,17 +179,22 @@ async function main() {
       ).status,
       400,
     );
+    safeStage = 'login';
     const login = await post('login', { email, password: newPassword });
+    safeDetail = `status-${login.status}`;
     assert.equal(login.status, 200);
+    safeStage = 'login-cookie';
     const cookie = login.headers.get('set-cookie');
     assert.match(cookie, /^wedding_rt=[A-Za-z0-9_-]+/);
     assert.match(cookie, /HttpOnly/i);
     assert.match(cookie, /Path=\/api\/v1\/auth/i);
     assert.match(cookie, /SameSite=Lax/i);
+    safeStage = 'login-body';
     const loginBody = await login.json();
     assert.equal(loginBody.tokenType, 'Bearer');
     assert.equal(loginBody.expiresIn, 900);
     assert.match(loginBody.csrfToken, /^[A-Za-z0-9_-]+$/);
+    safeStage = 'login-user-projection';
     assert.equal(loginBody.user.id, user.id);
     assert.equal(loginBody.user.email, email);
     assert.equal(loginBody.user.emailVerified, true);
@@ -204,10 +217,12 @@ async function main() {
     );
     assert.equal(loginBody.passwordHash, undefined);
     assert.equal(loginBody.refreshToken, undefined);
+    safeStage = 'login-access-token';
     assert.equal(
-      app.get(AccessTokenService).verify(loginBody.accessToken).sub,
+      app.get(AccessTokenService).verify(loginBody.accessToken).userId,
       user.id,
     );
+    safeStage = 'login-session-row';
     assert.equal(
       (
         await db.query(
@@ -218,6 +233,7 @@ async function main() {
       '1',
     );
     const loginCookie = cookie.match(/^([^;]+)/)[1];
+    safeStage = 'refresh';
     const csrfResponse = await fetch(`${awaitBase}/api/v1/auth/csrf`, {
       headers: { Cookie: loginCookie },
       signal: AbortSignal.timeout(10000),
@@ -241,6 +257,7 @@ async function main() {
     const refreshedCookie = refreshed.headers.get('set-cookie');
     assert.match(refreshedCookie, /^wedding_rt=[A-Za-z0-9_-]+/);
     assert.notEqual(refreshedCookie.match(/^([^;]+)/)[1], loginCookie);
+    safeStage = 'logout';
     const logout = await fetch(`${awaitBase}/api/v1/auth/logout`, {
       method: 'POST',
       headers: {
@@ -280,7 +297,7 @@ async function main() {
 }
 main().catch(() => {
   console.error(
-    'Registration Mailpit smoke failed (credentials and message content omitted).',
+    `Registration Mailpit smoke failed at ${safeStage}${safeDetail ? ` (${safeDetail})` : ''}; credentials and message content omitted.`,
   );
   process.exitCode = 1;
 });

@@ -60,7 +60,7 @@ const files = {
     api('integration', 'admin-performance'),
     api('integration', 'bootstrap-admin'),
   ],
-  all: ['retention', 'full-flow', 'secret-hygiene'].map((name) =>
+  all: ['retention', 'full-flow', 'secret-hygiene', 'performance'].map((name) =>
     api('integration', name),
   ),
 };
@@ -191,6 +191,79 @@ export async function withTestSchema({ databaseUrl, run, clientFactory } = {}) {
   }
 }
 
+async function waitForHealthy(url, deadline) {
+  let lastStatus;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(2_000),
+      });
+      lastStatus = response.status;
+      if (response.ok) return;
+    } catch {
+      lastStatus = 'unreachable';
+    }
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
+  }
+  throw new Error(`IAM validation health startup failed (${lastStatus})`);
+}
+
+async function withHealthStack({ env, deadline, run }) {
+  const children = [
+    spawn('pnpm', ['--filter', '@wedding/api', 'start'], {
+      cwd: root,
+      env,
+      stdio: 'inherit',
+      shell: false,
+      detached: process.platform !== 'win32',
+    }),
+    spawn('pnpm', ['--filter', '@wedding/web', 'start'], {
+      cwd: root,
+      env,
+      stdio: 'inherit',
+      shell: false,
+      detached: process.platform !== 'win32',
+    }),
+  ];
+  const stop = (child) => {
+    if (!child.pid || child.exitCode !== null) return;
+    try {
+      if (process.platform === 'win32') child.kill('SIGTERM');
+      else process.kill(-child.pid, 'SIGTERM');
+    } catch (error) {
+      if (error.code !== 'ESRCH') throw error;
+    }
+  };
+  try {
+    await Promise.all([
+      waitForHealthy('http://127.0.0.1:3001/api/v1/health/ready', deadline),
+      waitForHealthy('http://127.0.0.1:3000/api/health', deadline),
+    ]);
+    await run('pnpm', ['health'], env);
+  } finally {
+    for (const child of children) stop(child);
+    await Promise.all(
+      children.map(
+        (child) =>
+          new Promise((done) => {
+            if (child.exitCode !== null) done();
+            else child.once('exit', done);
+            setTimeout(() => {
+              if (child.exitCode === null) {
+                try {
+                  if (process.platform === 'win32') child.kill('SIGKILL');
+                  else process.kill(-child.pid, 'SIGKILL');
+                } catch {}
+              }
+              done();
+            }, 5_000).unref();
+          }),
+      ),
+    );
+  }
+}
+
 export async function validate(phase) {
   const required = phaseFiles(phase);
   assertRequiredFiles(required);
@@ -273,10 +346,25 @@ export async function validate(phase) {
               await run('pnpm', [command], env);
             await run(
               'pnpm',
-              ['--filter', '@wedding/api', 'test:integration'],
+              [
+                '--filter',
+                '@wedding/api',
+                'exec',
+                'vitest',
+                'run',
+                '--configLoader',
+                'runner',
+                '--project',
+                'integration',
+                '--maxWorkers=1',
+              ],
               env,
             );
-            await run('pnpm', ['health'], env);
+            await withHealthStack({
+              env: { ...process.env, ...env },
+              deadline,
+              run,
+            });
           }
         },
       });
