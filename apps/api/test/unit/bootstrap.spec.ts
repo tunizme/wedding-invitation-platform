@@ -11,7 +11,7 @@ describe('API bootstrap policy', () => {
 
   it('enables validation, CORS, and shutdown hooks', () => {
     expect(source).toContain('ValidationPipe');
-    expect(source).toContain('enableCors');
+    expect(source).toContain('configureRequestBoundaries');
     expect(source).toContain('enableShutdownHooks');
   });
 });

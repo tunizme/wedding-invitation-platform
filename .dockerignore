@@ -21,3 +21,6 @@ coverage/
 specs/
 .specify/
 .agents/
+.artifacts/
+**/playwright-report/
+**/test-results/

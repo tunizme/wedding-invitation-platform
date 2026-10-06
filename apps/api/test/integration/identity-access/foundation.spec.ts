@@ -12,8 +12,10 @@ import { RateLimitService } from '../../../src/modules/identity-access/infrastru
 describe.sequential('IAM schema foundation', () => {
   let db: DataSource;
   beforeAll(async () => {
-    if (!process.env.IAM_TEST_SCHEMA)
-      throw new Error('Use validate:iam with a disposable test schema');
+    if (!process.env.IAM_TEST_SCHEMA && !process.env.BUILDER_TEST_SCHEMA)
+      throw new Error(
+        'Use validate:iam or validate:builder with a disposable test schema',
+      );
     db = new DataSource(databaseOptions());
     await db.initialize();
     await db.runMigrations();
@@ -39,6 +41,16 @@ describe.sequential('IAM schema foundation', () => {
         'email_outbox',
         'admin_audit_events',
         'foundation_migrations',
+        'invitation_templates',
+        'template_design_revisions',
+        'invitations',
+        'assets',
+        'asset_storage_writes',
+        'template_draft_asset_refs',
+        'template_revision_asset_refs',
+        'invitation_asset_refs',
+        'publication_jobs',
+        'publication_job_asset_refs',
       ].sort(),
     );
     expect(db.options.synchronize).toBe(false);
@@ -210,6 +222,17 @@ describe.sequential('IAM schema foundation', () => {
   });
 
   it('reverts and reapplies IAM without removing the foundation history', async () => {
+    // Remove additive feature migrations first, then exercise the original IAM
+    // rollback. This still proves IAM reversal rather than just the latest file.
+    for (;;) {
+      const latest = await db.query<{ name: string }[]>(
+        'SELECT name FROM foundation_migrations ORDER BY id DESC LIMIT 1',
+      );
+      if (latest[0].name === 'IdentityAccess20260926000100') break;
+      if (latest[0].name === 'InitialFoundation20260923000000')
+        throw new Error('Missing IAM migration');
+      await db.undoLastMigration();
+    }
     await db.undoLastMigration();
     expect(await db.showMigrations()).toBe(true);
     const rows = await db.query<{ name: string }[]>(

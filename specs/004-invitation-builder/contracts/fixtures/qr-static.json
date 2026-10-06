@@ -1,0 +1,11 @@
+{
+  "input": {
+    "bin": "970436",
+    "account": "000123456789",
+    "recipientName": "NGUYEN MINH ANH",
+    "message": "Mung cuoi"
+  },
+  "payload": "00020101021138560010A0000007270126000697043601120001234567890208QRIBFTTA53037045802VN62130809Mung cuoi63041061",
+  "profile": "static-no-amount",
+  "source": "local fixture; no actual transfer; CRC independently calculated with Python binascii.crc_hqx"
+}

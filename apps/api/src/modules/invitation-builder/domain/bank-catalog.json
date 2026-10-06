@@ -1,0 +1,258 @@
+{
+  "version": "2026-10-01",
+  "source": "https://api.vietqr.io/v2/banks",
+  "banks": [
+    {
+      "bin": "422589",
+      "code": "CIMB",
+      "name": "Ngân hàng TNHH MTV CIMB Việt Nam",
+      "shortName": "CIMB"
+    },
+    {
+      "bin": "546034",
+      "code": "CAKE",
+      "name": "TMCP Việt Nam Thịnh Vượng - Ngân hàng số CAKE by VPBank",
+      "shortName": "CAKE"
+    },
+    {
+      "bin": "546035",
+      "code": "Ubank",
+      "name": "TMCP Việt Nam Thịnh Vượng - Ngân hàng số Ubank by VPBank",
+      "shortName": "Ubank"
+    },
+    {
+      "bin": "668888",
+      "code": "KBank",
+      "name": "Ngân hàng Đại chúng TNHH Kasikornbank",
+      "shortName": "KBank"
+    },
+    {
+      "bin": "963388",
+      "code": "TIMO",
+      "name": "Ngân hàng số Timo by Ban Viet Bank (Timo by Ban Viet Bank)",
+      "shortName": "Timo"
+    },
+    {
+      "bin": "970400",
+      "code": "SGICB",
+      "name": "Ngân hàng TMCP Sài Gòn Công Thương",
+      "shortName": "SaigonBank"
+    },
+    {
+      "bin": "970403",
+      "code": "STB",
+      "name": "Ngân hàng TMCP Sài Gòn Thương Tín",
+      "shortName": "Sacombank"
+    },
+    {
+      "bin": "970405",
+      "code": "VBA",
+      "name": "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam",
+      "shortName": "Agribank"
+    },
+    {
+      "bin": "970407",
+      "code": "TCB",
+      "name": "Ngân hàng TMCP Kỹ thương Việt Nam",
+      "shortName": "Techcombank"
+    },
+    {
+      "bin": "970409",
+      "code": "BAB",
+      "name": "Ngân hàng TMCP Bắc Á",
+      "shortName": "BacABank"
+    },
+    {
+      "bin": "970412",
+      "code": "PVCB",
+      "name": "Ngân hàng TMCP Đại Chúng Việt Nam",
+      "shortName": "PVcomBank"
+    },
+    {
+      "bin": "970414",
+      "code": "MBV",
+      "name": "Ngân hàng TNHH MTV Việt Nam Hiện Đại",
+      "shortName": "MBV"
+    },
+    {
+      "bin": "970415",
+      "code": "ICB",
+      "name": "Ngân hàng TMCP Công thương Việt Nam",
+      "shortName": "VietinBank"
+    },
+    {
+      "bin": "970416",
+      "code": "ACB",
+      "name": "Ngân hàng TMCP Á Châu",
+      "shortName": "ACB"
+    },
+    {
+      "bin": "970418",
+      "code": "BIDV",
+      "name": "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam",
+      "shortName": "BIDV"
+    },
+    {
+      "bin": "970419",
+      "code": "NCB",
+      "name": "Ngân hàng TMCP Quốc Dân",
+      "shortName": "NCB"
+    },
+    {
+      "bin": "970422",
+      "code": "MB",
+      "name": "Ngân hàng TMCP Quân đội",
+      "shortName": "MBBank"
+    },
+    {
+      "bin": "970423",
+      "code": "TPB",
+      "name": "Ngân hàng TMCP Tiên Phong",
+      "shortName": "TPBank"
+    },
+    {
+      "bin": "970424",
+      "code": "SHBVN",
+      "name": "Ngân hàng TNHH MTV Shinhan Việt Nam",
+      "shortName": "ShinhanBank"
+    },
+    {
+      "bin": "970425",
+      "code": "ABB",
+      "name": "Ngân hàng TMCP An Bình",
+      "shortName": "ABBANK"
+    },
+    {
+      "bin": "970426",
+      "code": "MSB",
+      "name": "Ngân hàng TMCP Hàng Hải Việt Nam",
+      "shortName": "MSB"
+    },
+    {
+      "bin": "970427",
+      "code": "VAB",
+      "name": "Ngân hàng TMCP Việt Á",
+      "shortName": "VietABank"
+    },
+    {
+      "bin": "970428",
+      "code": "NAB",
+      "name": "Ngân hàng TMCP Nam Á",
+      "shortName": "NamABank"
+    },
+    {
+      "bin": "970429",
+      "code": "SCB",
+      "name": "Ngân hàng TMCP Sài Gòn",
+      "shortName": "SCB"
+    },
+    {
+      "bin": "970430",
+      "code": "PGB",
+      "name": "Ngân hàng TMCP Thịnh vượng và Phát triển",
+      "shortName": "PGBank"
+    },
+    {
+      "bin": "970431",
+      "code": "EIB",
+      "name": "Ngân hàng TMCP Xuất Nhập khẩu Việt Nam",
+      "shortName": "Eximbank"
+    },
+    {
+      "bin": "970432",
+      "code": "VPB",
+      "name": "Ngân hàng TMCP Việt Nam Thịnh Vượng",
+      "shortName": "VPBank"
+    },
+    {
+      "bin": "970433",
+      "code": "VIETBANK",
+      "name": "Ngân hàng TMCP Việt Nam Thương Tín",
+      "shortName": "VietBank"
+    },
+    {
+      "bin": "970436",
+      "code": "VCB",
+      "name": "Ngân hàng TMCP Ngoại Thương Việt Nam",
+      "shortName": "Vietcombank"
+    },
+    {
+      "bin": "970437",
+      "code": "HDB",
+      "name": "Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh",
+      "shortName": "HDBank"
+    },
+    {
+      "bin": "970438",
+      "code": "BVB",
+      "name": "Ngân hàng TMCP Bảo Việt",
+      "shortName": "BaoVietBank"
+    },
+    {
+      "bin": "970440",
+      "code": "SEAB",
+      "name": "Ngân hàng TMCP Đông Nam Á",
+      "shortName": "SeABank"
+    },
+    {
+      "bin": "970441",
+      "code": "VIB",
+      "name": "Ngân hàng TMCP Quốc tế Việt Nam",
+      "shortName": "VIB"
+    },
+    {
+      "bin": "970443",
+      "code": "SHB",
+      "name": "Ngân hàng TMCP Sài Gòn - Hà Nội",
+      "shortName": "SHB"
+    },
+    {
+      "bin": "970446",
+      "code": "COOPBANK",
+      "name": "Ngân hàng Hợp tác xã Việt Nam",
+      "shortName": "COOPBANK"
+    },
+    {
+      "bin": "970448",
+      "code": "OCB",
+      "name": "Ngân hàng TMCP Phương Đông",
+      "shortName": "OCB"
+    },
+    {
+      "bin": "970449",
+      "code": "LPB",
+      "name": "Ngân hàng TMCP Lộc Phát Việt Nam",
+      "shortName": "LPBank"
+    },
+    {
+      "bin": "970452",
+      "code": "KLB",
+      "name": "Ngân hàng TMCP Kiên Long",
+      "shortName": "KienLongBank"
+    },
+    {
+      "bin": "970454",
+      "code": "VCCB",
+      "name": "Ngân hàng TMCP Bản Việt",
+      "shortName": "VietCapitalBank"
+    },
+    {
+      "bin": "970457",
+      "code": "WVN",
+      "name": "Ngân hàng TNHH MTV Woori Việt Nam",
+      "shortName": "Woori"
+    },
+    {
+      "bin": "971025",
+      "code": "momo",
+      "name": "CTCP Dịch Vụ Di Động Trực Tuyến",
+      "shortName": "MoMo"
+    },
+    {
+      "bin": "971133",
+      "code": "PVDB",
+      "name": "Ngân hàng TMCP Đại Chúng Việt Nam Ngân hàng số",
+      "shortName": "PVcomBank Pay"
+    }
+  ]
+}

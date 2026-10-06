@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "nodes": {
+    "ROOT": {
+      "type": {
+        "resolvedName": "InvitationCanvas"
+      },
+      "isCanvas": true,
+      "props": {
+        "canvas": {
+          "width": 390,
+          "height": 1600,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFFFF"
+          }
+        }
+      },
+      "displayName": "InvitationCanvas",
+      "custom": {},
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    }
+  }
+}

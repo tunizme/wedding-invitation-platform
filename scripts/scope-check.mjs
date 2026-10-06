@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { rootDirectory } from './lib.mjs';
 
-// Feature 003 explicitly approves IAM; invitation editing and payments remain excluded.
-const forbidden = /\b(invitation editor|payment provider)\b|\bvnpay/i;
+// Features 003/004 approve IAM and invitation editing. Payments remain excluded.
+const forbidden = /\bpayment provider\b|\bvnpay/i;
 const allowedPaths =
   /^(apps\/(web|api)\/src\/|apps\/(web|api)\/package\.json$)/;
 

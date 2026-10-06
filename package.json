@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@12.3.4",
-  "engines": { "node": ">=24 <25" },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
+    "validate:builder": "node scripts/builder-validate.mjs",
+    "builder:storage:init": "node --env-file-if-exists=.env --env-file-if-exists=apps/api/.env apps/api/scripts/builder-storage-init.cjs",
     "validate:iam": "node scripts/iam-validate.mjs",
     "validate:iam:mail": "node scripts/iam-mail-smoke.mjs",
     "dev": "node scripts/dev.mjs all",

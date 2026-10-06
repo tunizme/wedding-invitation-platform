@@ -1,0 +1,20 @@
+{
+  "assets": [
+    {
+      "id": "2c5d4580-d82b-5dbe-a5cd-0745200e73d7",
+      "file": "assets/photo.png",
+      "scope": "TEMPLATE",
+      "kind": "IMAGE",
+      "sha256": "fddaf40c069c1243c720b2d7757648d87ca05ee97d8eda5893dfe9509a9d05d6"
+    },
+    {
+      "id": "4cb1e5a2-c843-55c5-858c-2c97eb2987ba",
+      "file": "assets/decoration.png",
+      "scope": "TEMPLATE",
+      "kind": "DECORATION",
+      "sha256": "865780174e093c4cda6c73804acb526d1f4904e9aede37f104e47d7bdfc81cd3"
+    }
+  ],
+  "license": "CC0-1.0",
+  "provenance": "Geometric raster test fixtures generated for this repository; no people or third-party photographs."
+}

@@ -9,6 +9,7 @@ export async function infrastructure(action, args = process.argv.slice(3)) {
       '--wait',
       'postgres',
       'mailpit',
+      'minio',
     ]);
     return;
   }

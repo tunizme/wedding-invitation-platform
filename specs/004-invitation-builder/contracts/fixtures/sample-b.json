@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "bride": {
+    "name": "Trần Ngọc Hà",
+    "photo": "2c5d4580-d82b-5dbe-a5cd-0745200e73d7"
+  },
+  "groom": {
+    "name": "Lê Đức Huy",
+    "photo": "2c5d4580-d82b-5dbe-a5cd-0745200e73d7"
+  },
+  "couple": {
+    "photo": "2c5d4580-d82b-5dbe-a5cd-0745200e73d7"
+  },
+  "parents": {
+    "bride": {
+      "fatherName": "Nguyễn Văn An",
+      "motherName": "Trần Thu Hà"
+    },
+    "groom": {
+      "fatherName": "Đặng Văn Bình",
+      "motherName": "Lê Thị Mai"
+    }
+  },
+  "story": "Một câu chuyện mẫu với dấu tiếng Việt.\nKhông phải dữ liệu khách hàng.",
+  "events": {
+    "ceremony": {
+      "datetime": "2027-07-01T10:00:00-04:00",
+      "timeZone": "America/New_York",
+      "venue": {
+        "name": "Địa điểm mẫu",
+        "address": "Địa chỉ minh họa",
+        "latitude": 10.7769,
+        "longitude": 106.7009
+      }
+    },
+    "reception": {
+      "datetime": "2027-01-10T19:00:00+09:00",
+      "timeZone": "Asia/Tokyo"
+    }
+  },
+  "timeline": [
+    {
+      "id": "d6e52f20-b63a-50f2-bbec-d21919e102dd",
+      "title": "Gặp nhau",
+      "dateLabel": "2023"
+    },
+    {
+      "id": "79698a07-a0eb-5a4d-99e9-81ca3b5c760b",
+      "title": "Chung một nhà",
+      "description": "Nội dung mẫu",
+      "dateLabel": "2027"
+    }
+  ],
+  "bank": {
+    "bin": "970436",
+    "account": "000123456789",
+    "recipientName": "NGUYEN MINH ANH",
+    "message": "Mung cuoi"
+  }
+}

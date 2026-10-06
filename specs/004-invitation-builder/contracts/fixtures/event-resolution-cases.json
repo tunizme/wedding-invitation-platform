@@ -1,0 +1,53 @@
+[
+  {
+    "event": {},
+    "code": "BINDING_REQUIRED"
+  },
+  {
+    "event": {
+      "timeZone": "Asia/Ho_Chi_Minh"
+    },
+    "code": "BINDING_REQUIRED"
+  },
+  {
+    "event": {
+      "datetime": "2027-01-10T10:00:00+07:00"
+    },
+    "code": "BINDING_REQUIRED"
+  },
+  {
+    "event": {
+      "datetime": "",
+      "timeZone": "Asia/Ho_Chi_Minh"
+    },
+    "code": "BINDING_REQUIRED"
+  },
+  {
+    "event": {
+      "datetime": "2027-01-10T10:00:00+07:00",
+      "timeZone": ""
+    },
+    "code": "BINDING_REQUIRED"
+  },
+  {
+    "event": {
+      "datetime": 42,
+      "timeZone": "Asia/Ho_Chi_Minh"
+    },
+    "code": "BINDING_TYPE"
+  },
+  {
+    "event": {
+      "datetime": "bad",
+      "timeZone": "Asia/Ho_Chi_Minh"
+    },
+    "code": "BINDING_TYPE"
+  },
+  {
+    "event": {
+      "datetime": "2027-01-10T10:00:00+07:00",
+      "timeZone": "bad"
+    },
+    "code": "BINDING_TYPE"
+  }
+]

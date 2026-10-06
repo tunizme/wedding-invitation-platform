@@ -1,4 +1,5 @@
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
+import { builderRuntimeFixture } from './fixtures/invitation-builder/runtime';
 
 export function identityFixture(): Record<string, string> {
   const { privateKey, publicKey } = generateKeyPairSync('rsa', {
@@ -7,6 +8,7 @@ export function identityFixture(): Record<string, string> {
   const keys = () =>
     JSON.stringify({ '1': randomBytes(32).toString('base64') });
   return {
+    ...builderRuntimeFixture(),
     NODE_ENV: 'test',
     IAM_JWT_ISSUER: 'https://test.invalid',
     IAM_JWT_AUDIENCE: 'wedding-test',

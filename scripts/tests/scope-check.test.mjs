@@ -13,9 +13,18 @@ test('scope scanner only covers source and direct manifests', () => {
 
 test('scope scanner recognizes excluded feature implementation terms', () => {
   assert.equal(hasForbiddenScope('const vnpayClient = createClient()'), true);
-  assert.equal(hasForbiddenScope('invitation editor'), true);
   assert.equal(hasForbiddenScope('payment provider'), true);
   assert.equal(hasForbiddenScope('export class HealthService {}'), false);
+});
+
+test('feature 004 approves invitation editing and private object storage', () => {
+  assert.equal(hasForbiddenScope('invitation editor'), false);
+  assert.equal(
+    hasForbiddenScope('Craft.js Moveable MinIO S3 AssetStore'),
+    false,
+  );
+  assert.equal(hasForbiddenScope('invitation editor payment provider'), true);
+  assert.equal(hasForbiddenScope('invitation editor VNPay'), true);
 });
 
 test('approved IAM authentication and authorization are in scope', () => {

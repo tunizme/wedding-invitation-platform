@@ -32,18 +32,12 @@ describe.sequential('migration lifecycle', () => {
     expect(await dataSource.showMigrations()).toBe(false);
   });
 
-  it('does not create out-of-scope invitation or payment tables', async () => {
+  it('does not create out-of-scope payment tables', async () => {
     const rawRows: unknown = await dataSource.query(
       'SELECT tablename FROM pg_tables WHERE schemaname = current_schema()',
     );
     const rows = rawRows as Array<{ tablename: string }>;
-    for (const forbidden of [
-      'invitation',
-      'invitations',
-      'payment',
-      'payments',
-      'vnpay_transaction',
-    ]) {
+    for (const forbidden of ['payment', 'payments', 'vnpay_transaction']) {
       expect(rows.map((row) => row.tablename)).not.toContain(forbidden);
     }
   });

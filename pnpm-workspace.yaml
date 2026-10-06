@@ -4,3 +4,4 @@ packages:
 allowBuilds:
   unrs-resolver: true
   '@scarf/scarf': false
+  argon2: true

@@ -1,0 +1,5199 @@
+{
+  "schemaVersion": 1,
+  "nodes": {
+    "ROOT": {
+      "type": {
+        "resolvedName": "InvitationCanvas"
+      },
+      "isCanvas": true,
+      "props": {
+        "canvas": {
+          "width": 390,
+          "height": 3560,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFFFF"
+          }
+        }
+      },
+      "displayName": "InvitationCanvas",
+      "custom": {},
+      "hidden": false,
+      "nodes": [
+        "cd40cd80-04ba-5dd8-9f9d-57fe696c68ef",
+        "3874c54e-e338-5a67-b57e-4b8933ae5879",
+        "52d11b31-62e3-5af0-a66b-a7381f6b9fd3",
+        "721a4369-b099-53c3-a5d7-4de01d013448",
+        "b6d162c7-1c49-5246-8d06-979ad61e040a",
+        "1b5c6a24-56c0-58c8-95c1-19d8a6c65cc0",
+        "3af267ec-e823-534b-81b8-13dcf1db55ea",
+        "bdb22ac1-790f-5938-b4e3-f75e1cae12ce",
+        "25a870e8-cdaf-5735-b09b-36a7f9461480",
+        "a734612f-c666-56b6-b0c8-4556f3a9323e",
+        "7b712cfd-5222-519d-9bf6-f5d1e044a78e",
+        "3b378550-2b22-5a1a-b6b9-3e8a4f4161af",
+        "081a4d96-d6eb-5226-9b12-1b6385bc17a8",
+        "02476677-fa83-5c6c-9880-eb0cc507606c",
+        "d3aab026-3ff9-593f-b247-5dba6a0ce11f",
+        "db9375b6-fedf-598d-857d-dff46191e1f2",
+        "cbaf2fc6-c7df-5d86-ae1e-8d2f1067bd65",
+        "2aaefa56-3f3f-580d-b518-26cffc09794c",
+        "7fb5b683-d901-54fb-b78c-1cefeec4ee22",
+        "a1284865-1438-5bc0-b00b-8fa2be36749c",
+        "176cecdf-c0bd-57f7-919e-f1f97874a057",
+        "ed1b906e-db70-5e6e-9971-c163199634cb",
+        "74665c06-7afe-599f-8aae-b71d8fabd1ec",
+        "f6091e53-b355-5d72-bc1e-b313c2c48567",
+        "2e42660d-1db6-56c0-aa96-84aac2e302d7",
+        "747df77c-ef19-557c-979f-1c071df72db1",
+        "1043f36b-5def-54f9-8627-402b83149d26",
+        "ba62f74c-5182-5ebf-aa69-88e6c8076f7d",
+        "02d22945-5018-5ea4-8ce9-0930ed60baab",
+        "1ade722f-48d5-5c85-9070-666a79c22efb",
+        "153007fb-90a7-5377-b604-4941d16bcf9e",
+        "aa5ab8a3-1485-56f0-82b2-01fe49d7c630",
+        "42c5431b-4f13-58e5-bfc0-6a90b55a1caf",
+        "8ba5aeba-d52a-5a0b-91e6-e2d90dd560f1",
+        "e6150502-a3a0-53c4-a11a-8a5155856681",
+        "6afa1d12-bd1c-55de-8f13-c68603f23729",
+        "8231b338-c6de-5c9a-bc44-a3f9e9b08922",
+        "49ad4cd5-9432-5424-81f1-df84e0d97777",
+        "1a99f0c1-5612-57ef-836f-d60bd74e8ad3",
+        "d767676c-1e3a-5b26-8c0f-eeb4aefdcc1b",
+        "b1bcad01-6dbb-56a4-84f8-d52cde3e568f",
+        "7ab5142b-b651-5322-9356-ff5c7e911b2c",
+        "2728f3b1-2f87-5c38-9c4a-588317ada8bd",
+        "1e2d60c7-6a3c-5308-9062-c8a367f2cbb5",
+        "f107bee5-c91c-579a-913c-0fba08ff92c6",
+        "e4e04a87-0347-56ed-8560-707462b141e5",
+        "508b13fb-3896-53ec-9bcc-6986ee27a025",
+        "a70cae0e-65e5-53e1-a107-d1446ad9a717",
+        "f885065f-cdab-51ec-ba3e-c10ebea3c3d4",
+        "f2cf91e0-4778-5bd3-86f1-7d3639a65675",
+        "5450d0c6-3387-5d2d-bbb7-cc49eec53b8a",
+        "9447413f-242f-574b-b482-e51e53fdab08",
+        "bfa14809-3536-5236-8569-13ad20f66f4b",
+        "4d704be7-b44a-5584-a9b3-e32fbcf51e33",
+        "981dafe8-967e-58db-b984-2abb1702eff8",
+        "834f2166-0ebb-5abb-b712-6d4bb097b54e",
+        "7b638447-3931-51d4-8d13-a5dfbdc24b3c",
+        "80fec4dd-a317-5245-adb0-f797094b743a",
+        "8bfd060e-e5d5-546e-9f35-d174f3b3498c",
+        "f07c700e-c146-5cd2-b23e-fe180a6d6d44",
+        "c1d10142-9b94-50d7-bc07-5c869bcce7ab",
+        "cdc155c6-13f4-5984-a723-e5a272bdfe0f",
+        "8cdbc5c7-64b2-51f5-9e22-86aafbf54981",
+        "cb148759-364d-500f-9af1-1a4830c6aa28",
+        "450145d8-446d-5f2a-9b8b-b242d2e0de17",
+        "38d78714-940f-55da-9e40-3553abc97f29",
+        "978ecb09-8ecc-5ebd-b511-21922fd5e8e3",
+        "c5ceabdf-9efd-555d-9c54-fbcc9273e04e",
+        "49b90e42-4928-55b9-a758-6ba06d8e1172",
+        "957842b8-b722-5bf0-a737-9dcf413f6c54",
+        "8078303b-c8c8-506d-86fe-09677dbd0643",
+        "3949a95c-f314-507e-8877-47d74fc5cb9d",
+        "4d31b88d-7b9a-569d-add1-1f7bb86a23e2",
+        "a5cd2f94-ed2a-5eab-beda-6c2e9878361f",
+        "1140b69f-2504-5e92-87fb-da79e5e7d954",
+        "88dc273c-624f-5ace-8a07-eb4f381349f6",
+        "1e58bf8e-7ea7-5966-b2c0-ff0c90e8c34c",
+        "4e98db25-6dba-5bab-bace-3a135e60d5e4",
+        "eb1de842-340b-5615-b192-a6bb7b7f4c28",
+        "234a7778-6429-5a4f-9a96-dc9198390563",
+        "051b6aa6-6dac-59bb-9e78-8ed9ba7cbac0",
+        "c654cbd6-6796-580b-b095-ee7818c78000",
+        "cb807115-5d8d-5ff7-a14c-d7f39d42e27b",
+        "2ec0cac1-a04a-58a3-bcb1-e13071d1dc2c",
+        "2c4e96a5-d10f-582d-9349-0b513c731a3a",
+        "d820022c-d3e9-54f4-860d-7f72bfbeb474",
+        "4f2a3052-e758-588d-9a54-9eb6db00fdd9",
+        "c6ff5505-e3e4-5713-a75e-a28940e08e03",
+        "5dafd78c-d839-5251-9d26-b293584fe18d",
+        "cbed26b1-3229-598e-a32f-41dac16eab1f",
+        "ac21f68d-57ac-519c-9068-5e447278aa00",
+        "45328b31-40ef-57dd-8c4c-8dc7935b7b70",
+        "ea103570-f576-59cc-8262-d8204abbc4d3",
+        "23ebb876-a12e-5c11-bd26-689ef0613d98",
+        "76313e48-b589-5c24-8b05-81f290104cdc",
+        "8a00d41a-b177-5f44-9dd1-aa8d776644c9",
+        "fc1d2882-af1e-58e4-b22a-1b033951dbad",
+        "cedaa41e-c179-53ce-94b2-73d775c4cbae",
+        "325b91e0-dc8f-54e6-9434-e8ff329077bf",
+        "ddf95a4e-a61b-59ca-b6ef-8e155fd684e1",
+        "bfb39713-ab98-5be8-b879-b60b7371fc0a",
+        "19130bb0-fcde-5f68-bfa8-2379a72cf391",
+        "e3c63610-88e1-5c6b-8d49-4ae91c3c296b",
+        "e836ef80-2566-5276-b605-bbc4b2e021b8",
+        "261cfa1c-09f3-51e1-a347-f14c35d54b51",
+        "dc13aff9-7423-51a9-9ee1-6ffde50e98e3",
+        "6c97bc6c-974c-50f4-bdb6-4152897dc577",
+        "f4a8de5d-8b09-53ec-829e-97fc291d433a",
+        "c17efe0e-f675-54ae-a612-724810e16035",
+        "d19a17b8-36fb-5957-9a25-e6a01106a74b"
+      ],
+      "linkedNodes": {}
+    },
+    "cd40cd80-04ba-5dd8-9f9d-57fe696c68ef": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 0",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "3874c54e-e338-5a67-b57e-4b8933ae5879": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 1",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "52d11b31-62e3-5af0-a66b-a7381f6b9fd3": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 2",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "721a4369-b099-53c3-a5d7-4de01d013448": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 3",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "b6d162c7-1c49-5246-8d06-979ad61e040a": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 4",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1b5c6a24-56c0-58c8-95c1-19d8a6c65cc0": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 5",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "3af267ec-e823-534b-81b8-13dcf1db55ea": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 6",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "bdb22ac1-790f-5938-b4e3-f75e1cae12ce": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 7",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "25a870e8-cdaf-5735-b09b-36a7f9461480": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 8",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "a734612f-c666-56b6-b0c8-4556f3a9323e": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 10,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 9",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "7b712cfd-5222-519d-9bf6-f5d1e044a78e": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 10",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "3b378550-2b22-5a1a-b6b9-3e8a4f4161af": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 11",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "081a4d96-d6eb-5226-9b12-1b6385bc17a8": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 12",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "02476677-fa83-5c6c-9880-eb0cc507606c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 13",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "d3aab026-3ff9-593f-b247-5dba6a0ce11f": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 14",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "db9375b6-fedf-598d-857d-dff46191e1f2": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 15",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "cbaf2fc6-c7df-5d86-ae1e-8d2f1067bd65": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 16",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "2aaefa56-3f3f-580d-b518-26cffc09794c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 17",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "7fb5b683-d901-54fb-b78c-1cefeec4ee22": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 18",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "a1284865-1438-5bc0-b00b-8fa2be36749c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 30,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 19",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "176cecdf-c0bd-57f7-919e-f1f97874a057": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 20",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "ed1b906e-db70-5e6e-9971-c163199634cb": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 21",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "74665c06-7afe-599f-8aae-b71d8fabd1ec": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 22",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "f6091e53-b355-5d72-bc1e-b313c2c48567": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 23",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "2e42660d-1db6-56c0-aa96-84aac2e302d7": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 24",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "747df77c-ef19-557c-979f-1c071df72db1": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 25",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1043f36b-5def-54f9-8627-402b83149d26": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 26",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "ba62f74c-5182-5ebf-aa69-88e6c8076f7d": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 27",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "02d22945-5018-5ea4-8ce9-0930ed60baab": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 28",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1ade722f-48d5-5c85-9070-666a79c22efb": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 50,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 29",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "153007fb-90a7-5377-b604-4941d16bcf9e": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 30",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "aa5ab8a3-1485-56f0-82b2-01fe49d7c630": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 31",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "42c5431b-4f13-58e5-bfc0-6a90b55a1caf": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 32",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "8ba5aeba-d52a-5a0b-91e6-e2d90dd560f1": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 33",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "e6150502-a3a0-53c4-a11a-8a5155856681": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 34",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "6afa1d12-bd1c-55de-8f13-c68603f23729": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 35",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "8231b338-c6de-5c9a-bc44-a3f9e9b08922": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 36",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "49ad4cd5-9432-5424-81f1-df84e0d97777": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 37",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1a99f0c1-5612-57ef-836f-d60bd74e8ad3": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 38",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "d767676c-1e3a-5b26-8c0f-eeb4aefdcc1b": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 70,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 39",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "b1bcad01-6dbb-56a4-84f8-d52cde3e568f": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 40",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "7ab5142b-b651-5322-9356-ff5c7e911b2c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 41",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "2728f3b1-2f87-5c38-9c4a-588317ada8bd": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 42",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1e2d60c7-6a3c-5308-9062-c8a367f2cbb5": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 43",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "f107bee5-c91c-579a-913c-0fba08ff92c6": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 44",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "e4e04a87-0347-56ed-8560-707462b141e5": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 45",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "508b13fb-3896-53ec-9bcc-6986ee27a025": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 46",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "a70cae0e-65e5-53e1-a107-d1446ad9a717": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 47",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "f885065f-cdab-51ec-ba3e-c10ebea3c3d4": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 48",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "f2cf91e0-4778-5bd3-86f1-7d3639a65675": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 90,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 49",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "5450d0c6-3387-5d2d-bbb7-cc49eec53b8a": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 50",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "9447413f-242f-574b-b482-e51e53fdab08": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 51",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "bfa14809-3536-5236-8569-13ad20f66f4b": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 52",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "4d704be7-b44a-5584-a9b3-e32fbcf51e33": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 53",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "981dafe8-967e-58db-b984-2abb1702eff8": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 54",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "834f2166-0ebb-5abb-b712-6d4bb097b54e": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 55",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "7b638447-3931-51d4-8d13-a5dfbdc24b3c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 56",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "80fec4dd-a317-5245-adb0-f797094b743a": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 57",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "8bfd060e-e5d5-546e-9f35-d174f3b3498c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 58",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "f07c700e-c146-5cd2-b23e-fe180a6d6d44": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 110,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 59",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "c1d10142-9b94-50d7-bc07-5c869bcce7ab": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 60",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "cdc155c6-13f4-5984-a723-e5a272bdfe0f": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 61",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "8cdbc5c7-64b2-51f5-9e22-86aafbf54981": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 62",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "cb148759-364d-500f-9af1-1a4830c6aa28": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 63",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "450145d8-446d-5f2a-9b8b-b242d2e0de17": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 64",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "38d78714-940f-55da-9e40-3553abc97f29": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 65",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "978ecb09-8ecc-5ebd-b511-21922fd5e8e3": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 66",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "c5ceabdf-9efd-555d-9c54-fbcc9273e04e": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 67",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "49b90e42-4928-55b9-a758-6ba06d8e1172": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 68",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "957842b8-b722-5bf0-a737-9dcf413f6c54": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 130,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 69",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "8078303b-c8c8-506d-86fe-09677dbd0643": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 70",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "3949a95c-f314-507e-8877-47d74fc5cb9d": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 71",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "4d31b88d-7b9a-569d-add1-1f7bb86a23e2": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 72",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "a5cd2f94-ed2a-5eab-beda-6c2e9878361f": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 73",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1140b69f-2504-5e92-87fb-da79e5e7d954": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 74",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "88dc273c-624f-5ace-8a07-eb4f381349f6": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 75",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "1e58bf8e-7ea7-5966-b2c0-ff0c90e8c34c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 76",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "4e98db25-6dba-5bab-bace-3a135e60d5e4": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 77",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "eb1de842-340b-5615-b192-a6bb7b7f4c28": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 78",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "234a7778-6429-5a4f-9a96-dc9198390563": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 150,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 79",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "051b6aa6-6dac-59bb-9e78-8ed9ba7cbac0": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 80",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "c654cbd6-6796-580b-b095-ee7818c78000": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 81",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "cb807115-5d8d-5ff7-a14c-d7f39d42e27b": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 82",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "2ec0cac1-a04a-58a3-bcb1-e13071d1dc2c": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 83",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "2c4e96a5-d10f-582d-9349-0b513c731a3a": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 84",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "d820022c-d3e9-54f4-860d-7f72bfbeb474": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 85",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "4f2a3052-e758-588d-9a54-9eb6db00fdd9": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 86",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "c6ff5505-e3e4-5713-a75e-a28940e08e03": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 87",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "5dafd78c-d839-5251-9d26-b293584fe18d": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 88",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "cbed26b1-3229-598e-a32f-41dac16eab1f": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 170,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 89",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "ac21f68d-57ac-519c-9068-5e447278aa00": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 10,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 90",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "45328b31-40ef-57dd-8c4c-8dc7935b7b70": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 47,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 91",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "ea103570-f576-59cc-8262-d8204abbc4d3": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 84,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 92",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "23ebb876-a12e-5c11-bd26-689ef0613d98": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 121,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 93",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "76313e48-b589-5c24-8b05-81f290104cdc": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 158,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 94",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "8a00d41a-b177-5f44-9dd1-aa8d776644c9": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 195,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 95",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "fc1d2882-af1e-58e4-b22a-1b033951dbad": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 232,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 96",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "cedaa41e-c179-53ce-94b2-73d775c4cbae": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 269,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 97",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "325b91e0-dc8f-54e6-9434-e8ff329077bf": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 306,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 98",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "ddf95a4e-a61b-59ca-b6ef-8e155fd684e1": {
+      "type": {
+        "resolvedName": "Shape"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 343,
+          "y": 190,
+          "width": 30,
+          "height": 15,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          }
+        },
+        "content": {
+          "primitive": "rectangle",
+          "fill": "#AABBCCFF"
+        },
+        "bindings": []
+      },
+      "displayName": "Shape",
+      "custom": {
+        "layerName": "Shape 99",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "bfb39713-ab98-5be8-b879-b60b7371fc0a": {
+      "type": {
+        "resolvedName": "Calendar"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 220,
+          "width": 350,
+          "height": 320,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "accentColor": "#AABBCCFF"
+        },
+        "bindings": [
+          {
+            "target": "event",
+            "source": "wedding.event",
+            "eventKey": "ceremony"
+          }
+        ]
+      },
+      "displayName": "Calendar",
+      "custom": {
+        "layerName": "Calendar 100",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "19130bb0-fcde-5f68-bfa8-2379a72cf391": {
+      "type": {
+        "resolvedName": "Countdown"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 550,
+          "width": 350,
+          "height": 120,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "label": "Ngày chung đôi",
+          "endedLabel": "Ngày vui đã đến"
+        },
+        "bindings": [
+          {
+            "target": "event",
+            "source": "wedding.event",
+            "eventKey": "ceremony"
+          }
+        ]
+      },
+      "displayName": "Countdown",
+      "custom": {
+        "layerName": "Countdown 101",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "e3c63610-88e1-5c6b-8d49-4ae91c3c296b": {
+      "type": {
+        "resolvedName": "Map"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 680,
+          "width": 350,
+          "height": 240,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "label": "Địa điểm"
+        },
+        "bindings": [
+          {
+            "target": "venue",
+            "source": "venue",
+            "eventKey": "ceremony"
+          }
+        ]
+      },
+      "displayName": "Map",
+      "custom": {
+        "layerName": "Map 102",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "e836ef80-2566-5276-b605-bbc4b2e021b8": {
+      "type": {
+        "resolvedName": "RSVP"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 930,
+          "width": 350,
+          "height": 640,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "title": "Xác nhận tham dự",
+          "closedLabel": "Đã đóng nhận phản hồi",
+          "successLabel": "Cảm ơn bạn đã phản hồi"
+        },
+        "bindings": []
+      },
+      "displayName": "RSVP",
+      "custom": {
+        "layerName": "RSVP 103",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "261cfa1c-09f3-51e1-a347-f14c35d54b51": {
+      "type": {
+        "resolvedName": "QRBank"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 1580,
+          "width": 300,
+          "height": 360,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "label": "Mừng cưới"
+        },
+        "bindings": [
+          {
+            "target": "bank",
+            "source": "bank"
+          }
+        ]
+      },
+      "displayName": "QRBank",
+      "custom": {
+        "layerName": "QRBank 104",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "dc13aff9-7423-51a9-9ee1-6ffde50e98e3": {
+      "type": {
+        "resolvedName": "Timeline"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 1950,
+          "width": 350,
+          "height": 240,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "accentColor": "#AABBCCFF"
+        },
+        "bindings": [
+          {
+            "target": "entries",
+            "source": "timeline"
+          }
+        ]
+      },
+      "displayName": "Timeline",
+      "custom": {
+        "layerName": "Timeline 105",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "6c97bc6c-974c-50f4-bdb6-4152897dc577": {
+      "type": {
+        "resolvedName": "Calendar"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 2200,
+          "width": 350,
+          "height": 320,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "accentColor": "#AABBCCFF"
+        },
+        "bindings": [
+          {
+            "target": "event",
+            "source": "wedding.event",
+            "eventKey": "ceremony"
+          }
+        ]
+      },
+      "displayName": "Calendar",
+      "custom": {
+        "layerName": "Calendar 106",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "f4a8de5d-8b09-53ec-829e-97fc291d433a": {
+      "type": {
+        "resolvedName": "Countdown"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 2530,
+          "width": 350,
+          "height": 120,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "label": "Ngày chung đôi",
+          "endedLabel": "Ngày vui đã đến"
+        },
+        "bindings": [
+          {
+            "target": "event",
+            "source": "wedding.event",
+            "eventKey": "ceremony"
+          }
+        ]
+      },
+      "displayName": "Countdown",
+      "custom": {
+        "layerName": "Countdown 107",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "c17efe0e-f675-54ae-a612-724810e16035": {
+      "type": {
+        "resolvedName": "Map"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 2660,
+          "width": 350,
+          "height": 240,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "label": "Địa điểm"
+        },
+        "bindings": [
+          {
+            "target": "venue",
+            "source": "venue",
+            "eventKey": "ceremony"
+          }
+        ]
+      },
+      "displayName": "Map",
+      "custom": {
+        "layerName": "Map 108",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "d19a17b8-36fb-5957-9a25-e6a01106a74b": {
+      "type": {
+        "resolvedName": "RSVP"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 2910,
+          "width": 350,
+          "height": 640,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "title": "Xác nhận tham dự",
+          "closedLabel": "Đã đóng nhận phản hồi",
+          "successLabel": "Cảm ơn bạn đã phản hồi"
+        },
+        "bindings": []
+      },
+      "displayName": "RSVP",
+      "custom": {
+        "layerName": "RSVP 109",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    }
+  }
+}

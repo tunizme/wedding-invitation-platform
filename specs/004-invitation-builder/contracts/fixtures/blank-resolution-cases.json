@@ -1,0 +1,249 @@
+[
+  {
+    "kind": "Map",
+    "source": "venue",
+    "target": "venue",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "venue": {
+            "name": "   ",
+            "address": "Địa chỉ",
+            "latitude": 10,
+            "longitude": 106
+          }
+        }
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": {
+      "name": "Dự phòng",
+      "address": "Địa chỉ dự phòng",
+      "latitude": 10,
+      "longitude": 106
+    }
+  },
+  {
+    "kind": "Map",
+    "source": "venue",
+    "target": "venue",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "venue": {
+            "name": "Địa điểm",
+            "address": "   ",
+            "latitude": 10,
+            "longitude": 106
+          }
+        }
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": {
+      "name": "Dự phòng",
+      "address": "Địa chỉ dự phòng",
+      "latitude": 10,
+      "longitude": 106
+    }
+  },
+  {
+    "kind": "Text",
+    "source": "wedding.date",
+    "target": "text",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "datetime": "   ",
+          "timeZone": "Asia/Ho_Chi_Minh"
+        }
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": "Dự phòng"
+  },
+  {
+    "kind": "Text",
+    "source": "wedding.date",
+    "target": "text",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "datetime": "2027-01-10T10:00:00+07:00",
+          "timeZone": "   "
+        }
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": "Dự phòng"
+  },
+  {
+    "kind": "Text",
+    "source": "wedding.time",
+    "target": "text",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "datetime": "   ",
+          "timeZone": "Asia/Ho_Chi_Minh"
+        }
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": "Dự phòng"
+  },
+  {
+    "kind": "Text",
+    "source": "wedding.time",
+    "target": "text",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "datetime": "2027-01-10T10:00:00+07:00",
+          "timeZone": "   "
+        }
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": "Dự phòng"
+  },
+  {
+    "kind": "QRBank",
+    "source": "bank",
+    "target": "bank",
+    "data": {
+      "schemaVersion": 1,
+      "bank": {
+        "bin": "   ",
+        "account": "123456789",
+        "recipientName": "NGUYEN VAN A"
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": {
+      "bin": "970436",
+      "account": "123456789",
+      "recipientName": "NGUYEN VAN B"
+    }
+  },
+  {
+    "kind": "QRBank",
+    "source": "bank",
+    "target": "bank",
+    "data": {
+      "schemaVersion": 1,
+      "bank": {
+        "bin": "970436",
+        "account": "   ",
+        "recipientName": "NGUYEN VAN A"
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": {
+      "bin": "970436",
+      "account": "123456789",
+      "recipientName": "NGUYEN VAN B"
+    }
+  },
+  {
+    "kind": "QRBank",
+    "source": "bank",
+    "target": "bank",
+    "data": {
+      "schemaVersion": 1,
+      "bank": {
+        "bin": "970436",
+        "account": "123456789",
+        "recipientName": "   "
+      }
+    },
+    "code": "BINDING_REQUIRED",
+    "fallback": {
+      "bin": "970436",
+      "account": "123456789",
+      "recipientName": "NGUYEN VAN B"
+    }
+  },
+  {
+    "kind": "Map",
+    "source": "venue",
+    "target": "venue",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "venue": {
+            "name": 42,
+            "address": "A",
+            "latitude": 10,
+            "longitude": 106
+          }
+        }
+      }
+    },
+    "code": "BINDING_TYPE",
+    "fallback": {
+      "name": "Dự phòng",
+      "address": "Địa chỉ dự phòng",
+      "latitude": 10,
+      "longitude": 106
+    }
+  },
+  {
+    "kind": "Text",
+    "source": "wedding.date",
+    "target": "text",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "datetime": "bad",
+          "timeZone": "Asia/Ho_Chi_Minh"
+        }
+      }
+    },
+    "code": "BINDING_TYPE",
+    "fallback": "Dự phòng"
+  },
+  {
+    "kind": "Text",
+    "source": "wedding.time",
+    "target": "text",
+    "data": {
+      "schemaVersion": 1,
+      "events": {
+        "ceremony": {
+          "datetime": "2027-01-10T10:00:00+07:00",
+          "timeZone": "bad zone"
+        }
+      }
+    },
+    "code": "BINDING_TYPE",
+    "fallback": "Dự phòng"
+  },
+  {
+    "kind": "QRBank",
+    "source": "bank",
+    "target": "bank",
+    "data": {
+      "schemaVersion": 1,
+      "bank": {
+        "bin": "970436",
+        "account": "not-an-account!",
+        "recipientName": "A"
+      }
+    },
+    "code": "BINDING_TYPE",
+    "fallback": {
+      "bin": "970436",
+      "account": "123456789",
+      "recipientName": "NGUYEN VAN B"
+    }
+  }
+]

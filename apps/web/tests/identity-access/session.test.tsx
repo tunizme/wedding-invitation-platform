@@ -1,4 +1,11 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccessSession } from '../../src/features/identity-access/api/client';
 import {
@@ -13,7 +20,11 @@ import {
   logoutAll,
   logoutCurrent,
 } from '../../src/features/identity-access/session/refresh-coordinator';
+import { useDirtyNavigationGuard } from '../../src/features/identity-access/session/navigation-guard';
 import { sessionStore } from '../../src/features/identity-access/session/store';
+
+const route = vi.hoisted(() => ({ pathname: '/account' }));
+vi.mock('next/navigation', () => ({ usePathname: () => route.pathname }));
 
 vi.mock('../../src/features/identity-access/api/client', async (original) => ({
   ...(await original<
@@ -41,12 +52,59 @@ const session: AccessSession = {
 };
 
 beforeEach(() => {
+  route.pathname = '/account';
   vi.mocked(iamRequest).mockReset();
   sessionStore.clear();
 });
 afterEach(() => cleanup());
 
 describe('frontend session coordination', () => {
+  it('does not rotate the auth cookie on public invitations or the capture shell', async () => {
+    route.pathname = '/i/00000000-0000-4000-8000-000000000001';
+    render(
+      <SessionProvider>
+        <span>public</span>
+      </SessionProvider>,
+    );
+    await waitFor(() => expect(screen.getByText('public')).toBeTruthy());
+    expect(iamRequest).not.toHaveBeenCalled();
+    cleanup();
+    route.pathname = '/internal/invitation-renderer';
+    render(
+      <SessionProvider>
+        <span>capture</span>
+      </SessionProvider>,
+    );
+    await waitFor(() => expect(screen.getByText('capture')).toBeTruthy());
+    expect(iamRequest).not.toHaveBeenCalled();
+  });
+
+  it('asks before user logout with dirty data and does not block forced revocation', () => {
+    function DirtyForm() {
+      useDirtyNavigationGuard(true);
+      return <input defaultValue="Local edits" aria-label="Draft" />;
+    }
+    sessionStore.set(session);
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(
+      <SessionProvider>
+        <DirtyForm />
+      </SessionProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Đăng xuất mọi thiết bị' }),
+    );
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(iamRequest).not.toHaveBeenCalled();
+    expect(sessionStore.get()).toEqual(session);
+    expect(screen.getByLabelText('Draft')).toHaveValue('Local edits');
+    act(() => sessionStore.clear());
+    expect(sessionStore.get()).toBeNull();
+    expect(confirm).toHaveBeenCalledTimes(2);
+    confirm.mockRestore();
+  });
+
   it('bootstraps once for concurrent callers and never retries refresh itself', async () => {
     vi.mocked(iamRequest)
       .mockResolvedValueOnce({ csrfToken: 'csrf-one' })

@@ -3,15 +3,23 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'standalone',
   async headers() {
-    return ['/verify-email', '/reset-password', '/forgot-password'].map(
+    return ['/verify-email', '/reset-password', '/forgot-password', '/internal/invitation-renderer', '/i/:slug'].map(
       (source) => ({
         source,
         headers: [
           { key: 'Referrer-Policy', value: 'no-referrer' },
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          ...(['/internal/invitation-renderer', '/i/:slug'].includes(source) ? [
+            { key: 'Cache-Control', value: 'no-store' },
+            { key: 'Pragma', value: 'no-cache' },
+          ] : []),
           {
             key: 'Content-Security-Policy',
-            value: `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`,
+            value: source === '/internal/invitation-renderer'
+              ? "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+              : source === '/i/:slug'
+                ? `default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${process.env.NEXT_PUBLIC_API_BASE_URL ? new URL(process.env.NEXT_PUBLIC_API_BASE_URL).origin : ''}; font-src 'self'; connect-src 'self' ${process.env.NEXT_PUBLIC_API_BASE_URL ? new URL(process.env.NEXT_PUBLIC_API_BASE_URL).origin : ''}; frame-src https://www.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`
+              : `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`,
           },
         ],
       }),

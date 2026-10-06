@@ -7,8 +7,10 @@ import { ChallengeService } from '../src/modules/identity-access/verification/ch
 import { RegisterLocalService } from '../src/modules/identity-access/application/register-local.service';
 
 export async function registrationFixture() {
-  if (!process.env.IAM_TEST_SCHEMA)
-    throw new Error('Use validate:iam with a disposable schema');
+  if (!process.env.IAM_TEST_SCHEMA && !process.env.BUILDER_TEST_SCHEMA)
+    throw new Error(
+      'Use validate:iam or validate:builder with a disposable schema',
+    );
   const db = new DataSource(databaseOptions());
   await db.initialize();
   try {

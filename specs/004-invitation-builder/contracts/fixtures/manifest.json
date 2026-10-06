@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "sample-a",
+      "kind": "wedding",
+      "file": "sample-a.json",
+      "sha256": "fab8e66bd59cfcaddee8c8a6c41a374083f9d33f141d90fb03d181a47902ae11",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "sample-b",
+      "kind": "wedding",
+      "file": "sample-b.json",
+      "sha256": "57369f76592e731a62c7d4d80c8a88b1441336d43d8dc3cbd543163845f7eecb",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "blank",
+      "kind": "design",
+      "file": "blank.json",
+      "sha256": "0394c83f3e9c58459f0ff7cca2914c7a005adde330afb4dab61a098c9fa9314c",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "all-elements",
+      "kind": "design",
+      "file": "all-elements.json",
+      "sha256": "c0851c326b70eac4844c60b35a340a173645f81a73921518051cd6e9c9e181fc",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "property-matrix",
+      "kind": "design",
+      "file": "property-matrix.json",
+      "sha256": "b43afd3b7e4a43c43fcd12a18f1e3330f14e4c77ee9086dc83206a856fd03c85",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "performance-110",
+      "kind": "design",
+      "file": "performance-110.json",
+      "sha256": "e993fae56334256d8d05db2738ceff21e59624b375be5318f020796742ffce6b",
+      "expected": {
+        "valid": true,
+        "elements": 110,
+        "widgets": 10
+      }
+    },
+    {
+      "id": "maximum-200",
+      "kind": "design",
+      "file": "maximum-200.json",
+      "sha256": "58fa7df93c319e66a47e84caf1a4a91916225bdac572ce2ff84268f272a1af36",
+      "expected": {
+        "valid": true,
+        "elements": 200,
+        "widgets": 30
+      }
+    },
+    {
+      "id": "invalid-unknown-type",
+      "kind": "design",
+      "file": "invalid-unknown-type.json",
+      "sha256": "a81f2209ffcda4dc41df05ed584c033620126ced724521022b70711a210a2ebf",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "invalid-unknown-prop",
+      "kind": "design",
+      "file": "invalid-unknown-prop.json",
+      "sha256": "927c1c459855ddd25a25b61dd7cab59d7a9fc99fe6c36a6beb02ab66ea82163a",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "invalid-orphan",
+      "kind": "design",
+      "file": "invalid-orphan.json",
+      "sha256": "120cccf5351f63c00be1bb87c76763a925644315336d8e74309d4819ba9f5675",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "invalid-root-parent",
+      "kind": "design",
+      "file": "invalid-root-parent.json",
+      "sha256": "fc1dbb1fa1ffb43179cc137185103a4fbf43366a97a8d0cce8130d71d82ddd7d",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "invalid-bad-coordinate",
+      "kind": "design",
+      "file": "invalid-bad-coordinate.json",
+      "sha256": "c9d82c252b1a2294e2e30d0a73d9ed1a8f57f8b19d991d43cb2ea599ab4bf412",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "invalid-wrong-text-type",
+      "kind": "design",
+      "file": "invalid-wrong-text-type.json",
+      "sha256": "ec89b7b05614a93d9e90046a23418a3aff7e80a9a3a632ed6446a7663c3cb5a5",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "data-empty",
+      "kind": "wedding",
+      "file": "data-empty.json",
+      "sha256": "609b0270c380969286ce2be72aad387758e8169c221f93c3bb14a4b352c5e65c",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "data-partial-bank",
+      "kind": "wedding",
+      "file": "data-partial-bank.json",
+      "sha256": "31ceac27cb31aac491adf79eeb4c7090ae5fc0b8b40196842ce25a1a377ae9dd",
+      "expected": {
+        "valid": true
+      }
+    },
+    {
+      "id": "data-wrong-name",
+      "kind": "wedding",
+      "file": "data-wrong-name.json",
+      "sha256": "b4cef86a36cb1797c1df8160ec82d75a3b68bb55aa91c161b03ac7ca6a664fd6",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "data-unknown-key",
+      "kind": "wedding",
+      "file": "data-unknown-key.json",
+      "sha256": "299ceeabec7bf78e42935cfa70513435f573a8a0b2e4ac8fa5fd6702abecf194",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "data-bad-timezone-offset",
+      "kind": "wedding",
+      "file": "data-bad-timezone-offset.json",
+      "sha256": "1751c56592e70150e98d5b2c8b30e8311bd12fd69c956c3380cc10723f15b4eb",
+      "expected": {
+        "valid": false
+      }
+    },
+    {
+      "id": "binding-required-missing",
+      "kind": "resolution",
+      "file": "binding-required-missing.json",
+      "sha256": "70c5324b2c6ec783493235290f384892a78462e4b4dd1eb3cf2d39cc490d551c",
+      "expected": {
+        "result": "REQUIRED_DATA_MISSING",
+        "nodeId": "ea8da414-fa28-560e-876d-12b058e8e4dc"
+      }
+    },
+    {
+      "id": "binding-optional-missing",
+      "kind": "resolution",
+      "file": "binding-optional-missing.json",
+      "sha256": "f0d089c92911a7ede479b54454d413a9f13a71f15a5571c6ce1e4ed07a1ea18f",
+      "expected": {
+        "result": "hidden",
+        "nodeId": "ea8da414-fa28-560e-876d-12b058e8e4dc"
+      }
+    },
+    {
+      "id": "binding-optional-present",
+      "kind": "resolution",
+      "file": "binding-optional-present.json",
+      "sha256": "6bf426b47b088a12d99c77beb956560f555e122b796904390243fc344153a141",
+      "expected": {
+        "result": "Minh Anh",
+        "nodeId": "ea8da414-fa28-560e-876d-12b058e8e4dc"
+      }
+    },
+    {
+      "id": "binding-optional-fallback",
+      "kind": "resolution",
+      "file": "binding-optional-fallback.json",
+      "sha256": "d7e5e97c744a352dc8733b8d50c9bd5eeb8b39ac15c4098571eeb2c595990cdf",
+      "expected": {
+        "result": "Tên dự phòng",
+        "nodeId": "ea8da414-fa28-560e-876d-12b058e8e4dc"
+      }
+    },
+    {
+      "id": "binding-wrong-type-fallback",
+      "kind": "resolution",
+      "file": "binding-wrong-type-fallback.json",
+      "sha256": "67c73f9c82210e004daf01c1aae0dcf0cef95fdf2c8999edd00d2e6922713582",
+      "expected": {
+        "result": "BINDING_INVALID",
+        "nodeId": "ea8da414-fa28-560e-876d-12b058e8e4dc"
+      }
+    },
+    {
+      "id": "binding-manual-hidden",
+      "kind": "resolution",
+      "file": "binding-manual-hidden.json",
+      "sha256": "e4edb20f60f5e31ba3c5abbed0df230925c661bcbd762cd566d802ae33309273",
+      "expected": {
+        "result": "hidden",
+        "nodeId": "ea8da414-fa28-560e-876d-12b058e8e4dc"
+      }
+    },
+    {
+      "id": "qr-static",
+      "kind": "qr",
+      "file": "qr-static.json",
+      "sha256": "512a13eb77eeb33bb80c4303f51e8d4c74cf11c189bc16936d97ec6bfdb1d66f",
+      "expected": {
+        "crcValid": true,
+        "initiationMethod": "11",
+        "amount": null
+      }
+    },
+    {
+      "id": "qr-provider-dynamic",
+      "kind": "qr",
+      "file": "qr-provider-dynamic.json",
+      "sha256": "b7fe79ed3ea6bcdd89618c0b0c1f664b4b52d020d91ed1a575e3a070051a7916",
+      "expected": {
+        "crcValid": true,
+        "initiationMethod": "12",
+        "amount": "79000"
+      }
+    }
+  ]
+}

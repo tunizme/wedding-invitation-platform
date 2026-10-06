@@ -4,28 +4,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ProblemFilter } from './common/errors/problem.filter';
 import { requestValidationPipe } from './common/errors/validation';
-import type { NextFunction, Request, Response } from 'express';
+import { configureRequestBoundaries } from './common/http/request-boundaries';
 
 export async function createApplication() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
   const config = app.get(ConfigService);
   app.setGlobalPrefix('api/v1');
-  // Authentication/profile/Admin responses can contain identity or session state.
-  // A single default also covers redirects and future IAM routes that might omit
-  // a controller-level decorator.
-  app.use((_request: Request, response: Response, next: NextFunction) => {
-    response.setHeader('Cache-Control', 'no-store');
-    next();
-  });
+  configureRequestBoundaries(app, config.getOrThrow<string>('FRONTEND_ORIGIN'));
   app.useGlobalPipes(requestValidationPipe());
   app.useGlobalFilters(new ProblemFilter());
-  app.enableCors({
-    origin: config.getOrThrow<string>('FRONTEND_ORIGIN'),
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'X-CSRF-Token'],
-    exposedHeaders: ['Retry-After'],
-  });
   app.enableShutdownHooks();
 
   const openApi = new DocumentBuilder()

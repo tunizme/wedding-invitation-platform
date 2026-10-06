@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "nodes": {
+    "ROOT": {
+      "type": {
+        "resolvedName": "InvitationCanvas"
+      },
+      "isCanvas": true,
+      "props": {
+        "canvas": {
+          "width": 390,
+          "height": 1600,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFFFF"
+          }
+        }
+      },
+      "displayName": "InvitationCanvas",
+      "custom": {},
+      "hidden": false,
+      "nodes": [],
+      "linkedNodes": {}
+    },
+    "ea8da414-fa28-560e-876d-12b058e8e4dc": {
+      "type": {
+        "resolvedName": "Text"
+      },
+      "isCanvas": false,
+      "props": {
+        "box": {
+          "x": 20,
+          "y": 20,
+          "width": 300,
+          "height": 80,
+          "rotation": 0
+        },
+        "appearance": {
+          "opacity": 1,
+          "border": {
+            "width": 0,
+            "color": "#000000FF",
+            "style": "solid"
+          },
+          "borderRadius": 0,
+          "shadow": null,
+          "background": {
+            "kind": "solid",
+            "color": "#FFFFFF00"
+          },
+          "padding": {
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          }
+        },
+        "content": {
+          "textStyle": {
+            "fontId": "noto-sans-v1",
+            "fontSize": 18,
+            "fontWeight": 400,
+            "italic": false,
+            "underline": false,
+            "color": "#000000FF",
+            "letterSpacing": 0,
+            "lineHeight": 1.5,
+            "textAlign": "left",
+            "textTransform": "none"
+          },
+          "text": "Thiệp cưới Đặng & Nguyễn"
+        },
+        "bindings": []
+      },
+      "displayName": "Text",
+      "custom": {
+        "layerName": "Text 1",
+        "locked": false,
+        "optional": false
+      },
+      "hidden": false,
+      "parent": "ROOT",
+      "nodes": [],
+      "linkedNodes": {}
+    }
+  }
+}

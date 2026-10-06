@@ -16,7 +16,10 @@
     "next": "^16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.1.0"
+    "zod": "^4.1.0",
+    "@craftjs/core": "0.2.12",
+    "react-moveable": "0.56.0",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -31,6 +34,9 @@
     "jsdom": "^27.0.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "@playwright/test": "1.63.0",
+    "jsqr": "1.4.0",
+    "@types/qrcode": "1.5.6"
   }
 }
