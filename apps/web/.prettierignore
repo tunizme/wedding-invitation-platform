@@ -1,4 +1,7 @@
 .next/
+.next-auth-transition-*/
+.tsconfig-auth-transition-*.json
+.artifacts/
 node_modules/
 coverage/
 *.tsbuildinfo

@@ -1,0 +1,642 @@
+openapi: 3.1.0
+info:
+  title: Wedding Invitation Platform IAM Auth Context Protocol (CSP-1)
+  version: 0.2.0
+  description: >-
+    Delta contract của feature 006 trên IAM contract 003
+    (specs/003-identity-access-management/contracts/identity-access.openapi.yaml).
+    Chỉ liệt kê route mới và route 003 có thay đổi header/cookie/response. Request body
+    allowlists của 003 giữ nguyên; context/intent metadata đi qua headers. Không response nào
+    chứa refresh credential, binding secret, password, proof, provider code hoặc cookie value.
+    Mọi auth endpoint yêu cầu exact frontend Origin như 003. Cookie và selector semantics:
+    browser-state.md. Đây là Phase1 design contract, chưa implemented.
+servers:
+  - url: http://localhost:3001/api/v1
+tags:
+  - { name: Context }
+  - { name: Session }
+  - { name: OAuth }
+  - { name: Profile }
+paths:
+  /auth/contexts:
+    post:
+      tags: [Context]
+      operationId: provisionAuthContext
+      summary: Provision a PROVISIONAL auth context and emit its binding cookie
+      description: >-
+        Gọi chỉ khi user thực hiện explicit auth action và selector UNSELECTED/RECOVERY_REQUIRED.
+        Server đọc mọi binding cookie co-present để xác định capacity group; IDB-only reset không
+        tạo group mới. Capacity check (+1 name) chạy trước khi emit.
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmptyRequest' }
+      responses:
+        '201':
+          description: Context PROVISIONAL; provisional binding cookie (Max-Age 900) đã được set.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/BindingSetCookie' }
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProvisionedContext' }
+        '403': { $ref: '#/components/responses/OriginProblem' }
+        '409': { $ref: '#/components/responses/CapacityExhaustedProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/contexts/{contextId}/confirm:
+    post:
+      tags: [Context]
+      operationId: confirmAuthContext
+      summary: Prove binding cookie installation and activate the context
+      description: >-
+        Server parse đúng một cookie tên binding của contextId; duplicate/missing/sai value bị từ
+        chối. Thành công ack provisional emission (value-exact), gán confirmed_seq và re-emit binding
+        cùng value với Max-Age 30 ngày. Client chỉ commit selector SELECTED sau khi re-check attempt
+        trong IndexedDB.
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+        - $ref: '#/components/parameters/ContextIdPath'
+        - $ref: '#/components/parameters/XAuthContext'
+      security:
+        - contextBinding: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmptyRequest' }
+      responses:
+        '200':
+          description: Context ACTIVE.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/BindingSetCookie' }
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ContextState' }
+        '401': { $ref: '#/components/responses/BindingProblem' }
+        '403': { $ref: '#/components/responses/OriginProblem' }
+        '410': { $ref: '#/components/responses/ContextUnavailableProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/contexts/{contextId}/intents:
+    post:
+      tags: [Context]
+      operationId: reserveAuthIntent
+      summary: Reserve a session-establishing or session-ending intent with expected revision CAS
+      description: >-
+        Accept chỉ khi context.revision = expectedRevision; accept tăng revision và supersede intent
+        RESERVED trước đó. STALE không thay đổi state. Client chỉ được retry với currentRevision khi
+        IndexedDB xác nhận attempt vẫn là current local attempt. Establish kinds check capacity +1
+        name trước khi accept (reject trước dispatch).
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+        - $ref: '#/components/parameters/ContextIdPath'
+        - $ref: '#/components/parameters/XAuthContext'
+      security:
+        - contextBinding: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReserveIntentRequest' }
+      responses:
+        '201':
+          description: Intent RESERVED và là current intent của context.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReservedIntent' }
+        '401': { $ref: '#/components/responses/BindingProblem' }
+        '403': { $ref: '#/components/responses/OriginProblem' }
+        '409':
+          description: STALE (kèm currentRevision) hoặc CAPACITY_EXHAUSTED.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ReserveConflictProblem' }
+        '410': { $ref: '#/components/responses/ContextUnavailableProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/contexts/{contextId}/intents/{intentId}:
+    get:
+      tags: [Context]
+      operationId: getAuthIntentOutcome
+      summary: Read-only, non-rotating outcome lookup for one intent
+      description: >-
+        Không emit cookie, không rotate, không trả credential. Absent/unknown intent không chứng minh
+        NOT_DISPATCHED; terminal outcome không chứng minh cookie delivery. Retention 24h.
+      parameters:
+        - $ref: '#/components/parameters/ContextIdPath'
+        - $ref: '#/components/parameters/XAuthContext'
+        - name: intentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      security:
+        - contextBinding: []
+      responses:
+        '200':
+          description: Intent outcome và current context state.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IntentOutcome' }
+        '401': { $ref: '#/components/responses/BindingProblem' }
+        '404':
+          description: Intent không tồn tại trong context hoặc đã hết retention; client giữ UNCERTAIN.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '410': { $ref: '#/components/responses/ContextUnavailableProblem' }
+
+  /auth/login:
+    post:
+      tags: [Session]
+      operationId: loginLocal
+      summary: 003 local login, executed under a reserved LOCAL_LOGIN intent
+      description: >-
+        Body LoginRequest 003 không đổi. Password verification ngoài transaction; commit lock Context
+        trước, yêu cầu intent current và revision khớp, issue session với slot tag mới, revoke session
+        hiện hành của context với SUPERSEDED. Credential errors giữ generic 003.
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+        - $ref: '#/components/parameters/XAuthContext'
+        - $ref: '#/components/parameters/XAuthIntent'
+      security:
+        - contextBinding: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Session established; new slot cookie set.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SlotSetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessSession' }
+        '401': { $ref: '#/components/responses/InvalidCredentialsProblem' }
+        '403': { $ref: '#/components/responses/OriginProblem' }
+        '409': { $ref: '#/components/responses/SupersededProblem' }
+        '410': { $ref: '#/components/responses/ContextUnavailableProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/csrf:
+    get:
+      tags: [Session]
+      operationId: getSessionCsrfToken
+      summary: 003 CSRF bootstrap, scoped to the context's current session slot
+      parameters:
+        - $ref: '#/components/parameters/XAuthContext'
+        - $ref: '#/components/parameters/XAuthSessionTag'
+      security:
+        - contextBinding: []
+          sessionSlot: []
+      responses:
+        '200':
+          description: CSRF token của current session; no-store.
+          headers:
+            Cache-Control: { $ref: '#/components/headers/NoStore' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CsrfToken' }
+        '401': { $ref: '#/components/responses/CredentialProblem' }
+        '409': { $ref: '#/components/responses/SupersededProblem' }
+
+  /auth/refresh:
+    post:
+      tags: [Session]
+      operationId: refreshSession
+      summary: Strict 003 rotation of the current session slot only
+      description: >-
+        Server derive slot name từ context.current_session_id; yêu cầu slot tag = X-Auth-Session-Tag
+        (khác → SUPERSEDED, không rotate). Parse đúng một cookie slot; missing/duplicate/malformed →
+        CREDENTIAL_MISSING, không scan slot khác. Consumed/revoked value → REFRESH_REUSE revoke family
+        (003, trả 401 generic). Không grace, không raw-successor cache. Response re-emit binding.
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+        - $ref: '#/components/parameters/XAuthContext'
+        - $ref: '#/components/parameters/XAuthSessionTag'
+      security:
+        - contextBinding: []
+          sessionSlot: []
+          csrfHeader: []
+      responses:
+        '200':
+          description: Rotation succeeded.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SlotAndBindingSetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessSession' }
+        '401': { $ref: '#/components/responses/CredentialProblem' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+        '409': { $ref: '#/components/responses/SupersededProblem' }
+        '410': { $ref: '#/components/responses/ContextUnavailableProblem' }
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/logout:
+    post:
+      tags: [Session]
+      operationId: logoutCurrentSession
+      summary: End the session captured by a reserved LOGOUT intent
+      description: >-
+        LOGOUT intent supersede pending establish intent trong context. Revoke session captured lúc
+        reserve; nếu đó là current thì current_session_id = null. Chỉ clear slot cookie của session
+        đó. Active session yêu cầu CSRF như 003; session absent/revoked trả 204 không CSRF. Client end
+        local private session kể cả khi request thất bại (FR-010).
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+        - $ref: '#/components/parameters/XAuthContext'
+        - $ref: '#/components/parameters/XAuthIntent'
+      security:
+        - contextBinding: []
+          csrfHeader: []
+        - contextBinding: []
+      responses:
+        '204':
+          description: Captured session ended (hoặc đã absent); chỉ slot của nó bị clear.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/ClearSlotCookie' }
+        '403': { $ref: '#/components/responses/CsrfProblem' }
+        '409': { $ref: '#/components/responses/SupersededProblem' }
+
+  /auth/logout-all:
+    post:
+      tags: [Session]
+      operationId: logoutAllSessions
+      summary: 003 account-wide revocation; clears only the slot of the bearer session
+      description: >-
+        Revoke mọi session của bearer user (003, kể cả same-account newer session). Không lock context.
+        Chỉ clear slot cookie của session có id = JWT sid; không clear name khác.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: All sessions revoked.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/ClearSlotCookie' }
+        '401': { $ref: '#/components/responses/CredentialProblem' }
+
+  /me/password:
+    post:
+      tags: [Profile]
+      operationId: changeMyPassword
+      summary: 003 password change; clears only the slot of the bearer session
+      description: >-
+        Body 003 không đổi. Revoke mọi session của user (003). Response không còn clear singleton
+        refresh cookie; chỉ clear slot của JWT sid. Không cần binding cookie hoặc JWT claim mới.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordChangeRequest' }
+      responses:
+        '204':
+          description: Password changed, all sessions revoked.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/ClearSlotCookie' }
+        '400': { description: Current password incorrect (003). }
+        '401': { $ref: '#/components/responses/CredentialProblem' }
+
+  /auth/oauth/{provider}/start:
+    get:
+      tags: [OAuth]
+      operationId: startOAuth
+      summary: 003 full-navigation start bound to a reserved OAUTH intent
+      description: >-
+        Intent phải thuộc context có binding cookie trong request (SameSite=Lax top-level GET), kind
+        OAUTH, RESERVED, chưa started. Existing state/PKCE/nonce/oauth binding cookie giữ nguyên.
+        Lỗi điều hướng về frontend oauth-result, không lộ chi tiết.
+      parameters:
+        - $ref: '#/components/parameters/Provider'
+        - name: intent
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      security:
+        - contextBinding: []
+      responses:
+        '302':
+          description: Redirect tới provider; oauth transaction cookie (003) được set.
+        '303':
+          description: Intent không hợp lệ/superseded → redirect `/oauth-result?result=superseded`.
+        '429': { $ref: '#/components/responses/RateLimitedProblem' }
+
+  /auth/oauth/{provider}/callback:
+    get:
+      tags: [OAuth]
+      operationId: completeOAuthCallback
+      summary: 003 callback with final intent authority check
+      description: >-
+        Existing claim/binding/provider verification giữ nguyên. Final transaction lock Context trước,
+        yêu cầu transaction.intent_id là current intent và revision khớp, rồi mới chạy 003 identity
+        resolution và session issue. Superseded hoặc pre-cutover transaction → 003 fail path, không
+        session.
+      parameters:
+        - $ref: '#/components/parameters/Provider'
+      responses:
+        '303':
+          description: >-
+            `/oauth-result?result=success&intent={id}` (slot cookie set), `/social-onboarding`
+            (onboarding cookie 003) hoặc `/oauth-result?result=superseded`.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SlotSetCookie' }
+        '400': { description: Invalid/expired/reused state hoặc binding (003). }
+
+  /auth/social-onboarding/verifications/confirm:
+    post:
+      tags: [OAuth]
+      operationId: confirmSocialOnboardingVerification
+      summary: 003 onboarding completion executed under a new ONBOARDING_COMPLETE intent
+      description: >-
+        Body proof 003 không đổi. Completion là explicit user action nên reserve intent mới trong
+        cùng context của onboarding. Commit lock Context → onboarding → challenges → users → sessions.
+      parameters:
+        - $ref: '#/components/parameters/Origin'
+        - $ref: '#/components/parameters/XAuthContext'
+        - $ref: '#/components/parameters/XAuthIntent'
+      security:
+        - contextBinding: []
+          onboardingCookie: []
+          csrfHeader: []
+      responses:
+        '200':
+          description: User + ExternalIdentity + Session tạo atomically (003); slot cookie set.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SlotSetCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AccessSession' }
+        '400': { description: Invalid proof (003). }
+        '409':
+          description: SUPERSEDED, CAPACITY_EXHAUSTED hoặc ONBOARDING_CANNOT_COMPLETE (003).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+components:
+  securitySchemes:
+    contextBinding:
+      type: apiKey
+      in: cookie
+      name: __Host-wa_cb_{contextId}
+      description: HttpOnly binding cookie của context trong X-Auth-Context; tên chứa context ID.
+    sessionSlot:
+      type: apiKey
+      in: cookie
+      name: __Secure-wa_s_{slotTag}
+      description: HttpOnly refresh credential của current session; Path=/api/v1/auth.
+    onboardingCookie:
+      type: apiKey
+      in: cookie
+      name: __Secure-wedding_ob
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Origin:
+      name: Origin
+      in: header
+      required: true
+      schema: { type: string, format: uri }
+    ContextIdPath:
+      name: contextId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    XAuthContext:
+      name: X-Auth-Context
+      in: header
+      required: true
+      description: Context ID đọc từ shared selector ngay trước request; phải khớp path nếu có.
+      schema: { type: string, format: uuid }
+    XAuthIntent:
+      name: X-Auth-Intent
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    XAuthSessionTag:
+      name: X-Auth-Session-Tag
+      in: header
+      required: true
+      description: Slot tag của session client đang admit (expected current).
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+    Provider:
+      name: provider
+      in: path
+      required: true
+      schema: { type: string, enum: [google, facebook] }
+  headers:
+    NoStore:
+      schema: { type: string, const: no-store }
+    BindingSetCookie:
+      description: '`__Host-wa_cb_{contextId}`; HttpOnly; Secure; Path=/; SameSite=Lax; Max-Age 900 (provisional) hoặc 2592000.'
+      schema: { type: string }
+    SlotSetCookie:
+      description: '`__Secure-wa_s_{slotTag}`; HttpOnly; Secure; Path=/api/v1/auth; SameSite=Lax; Max-Age = session absolute expiry còn lại.'
+      schema: { type: string }
+    SlotAndBindingSetCookie:
+      description: Hai Set-Cookie headers riêng biệt - slot rotation và binding renewal.
+      schema: { type: string }
+    ClearSlotCookie:
+      description: Max-Age=0 cho đúng một slot name của session gốc; không bao giờ clear name khác.
+      schema: { type: string }
+  schemas:
+    EmptyRequest:
+      type: object
+      additionalProperties: false
+      maxProperties: 0
+    ProvisionedContext:
+      type: object
+      additionalProperties: false
+      required: [authProtocol, contextId, state, revision]
+      properties:
+        authProtocol: { type: integer, const: 2 }
+        contextId: { type: string, format: uuid }
+        state: { type: string, const: PROVISIONAL }
+        revision: { type: integer, const: 0 }
+    ContextState:
+      type: object
+      additionalProperties: false
+      required: [authProtocol, contextId, state, revision, sessionTag]
+      properties:
+        authProtocol: { type: integer, const: 2 }
+        contextId: { type: string, format: uuid }
+        state: { type: string, enum: [ACTIVE] }
+        revision: { type: integer, minimum: 0 }
+        sessionTag:
+          oneOf:
+            - { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+            - { type: 'null' }
+    ReserveIntentRequest:
+      type: object
+      additionalProperties: false
+      required: [kind, expectedRevision]
+      properties:
+        kind: { type: string, enum: [LOCAL_LOGIN, OAUTH, ONBOARDING_COMPLETE, LOGOUT] }
+        expectedRevision: { type: integer, minimum: 0 }
+        expectedSessionTag:
+          description: >-
+            Required for LOGOUT. Send the captured slot tag, or explicit null when
+            the selected context has no captured session. The server only revokes
+            the session matching this captured tag; null captures no target.
+          oneOf:
+            - { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+            - { type: 'null' }
+      allOf:
+        - if:
+            properties:
+              kind: { const: LOGOUT }
+            required: [kind]
+          then:
+            properties:
+              expectedSessionTag: {}
+            required: [expectedSessionTag]
+    ReservedIntent:
+      type: object
+      additionalProperties: false
+      required: [authProtocol, intentId, kind, revision, expiresAt]
+      properties:
+        authProtocol: { type: integer, const: 2 }
+        intentId: { type: string, format: uuid }
+        kind: { type: string, enum: [LOCAL_LOGIN, OAUTH, ONBOARDING_COMPLETE, LOGOUT] }
+        revision: { type: integer, minimum: 1 }
+        expiresAt: { type: string, format: date-time }
+    IntentOutcome:
+      type: object
+      additionalProperties: false
+      required: [authProtocol, intentId, state, contextRevision, currentSessionTag]
+      properties:
+        authProtocol: { type: integer, const: 2 }
+        intentId: { type: string, format: uuid }
+        state: { type: string, enum: [RESERVED, COMMITTED, SUPERSEDED, FAILED, EXPIRED] }
+        outcomeCode:
+          oneOf:
+            - type: string
+              enum: [SESSION_ESTABLISHED, SESSION_ENDED, INVALID_CREDENTIALS, ONBOARDING_REQUIRED, SUPERSEDED, CAPACITY_EXHAUSTED]
+            - { type: 'null' }
+        contextRevision: { type: integer, minimum: 0 }
+        currentSessionTag:
+          oneOf:
+            - { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+            - { type: 'null' }
+    AccessSession:
+      description: >-
+        Thay AccessSession 003 (additionalProperties false) bằng version có metadata CSP-1. Client
+        bỏ qua response thiếu authProtocol = 2.
+      type: object
+      additionalProperties: false
+      required: [authProtocol, accessToken, tokenType, expiresIn, csrfToken, sessionTag, contextRevision, user]
+      properties:
+        authProtocol: { type: integer, const: 2 }
+        accessToken: { type: string }
+        tokenType: { type: string, const: Bearer }
+        expiresIn: { type: integer, const: 900 }
+        csrfToken: { type: string }
+        sessionTag: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+        contextRevision: { type: integer, minimum: 0 }
+        user: { type: object, description: UserProfile 003 không đổi. }
+    LoginRequest:
+      description: 003 LoginRequest không đổi.
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 1, maxLength: 128, writeOnly: true }
+    PasswordChangeRequest:
+      description: 003 body không đổi.
+      type: object
+      additionalProperties: false
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string, minLength: 1, maxLength: 128, writeOnly: true }
+        newPassword: { type: string, minLength: 8, maxLength: 128, writeOnly: true }
+    CsrfToken:
+      type: object
+      additionalProperties: false
+      required: [csrfToken]
+      properties:
+        csrfToken: { type: string, minLength: 40, maxLength: 512 }
+    Problem:
+      description: 003 Problem schema.
+      type: object
+      additionalProperties: false
+      required: [type, title, status, code, requestId]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string }
+        code: { type: string, pattern: '^[A-Z][A-Z0-9_]+$' }
+        requestId: { type: string, maxLength: 100 }
+    ReserveConflictProblem:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            code: { type: string, enum: [STALE_REVISION, CAPACITY_EXHAUSTED] }
+            currentRevision: { type: integer, minimum: 0 }
+  responses:
+    OriginProblem:
+      description: Missing/untrusted Origin hoặc non-JSON request (003).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    BindingProblem:
+      description: '`BINDING_INVALID` - binding cookie missing, duplicate, malformed hoặc sai; không tiết lộ context tồn tại.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CredentialProblem:
+      description: >-
+        `CREDENTIAL_MISSING` (current slot vắng/duplicate/malformed → explicit recovery, không fallback)
+        hoặc generic authentication problem 003 (revoked/expired/reuse).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    SupersededProblem:
+      description: '`SUPERSEDED` - intent/session không còn current trong context; không có session effect.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CapacityExhaustedProblem:
+      description: '`CAPACITY_EXHAUSTED` - group không còn safe delivery capacity; không cookie nào được emit.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ContextUnavailableProblem:
+      description: '`CONTEXT_UNAVAILABLE` - context RETIRED hoặc không ACTIVE; client chuyển RECOVERY_REQUIRED.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CsrfProblem:
+      description: Missing/invalid CSRF (003).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    InvalidCredentialsProblem:
+      description: Generic credential error (003).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    RateLimitedProblem:
+      description: Rate limited (003), có Retry-After.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }

@@ -8,6 +8,11 @@ import { transaction } from '../infrastructure/transactions';
 import { safeProfile } from '../auth/local-login.service';
 import { SessionService } from '../auth/session.service';
 import { SocialOnboardingService } from '../oauth/social-onboarding.service';
+import type {
+  AuthContextService,
+  ContextRequest,
+} from '../context/auth-context.service';
+import type { AuthIntentService } from '../context/auth-intent.service';
 
 export class CompleteSocialOnboardingService {
   constructor(
@@ -15,16 +20,43 @@ export class CompleteSocialOnboardingService {
     private readonly crypto: CredentialCrypto,
     private readonly sessions: SessionService,
     private readonly onboarding: SocialOnboardingService,
+    private readonly contexts?: AuthContextService,
+    private readonly intents?: AuthIntentService,
   ) {}
 
-  async complete(binding: string, proof: string) {
+  async complete(
+    binding: string,
+    proof: string,
+    request?: ContextRequest,
+    contextId?: string,
+    intentId?: string,
+  ) {
     const observed = await this.onboarding.resolve(binding);
+    if (
+      this.contexts &&
+      this.intents &&
+      (!request || !contextId || !intentId || observed.context_id !== contextId)
+    )
+      throw new BadRequestException();
     const result = await transaction(this.db, async (manager) => {
+      const bound =
+        request && contextId && intentId && this.contexts && this.intents
+          ? await this.contexts.bind(manager, request, contextId)
+          : undefined;
+      if (bound && intentId && this.intents)
+        await this.intents.assertCurrent(
+          manager,
+          bound,
+          intentId,
+          'ONBOARDING_COMPLETE',
+        );
       const context = await this.onboarding.lockEligible(
         manager,
         observed.id,
         binding,
       );
+      if (bound && context.context_id !== bound.context.id)
+        throw new BadRequestException();
       const challenges = await manager.query<AuthChallenge[]>(
         `SELECT * FROM auth_challenges
          WHERE social_onboarding_id=$1 AND purpose='SOCIAL_EMAIL_VERIFICATION'
@@ -95,7 +127,11 @@ export class CompleteSocialOnboardingService {
           throw new OnboardingCannotCompleteException();
         throw error;
       }
-      const session = await this.sessions.issue(manager, userId);
+      const session = await this.sessions.issue(
+        manager,
+        userId,
+        bound ? { context: bound } : {},
+      );
       await manager.query(
         "UPDATE auth_challenges SET status='CONSUMED',consumed_at=$2 WHERE id=$1",
         [challenge.id, now],
@@ -115,7 +151,32 @@ export class CompleteSocialOnboardingService {
         'SELECT * FROM users WHERE id=$1',
         [userId],
       );
-      return { session, user: safeProfile(user) };
+      let contextRevision: number | undefined;
+      let cleanupNames: string[] = [];
+      if (bound && intentId && this.contexts && this.intents) {
+        await this.intents.resolve(
+          manager,
+          intentId,
+          'COMMITTED',
+          'SESSION_ESTABLISHED',
+        );
+        contextRevision = Number(bound.context.revision);
+        cleanupNames = await this.contexts.settle(manager, bound, [
+          {
+            name: this.contexts.slotCookieName(session.slotTag ?? ''),
+            kind: 'SLOT',
+            ownerContextId: bound.context.id,
+            ownerSessionId: session.sessionId,
+            value: session.refreshToken,
+          },
+        ]);
+      }
+      return {
+        session,
+        user: safeProfile(user),
+        contextRevision,
+        cleanupNames,
+      };
     });
     return result;
   }

@@ -20,6 +20,7 @@ import { RateLimitService } from '../infrastructure/rate-limit.service';
 import { GoogleAdapter, GoogleCallbackRejected } from './google.adapter';
 import { FacebookAdapter, FacebookCallbackRejected } from './facebook.adapter';
 import { OAuthTransactionService } from './oauth-transaction.service';
+import { AuthTransitionProblemException } from '../../../common/errors/public-problem.exception';
 
 @Controller('auth/oauth/:provider')
 @Public()
@@ -48,15 +49,44 @@ export class OAuthController {
   @Get('start')
   async start(
     @Param('provider') provider: string,
+    @Query('intent') intentId: string | undefined,
     @Req() request: Request,
     @Res() response: Response,
   ) {
     const selected = this.selected(provider);
     await this.limiter.consume('OAUTH_START', this.limiter.ip(request));
-    const started = await this.transactions.start(
-      selected.provider,
-      'OAUTH_RESULT',
-    );
+    if (
+      !intentId ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        intentId,
+      )
+    )
+      return response.redirect(
+        303,
+        `${this.config.frontendOrigin}/oauth-result?result=superseded`,
+      );
+    let started;
+    try {
+      started = await this.transactions.start(
+        selected.provider,
+        'OAUTH_RESULT',
+        request,
+        intentId,
+      );
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        (error instanceof AuthTransitionProblemException &&
+          ['SUPERSEDED', 'BINDING_INVALID', 'CONTEXT_UNAVAILABLE'].includes(
+            error.problemCode,
+          ))
+      )
+        return response.redirect(
+          303,
+          `${this.config.frontendOrigin}/oauth-result?result=superseded`,
+        );
+      throw error;
+    }
     const location =
       selected.provider === 'GOOGLE'
         ? this.google.authorizationUrl(started)
@@ -101,6 +131,11 @@ export class OAuthController {
       this.browser.clearCookie(response, 'oauth');
       throw new BadRequestException();
     }
+    if (!claimed.contextId || !claimed.intentId) {
+      await this.transactions.fail(claimed.id, 'PRE_CUTOVER_TRANSACTION');
+      this.browser.clearCookie(response, 'oauth');
+      throw new BadRequestException();
+    }
     try {
       const verified =
         selected.provider === 'GOOGLE'
@@ -110,7 +145,11 @@ export class OAuthController {
               expectedNonceHash: claimed.expectedNonceHash,
             })
           : await this.facebook.verifyCallback({ code });
-      const result = await this.identities.resolveClaimed(verified, claimed.id);
+      const result = await this.identities.resolveClaimed(
+        verified,
+        claimed,
+        request,
+      );
       this.browser.clearCookie(response, 'oauth');
       if (result.kind === 'onboarding') {
         this.browser.writeCookie(
@@ -124,14 +163,15 @@ export class OAuthController {
           `${this.config.frontendOrigin}/social-onboarding`,
         );
       }
-      this.browser.writeCookie(
+      this.browser.writeSlot(
         response,
+        result.session.slotTag ?? '',
         result.session.refreshToken,
         result.session.expiresAt,
       );
       return response.redirect(
         303,
-        `${this.config.frontendOrigin}/oauth-result?result=success`,
+        `${this.config.frontendOrigin}/oauth-result?result=success&intent=${encodeURIComponent(claimed.intentId)}`,
       );
     } catch (error) {
       await this.transactions.fail(
@@ -142,6 +182,16 @@ export class OAuthController {
           : 'CALLBACK_REJECTED',
       );
       this.browser.clearCookie(response, 'oauth');
+      if (
+        error instanceof AuthTransitionProblemException &&
+        ['SUPERSEDED', 'BINDING_INVALID', 'CONTEXT_UNAVAILABLE'].includes(
+          error.problemCode,
+        )
+      )
+        return response.redirect(
+          303,
+          `${this.config.frontendOrigin}/oauth-result?result=superseded`,
+        );
       throw error;
     }
   }

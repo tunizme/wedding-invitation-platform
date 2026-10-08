@@ -8,6 +8,7 @@ import {
 import type { Response } from 'express';
 import { RateLimitExceeded } from '../../modules/identity-access/infrastructure/rate-limit.service';
 import {
+  AuthTransitionProblemException,
   OnboardingCannotCompleteException,
   PasswordChangeNotApplicableException,
   BuilderProblemException,
@@ -58,24 +59,29 @@ const codes: Record<number, string> = {
 export class ProblemFilter implements ExceptionFilter {
   catch(error: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
-    const multerCode = typeof error === 'object' && error !== null && 'code' in error
-      ? (error as { code?: unknown }).code
-      : undefined;
-    const multipartTooLarge = multerCode === 'LIMIT_FILE_SIZE' || multerCode === 'LIMIT_FIELD_VALUE' || multerCode === 'LIMIT_PART_COUNT';
-    const status =
-      multipartTooLarge
-        ? 413
-        : multerCode === 'LIMIT_UNEXPECTED_FILE' || multerCode === 'LIMIT_FIELD_COUNT'
-          ? 422
-          : error instanceof HttpException
-        ? error.getStatus()
-        : error instanceof AssetObjectMissingError
-          ? 404
-          : error instanceof StorageUnavailableError
-            ? 503
-            : 500;
+    const multerCode =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? (error as { code?: unknown }).code
+        : undefined;
+    const multipartTooLarge =
+      multerCode === 'LIMIT_FILE_SIZE' ||
+      multerCode === 'LIMIT_FIELD_VALUE' ||
+      multerCode === 'LIMIT_PART_COUNT';
+    const status = multipartTooLarge
+      ? 413
+      : multerCode === 'LIMIT_UNEXPECTED_FILE' ||
+          multerCode === 'LIMIT_FIELD_COUNT'
+        ? 422
+        : error instanceof HttpException
+          ? error.getStatus()
+          : error instanceof AssetObjectMissingError
+            ? 404
+            : error instanceof StorageUnavailableError
+              ? 503
+              : 500;
     const code =
       error instanceof BuilderProblemException ||
+      error instanceof AuthTransitionProblemException ||
       error instanceof OnboardingCannotCompleteException ||
       error instanceof PasswordChangeNotApplicableException
         ? error.problemCode
@@ -100,6 +106,10 @@ export class ProblemFilter implements ExceptionFilter {
       status,
       code,
       requestId: randomUUID(),
+      ...(error instanceof AuthTransitionProblemException &&
+      error.currentRevision !== undefined
+        ? { currentRevision: error.currentRevision }
+        : {}),
       ...(error instanceof BuilderProblemException && error.issues.length
         ? {
             issues: error.issues.slice(0, 100).map((entry) => ({

@@ -78,7 +78,8 @@ describe.sequential('session revocation races and hard expiry', () => {
       .set('Cookie', `wedding_rt=${current.refreshToken}`);
   }
 
-  it('does not rotate at the absolute boundary and enforces exact 15-minute access expiry', async () => {
+  // T062 allowlist (FR-003/FR-014): legacy refresh cannot reach credential state.
+  it('rejects legacy refresh at the absolute boundary and enforces exact 15-minute access expiry', async () => {
     const current = await issue('expiry@example.test');
     await fixture.db.query(
       `UPDATE auth_sessions SET created_at=now()-interval '14 days',absolute_expires_at=now()
@@ -95,7 +96,7 @@ describe.sequential('session revocation races and hard expiry', () => {
       'SELECT revocation_reason FROM auth_sessions WHERE id=$1',
       [current.sessionId],
     );
-    expect(family.revocation_reason).toBe('EXPIRED');
+    expect(family.revocation_reason).toBeNull();
 
     const claims = decode(current.accessToken) as { iat: number };
     const tokens = app.get(AccessTokenService);
@@ -107,7 +108,7 @@ describe.sequential('session revocation races and hard expiry', () => {
     );
   });
 
-  it('serializes refresh against logout-all and leaves no active family', async () => {
+  it('rejects legacy refresh while logout-all revokes every session', async () => {
     const current = await issue('logout-race@example.test');
     const [rotated, loggedOut] = await Promise.all([
       refresh(current),
@@ -115,7 +116,7 @@ describe.sequential('session revocation races and hard expiry', () => {
         .post('/api/v1/auth/logout-all')
         .set('Authorization', `Bearer ${current.accessToken}`),
     ]);
-    expect([200, 401]).toContain(rotated.status);
+    expect(rotated.status).toBe(401);
     expect(loggedOut.status).toBe(204);
     const [family] = await fixture.db.query<
       { revoked_at: Date | null; revocation_reason: string | null }[]
@@ -129,13 +130,13 @@ describe.sequential('session revocation races and hard expiry', () => {
         'SELECT id FROM refresh_credentials WHERE session_id=$1 AND generation=1',
         [current.sessionId],
       ),
-    ).toHaveLength(rotated.status === 200 ? 1 : 0);
+    ).toHaveLength(0);
     expect(app.get(AccessTokenService).verify(current.accessToken).userId).toBe(
       current.id,
     );
   });
 
-  it('serializes refresh against password reset and preserves reset revocation', async () => {
+  it('rejects legacy refresh while password reset preserves reset revocation', async () => {
     const current = await issue('reset-race@example.test');
     const resets = app.get(PasswordResetService);
     await resets.request('reset-race@example.test');
@@ -166,7 +167,7 @@ describe.sequential('session revocation races and hard expiry', () => {
       refresh(current),
       resets.confirm(proof, 'Replacement Password'),
     ]);
-    expect([200, 401]).toContain(rotated.status);
+    expect(rotated.status).toBe(401);
     const [family] = await fixture.db.query<
       { revoked_at: Date | null; revocation_reason: string | null }[]
     >('SELECT revoked_at,revocation_reason FROM auth_sessions WHERE id=$1', [

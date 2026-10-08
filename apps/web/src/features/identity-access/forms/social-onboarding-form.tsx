@@ -3,8 +3,17 @@
 import { useEffect, useState } from 'react';
 import { ApiError, iamRequest, type AccessSession } from '../api/client';
 import { sessionStore } from '../session/store';
+import { authFlowMessage, reserveIntent } from '../session/auth-context-flow';
+import { adoptIfCurrent } from '../session/refresh-coordinator';
+import {
+  clearPendingIntent,
+  observeServerState,
+  readSelector,
+  selectorStore,
+} from '../session/auth-selector';
 
 interface OnboardingState {
+  contextId: string;
   provider: 'GOOGLE' | 'FACEBOOK';
   status: 'PENDING_EMAIL' | 'PENDING_VERIFICATION';
   emailCandidate: string | null;
@@ -13,11 +22,7 @@ interface OnboardingState {
 }
 
 export function SocialOnboardingForm() {
-  const [proof, setProof] = useState<string | null>(() =>
-    typeof window === 'undefined'
-      ? null
-      : new URLSearchParams(window.location.hash.slice(1)).get('token'),
-  );
+  const [proof, setProof] = useState<string | null>(null);
   const [state, setState] = useState<OnboardingState | null>(null);
   const [email, setEmail] = useState('');
   const [notice, setNotice] = useState('');
@@ -26,8 +31,16 @@ export function SocialOnboardingForm() {
   const [completed, setCompleted] = useState<AccessSession | null>(null);
 
   useEffect(() => {
-    if (window.location.hash)
+    const readProof = () => {
+      const token = new URLSearchParams(window.location.hash.slice(1)).get(
+        'token',
+      );
+      if (!token) return;
+      setProof(token);
       window.history.replaceState(null, '', window.location.pathname);
+    };
+    readProof();
+    window.addEventListener('hashchange', readProof);
     void iamRequest<OnboardingState>('/auth/social-onboarding', {
       cookieAuth: true,
     })
@@ -42,6 +55,7 @@ export function SocialOnboardingForm() {
             : 'Không thể tải phiên xác minh. Vui lòng thử đăng nhập lại.',
         );
       });
+    return () => window.removeEventListener('hashchange', readProof);
   }, []);
 
   async function submitEmail() {
@@ -96,6 +110,15 @@ export function SocialOnboardingForm() {
     setPending(true);
     setError('');
     try {
+      const store = await selectorStore();
+      const selected = await readSelector(store);
+      if (
+        selected.state !== 'SELECTED' ||
+        selected.contextId !== state.contextId
+      )
+        throw new ApiError(409, 'SUPERSEDED');
+      const reserved = await reserveIntent(store, 'ONBOARDING_COMPLETE');
+      const admissionVersion = sessionStore.version();
       const result = await iamRequest<AccessSession>(
         '/auth/social-onboarding/verifications/confirm',
         {
@@ -103,19 +126,44 @@ export function SocialOnboardingForm() {
           body: { proof },
           cookieAuth: true,
           csrfToken: state.csrfToken,
+          auth: { contextId: reserved.contextId, intentId: reserved.intentId },
+          expectProtocol: true,
         },
       );
+      const recorded = await observeServerState(
+        store,
+        reserved.contextId,
+        result.contextRevision ?? reserved.revision,
+        result.sessionTag ?? null,
+        undefined,
+        reserved.attemptId,
+      );
+      if (!recorded) throw new ApiError(409, 'SUPERSEDED');
+      await clearPendingIntent(store, reserved.attemptId);
       setProof(null);
-      sessionStore.set(result);
+      if (
+        !(await adoptIfCurrent(
+          store,
+          result,
+          {
+            contextId: reserved.contextId,
+            sessionTag: result.sessionTag ?? '',
+            contextRevision: result.contextRevision ?? reserved.revision,
+          },
+          admissionVersion,
+        ))
+      )
+        throw new ApiError(409, 'SUPERSEDED');
       setCompleted(result);
     } catch (reason) {
       setProof(null);
       setError(
-        reason instanceof ApiError && reason.status === 400
-          ? 'Liên kết xác minh không còn hiệu lực. Vui lòng bắt đầu lại.'
-          : reason instanceof ApiError && [401, 409].includes(reason.status)
-            ? 'Phiên xác minh không còn hiệu lực. Vui lòng đăng nhập lại.'
-            : 'Không thể hoàn tất xác minh.',
+        authFlowMessage(reason) ??
+          (reason instanceof ApiError && reason.status === 400
+            ? 'Liên kết xác minh không còn hiệu lực. Vui lòng bắt đầu lại.'
+            : reason instanceof ApiError && [401, 409].includes(reason.status)
+              ? 'Phiên xác minh không còn hiệu lực. Vui lòng đăng nhập lại.'
+              : 'Không thể hoàn tất xác minh.'),
       );
     } finally {
       setPending(false);

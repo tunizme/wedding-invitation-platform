@@ -97,6 +97,7 @@ export function ProfileForm() {
     setPasswordPending(true);
     setError('');
     setMessage('');
+    const originatingSession = sessionStore.get();
     try {
       await authenticatedRequest<void>('/me/password', {
         method: 'POST',
@@ -105,7 +106,13 @@ export function ProfileForm() {
       });
       setCurrentPassword('');
       setNewPassword('');
-      clearLocalSession();
+      if (
+        originatingSession?.sessionTag &&
+        sessionStore.get()?.sessionTag &&
+        originatingSession.sessionTag !== sessionStore.get()?.sessionTag
+      )
+        return;
+      clearLocalSession(originatingSession);
       setProfile(null);
       setMessage('Đã đổi mật khẩu. Vui lòng đăng nhập lại.');
     } catch (cause) {

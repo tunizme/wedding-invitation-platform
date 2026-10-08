@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import type { DataSource, EntityManager } from 'typeorm';
 import type { IdentityEnvironment } from '../../../config/identity-access.environment';
-import { transaction } from './transactions';
+import { lockContexts, lockUsers, transaction } from './transactions';
 
 export interface RetentionRunMetrics {
   durationMs: number;
@@ -18,6 +18,24 @@ export interface RetentionRunMetrics {
 type CountRow = { count: string | number };
 type TerminalizedRow = CountRow & {
   ciphertext_count: string | number;
+};
+type RetainedSessionCandidate = {
+  id: string;
+  user_id: string;
+  context_id: string | null;
+};
+type RetentionAuthorities = {
+  contextIds: string[];
+  retireContextIds: string[];
+  expiredIntentIds: string[];
+  deleteIntentIds: string[];
+  expiredOnboardingIds: string[];
+  deleteOnboardingIds: string[];
+  expiredOauthIds: string[];
+  clearOauthIds: string[];
+  deleteOauthIds: string[];
+  sessionIds: string[];
+  userIds: string[];
 };
 
 export class RetentionWorker
@@ -82,14 +100,197 @@ export class RetentionWorker
     return Number(rows[0]?.count ?? 0);
   }
 
+  /**
+   * Discover the bounded authorities retention may touch, then acquire L0
+   * contexts before any lower relation is locked or changed. Account users are
+   * locked later, immediately before their session candidates.
+   * The returned session IDs are revalidated under row locks before deletion.
+   */
+  private async lockRetentionAuthorities(
+    manager: EntityManager,
+  ): Promise<RetentionAuthorities> {
+    const batch = this.config.retention.batchSize;
+    const r = this.config.retention;
+    const contextIds = new Set<string>();
+    const collect = (rows: Array<{ id: string | null }>) => {
+      for (const row of rows) if (row.id) contextIds.add(row.id);
+    };
+    const ids = async (sql: string, parameters: unknown[] = []) =>
+      manager.query<{ id: string }[]>(sql, parameters);
+    const sessions = await manager.query<RetainedSessionCandidate[]>(
+      `SELECT id,user_id,context_id FROM auth_sessions
+       WHERE GREATEST(absolute_expires_at,COALESCE(revoked_at,absolute_expires_at))
+             < now()-($2 * interval '1 day')
+       ORDER BY id LIMIT $1`,
+      [batch, r.sessionDays],
+    );
+    const retireContexts = await ids(
+      `SELECT id FROM auth_contexts
+       WHERE (state='PROVISIONAL' AND created_at < now()-interval '1 hour')
+          OR (state='ACTIVE' AND COALESCE(last_seen_at,confirmed_at,created_at) < now()-interval '30 days')
+       ORDER BY ctid LIMIT $1`,
+      [batch],
+    );
+    collect(retireContexts);
+    const expiredIntents = await ids(
+      `SELECT id FROM auth_intents WHERE state='RESERVED' AND expires_at <= now()
+       ORDER BY expires_at,id LIMIT $1`,
+      [batch],
+    );
+    const expiredIntentOwners = await manager.query<{ id: string | null }[]>(
+      'SELECT context_id AS id FROM auth_intents WHERE id=ANY($1::uuid[])',
+      [expiredIntents.map(({ id }) => id)],
+    );
+    collect(expiredIntentOwners);
+    const deletedIntents = await ids(
+      `SELECT id FROM auth_intents
+       WHERE (state IN ('COMMITTED','SUPERSEDED','FAILED','EXPIRED')
+              AND resolved_at < now()-interval '24 hours')
+          OR (state='RESERVED' AND expires_at < now()-interval '24 hours')
+       ORDER BY ctid LIMIT $1`,
+      [batch],
+    );
+    const deletedIntentOwners = await manager.query<{ id: string | null }[]>(
+      'SELECT context_id AS id FROM auth_intents WHERE id=ANY($1::uuid[])',
+      [deletedIntents.map(({ id }) => id)],
+    );
+    collect(deletedIntentOwners);
+    collect(sessions.map(({ context_id }) => ({ id: context_id })));
+    const expiredOnboardings = await ids(
+      `SELECT id FROM pending_social_onboardings
+       WHERE status IN ('PENDING_EMAIL','PENDING_VERIFICATION') AND expires_at < now()
+       ORDER BY ctid LIMIT $1`,
+      [batch],
+    );
+    const expiredOnboardingOwners = await manager.query<
+      { id: string | null }[]
+    >(
+      'SELECT context_id AS id FROM pending_social_onboardings WHERE id=ANY($1::uuid[])',
+      [expiredOnboardings.map(({ id }) => id)],
+    );
+    collect(expiredOnboardingOwners);
+    const deletedOnboardings = await ids(
+      `SELECT id FROM pending_social_onboardings
+       WHERE ((status IN ('EXPIRED','CANCELLED','PENDING_EMAIL','PENDING_VERIFICATION') AND expires_at < now()-($2 * interval '1 day'))
+              OR (status='COMPLETED' AND completed_at < now()-($3 * interval '1 day')))
+       ORDER BY ctid LIMIT $1`,
+      [batch, r.onboardingExpiredDays, r.onboardingCompletedDays],
+    );
+    const deletedOnboardingOwners = await manager.query<
+      { id: string | null }[]
+    >(
+      'SELECT context_id AS id FROM pending_social_onboardings WHERE id=ANY($1::uuid[])',
+      [deletedOnboardings.map(({ id }) => id)],
+    );
+    collect(deletedOnboardingOwners);
+    const expiredOauth = await ids(
+      `SELECT id FROM oauth_transactions
+       WHERE (status='PENDING' AND expires_at < now())
+          OR (status='PROCESSING' AND expires_at < now() AND claimed_at IS NOT NULL
+              AND claimed_at < now()-interval '1 minute')
+       ORDER BY ctid LIMIT $1`,
+      [batch],
+    );
+    const clearOauth = await ids(
+      `SELECT id FROM oauth_transactions
+       WHERE status IN ('CONSUMED','FAILED','EXPIRED')
+         AND (pkce_verifier_ciphertext IS NOT NULL OR encryption_key_version IS NOT NULL)
+       ORDER BY ctid LIMIT $1`,
+      [batch],
+    );
+    const deletedOauth = await ids(
+      `SELECT id FROM oauth_transactions
+       WHERE ((status IN ('CONSUMED','FAILED','EXPIRED'))
+           OR (status='PENDING' AND expires_at < now())
+           OR (status='PROCESSING' AND expires_at < now() AND claimed_at < now()-interval '1 minute'))
+         AND COALESCE(consumed_at,claimed_at,expires_at) < now()-($2 * interval '1 hour')
+       ORDER BY ctid LIMIT $1`,
+      [batch, r.oauthHours],
+    );
+    const oauthOwners = await manager.query<{ id: string | null }[]>(
+      `SELECT intent.context_id AS id FROM oauth_transactions oauth
+       JOIN auth_intents intent ON intent.id=oauth.intent_id
+       WHERE oauth.id=ANY($1::uuid[])`,
+      [[...expiredOauth, ...clearOauth, ...deletedOauth].map(({ id }) => id)],
+    );
+    collect(oauthOwners);
+    // Wait briefly for sorted L0 authorities; lower candidate rows remain
+    // SKIP LOCKED. A busy context aborts this cycle instead of an unbounded wait.
+    await manager.query("SET LOCAL lock_timeout = '3s'");
+    await lockContexts(manager, [...contextIds]);
+
+    const ownershipRows = await manager.query<
+      { id: string; context_id: string | null }[]
+    >(
+      `SELECT id,context_id FROM pending_social_onboardings
+       WHERE id=ANY($1::uuid[])
+       UNION ALL
+       SELECT oauth.id,intent.context_id FROM oauth_transactions oauth
+       JOIN auth_intents intent ON intent.id=oauth.intent_id
+       WHERE oauth.id=ANY($2::uuid[])
+       UNION ALL
+       SELECT id,context_id FROM auth_intents WHERE id=ANY($3::uuid[])`,
+      [
+        [...expiredOnboardings, ...deletedOnboardings].map(({ id }) => id),
+        [...expiredOauth, ...clearOauth, ...deletedOauth].map(({ id }) => id),
+        [...expiredIntents, ...deletedIntents].map(({ id }) => id),
+      ],
+    );
+    if (
+      ownershipRows.some(
+        (row) => row.context_id && !contextIds.has(row.context_id),
+      )
+    ) {
+      const retry = new Error(
+        'Retention owner context changed during discovery',
+      );
+      Object.assign(retry, { code: '40001' });
+      throw retry;
+    }
+    const sessionsNow = await manager.query<RetainedSessionCandidate[]>(
+      'SELECT id,user_id,context_id FROM auth_sessions WHERE id=ANY($1::uuid[])',
+      [sessions.map(({ id }) => id)],
+    );
+    const expectedSessions = new Map(sessions.map((row) => [row.id, row]));
+    if (
+      sessionsNow.some(
+        (row) =>
+          (row.context_id !== null && !contextIds.has(row.context_id)) ||
+          expectedSessions.get(row.id)?.user_id !== row.user_id,
+      )
+    ) {
+      const retry = new Error(
+        'Retention session owner changed during discovery',
+      );
+      Object.assign(retry, { code: '40001' });
+      throw retry;
+    }
+
+    return {
+      contextIds: [...contextIds],
+      retireContextIds: retireContexts.map(({ id }) => id),
+      expiredIntentIds: expiredIntents.map(({ id }) => id),
+      deleteIntentIds: deletedIntents.map(({ id }) => id),
+      expiredOnboardingIds: expiredOnboardings.map(({ id }) => id),
+      deleteOnboardingIds: deletedOnboardings.map(({ id }) => id),
+      expiredOauthIds: expiredOauth.map(({ id }) => id),
+      clearOauthIds: clearOauth.map(({ id }) => id),
+      deleteOauthIds: deletedOauth.map(({ id }) => id),
+      sessionIds: sessions.map(({ id }) => id),
+      userIds: [...new Set(sessions.map(({ user_id }) => user_id))].sort(),
+    };
+  }
+
   private async clearTerminalCiphertext(
     manager: EntityManager,
+    authorities: RetentionAuthorities,
   ): Promise<Record<string, number>> {
     const batch = this.config.retention.batchSize;
     const oauth = await manager.query<CountRow[]>(
       `WITH candidates AS (
          SELECT ctid FROM oauth_transactions
-         WHERE status IN ('CONSUMED','FAILED','EXPIRED')
+         WHERE id=ANY($2::uuid[])
+           AND status IN ('CONSUMED','FAILED','EXPIRED')
            AND (pkce_verifier_ciphertext IS NOT NULL OR encryption_key_version IS NOT NULL)
          ORDER BY ctid LIMIT $1 FOR UPDATE SKIP LOCKED
        ), changed AS (
@@ -97,7 +298,7 @@ export class RetentionWorker
          SET pkce_verifier_ciphertext=NULL,encryption_key_version=NULL
          FROM candidates WHERE target.ctid=candidates.ctid RETURNING 1
        ) SELECT count(*)::integer AS count FROM changed`,
-      [batch],
+      [batch, authorities.clearOauthIds],
     );
     const outbox = await manager.query<CountRow[]>(
       `WITH candidates AS (
@@ -118,7 +319,10 @@ export class RetentionWorker
     };
   }
 
-  private async terminalizeExpired(manager: EntityManager): Promise<{
+  private async terminalizeExpired(
+    manager: EntityManager,
+    authorities: RetentionAuthorities,
+  ): Promise<{
     terminalized: Record<string, number>;
     ciphertextCleared: Record<string, number>;
   }> {
@@ -166,7 +370,8 @@ export class RetentionWorker
     const onboardings = await manager.query<CountRow[]>(
       `WITH candidates AS (
          SELECT ctid FROM pending_social_onboardings
-         WHERE status IN ('PENDING_EMAIL','PENDING_VERIFICATION')
+         WHERE id=ANY($2::uuid[])
+           AND status IN ('PENDING_EMAIL','PENDING_VERIFICATION')
            AND expires_at < now()
          ORDER BY ctid LIMIT $1 FOR UPDATE SKIP LOCKED
        ), changed AS (
@@ -174,17 +379,18 @@ export class RetentionWorker
          SET status='EXPIRED',updated_at=target.expires_at
          FROM candidates WHERE target.ctid=candidates.ctid RETURNING 1
        ) SELECT count(*)::integer AS count FROM changed`,
-      [batch],
+      [batch, authorities.expiredOnboardingIds],
     );
     const oauth = await manager.query<TerminalizedRow[]>(
       `WITH candidates AS (
          SELECT ctid,
                 (pkce_verifier_ciphertext IS NOT NULL OR encryption_key_version IS NOT NULL) AS had_ciphertext
          FROM oauth_transactions
-         WHERE (status='PENDING' AND expires_at < now())
+         WHERE id=ANY($2::uuid[])
+           AND ((status='PENDING' AND expires_at < now())
             OR (status='PROCESSING' AND expires_at < now()
                 AND claimed_at IS NOT NULL
-                AND claimed_at < now()-interval '1 minute')
+                AND claimed_at < now()-interval '1 minute'))
          ORDER BY ctid LIMIT $1 FOR UPDATE SKIP LOCKED
        ), changed AS (
          UPDATE oauth_transactions target
@@ -195,7 +401,7 @@ export class RetentionWorker
        ) SELECT count(*)::integer AS count,
                 count(*) FILTER (WHERE had_ciphertext)::integer AS ciphertext_count
          FROM changed`,
-      [batch],
+      [batch, authorities.expiredOauthIds],
     );
     return {
       terminalized: {
@@ -211,13 +417,87 @@ export class RetentionWorker
     };
   }
 
+  private async retainAuthTransition(
+    manager: EntityManager,
+    authorities: RetentionAuthorities,
+  ): Promise<{
+    contextsRetired: number;
+    intentsExpired: number;
+    intentsDeleted: number;
+  }> {
+    const batch = this.config.retention.batchSize;
+    const contexts = await manager.query<CountRow[]>(
+      `WITH candidates AS (
+         SELECT ctid FROM auth_contexts
+         WHERE id=ANY($2::uuid[])
+           AND ((state='PROVISIONAL' AND created_at < now()-interval '1 hour')
+             OR (state='ACTIVE' AND COALESCE(last_seen_at,confirmed_at,created_at) < now()-interval '30 days'))
+         ORDER BY ctid LIMIT $1 FOR UPDATE SKIP LOCKED
+       ), changed AS (
+         UPDATE auth_contexts target SET state='RETIRED',retired_at=now()
+         FROM candidates WHERE target.ctid=candidates.ctid AND target.state<>'RETIRED'
+         RETURNING 1
+       ) SELECT count(*)::integer AS count FROM changed`,
+      [batch, authorities.retireContextIds],
+    );
+    const expired = await manager.query<CountRow[]>(
+      `WITH candidates AS (
+         SELECT i.ctid,i.id,i.context_id
+         FROM auth_intents i JOIN auth_contexts c ON c.id=i.context_id
+         WHERE i.id=ANY($2::uuid[])
+           AND i.state='RESERVED' AND i.expires_at <= now()
+         ORDER BY i.expires_at,i.id LIMIT $1 FOR UPDATE OF i SKIP LOCKED
+       ), cleared AS (
+         UPDATE auth_contexts context SET current_intent_id=NULL
+         FROM candidates WHERE context.id=candidates.context_id
+           AND context.current_intent_id=candidates.id
+         RETURNING context.id
+       ), changed AS (
+         UPDATE auth_intents target
+         SET state='EXPIRED',resolved_at=target.expires_at,outcome_code=NULL
+         FROM candidates WHERE target.ctid=candidates.ctid RETURNING target.id
+       ) SELECT count(*)::integer AS count FROM changed`,
+      [batch, authorities.expiredIntentIds],
+    );
+    const removed = await manager.query<CountRow[]>(
+      `WITH candidates AS (
+         SELECT ctid FROM auth_intents
+         WHERE id=ANY($2::uuid[])
+           AND state IN ('COMMITTED','SUPERSEDED','FAILED','EXPIRED')
+           AND resolved_at < now()-interval '24 hours'
+         ORDER BY ctid LIMIT $1 FOR UPDATE SKIP LOCKED
+       ), deleted AS (
+         DELETE FROM auth_intents target USING candidates
+         WHERE target.ctid=candidates.ctid RETURNING 1
+       ) SELECT count(*)::integer AS count FROM deleted`,
+      [batch, authorities.deleteIntentIds],
+    );
+    return {
+      contextsRetired: Number(contexts[0]?.count ?? 0),
+      intentsExpired: Number(expired[0]?.count ?? 0),
+      intentsDeleted: Number(removed[0]?.count ?? 0),
+    };
+  }
+
   async runOnce(): Promise<RetentionRunMetrics> {
     const started = performance.now();
     try {
       const result = await transaction(this.db, async (manager) => {
         const r = this.config.retention;
-        const expired = await this.terminalizeExpired(manager);
-        const ciphertextCleared = await this.clearTerminalCiphertext(manager);
+        const retentionAuthorities =
+          await this.lockRetentionAuthorities(manager);
+        const expired = await this.terminalizeExpired(
+          manager,
+          retentionAuthorities,
+        );
+        const authTransition = await this.retainAuthTransition(
+          manager,
+          retentionAuthorities,
+        );
+        const ciphertextCleared = await this.clearTerminalCiphertext(
+          manager,
+          retentionAuthorities,
+        );
         ciphertextCleared.oauthTransactions +=
           expired.ciphertextCleared.oauthTransactions;
         ciphertextCleared.emailOutbox += expired.ciphertextCleared.emailOutbox;
@@ -243,19 +523,29 @@ export class RetentionWorker
         deleted.pendingOnboardings = await this.boundedDelete(
           manager,
           'pending_social_onboardings',
-          `((status IN ('EXPIRED','CANCELLED') AND expires_at < now()-($2 * interval '1 day'))
-             OR (status='COMPLETED' AND completed_at < now()-($3 * interval '1 day')))
+          `id=ANY($2::uuid[]) AND
+           ((status IN ('EXPIRED','CANCELLED') AND expires_at < now()-($3 * interval '1 day'))
+             OR (status='COMPLETED' AND completed_at < now()-($4 * interval '1 day')))
            AND NOT EXISTS (SELECT 1 FROM auth_challenges c WHERE c.social_onboarding_id=pending_social_onboardings.id)`,
-          [r.onboardingExpiredDays, r.onboardingCompletedDays],
+          [
+            retentionAuthorities.deleteOnboardingIds,
+            r.onboardingExpiredDays,
+            r.onboardingCompletedDays,
+          ],
         );
 
-        const sessions = await manager.query<{ id: string }[]>(
-          `SELECT id FROM auth_sessions
-           WHERE GREATEST(absolute_expires_at,COALESCE(revoked_at,absolute_expires_at))
-                 < now()-($2 * interval '1 day')
-           ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`,
-          [r.batchSize, r.sessionDays],
-        );
+        // Existing onboarding/challenge paths acquire these relations before
+        // account and session locks; preserve that order after the L0 context locks.
+        await lockUsers(manager, retentionAuthorities.userIds);
+        const sessions = retentionAuthorities.sessionIds.length
+          ? await manager.query<{ id: string }[]>(
+              `SELECT id FROM auth_sessions WHERE id=ANY($1::uuid[])
+               AND GREATEST(absolute_expires_at,COALESCE(revoked_at,absolute_expires_at))
+                   < now()-($2 * interval '1 day')
+               ORDER BY id FOR UPDATE SKIP LOCKED`,
+              [retentionAuthorities.sessionIds, r.sessionDays],
+            )
+          : [];
         const sessionIds = sessions.map(({ id }) => id);
         if (sessionIds.length) {
           const credentials = await manager.query<CountRow[]>(
@@ -280,9 +570,9 @@ export class RetentionWorker
         deleted.oauthTransactions = await this.boundedDelete(
           manager,
           'oauth_transactions',
-          `status IN ('CONSUMED','FAILED','EXPIRED')
-           AND COALESCE(consumed_at,claimed_at,expires_at) < now()-($2 * interval '1 hour')`,
-          [r.oauthHours],
+          `id=ANY($2::uuid[]) AND status IN ('CONSUMED','FAILED','EXPIRED')
+           AND COALESCE(consumed_at,claimed_at,expires_at) < now()-($3 * interval '1 hour')`,
+          [retentionAuthorities.deleteOauthIds, r.oauthHours],
         );
         deleted.rateLimitBuckets = await this.boundedDelete(
           manager,
@@ -299,7 +589,12 @@ export class RetentionWorker
         return {
           deleted,
           ciphertextCleared,
-          terminalized: expired.terminalized,
+          terminalized: {
+            ...expired.terminalized,
+            authContextsRetired: authTransition.contextsRetired,
+            authIntentsExpired: authTransition.intentsExpired,
+            authIntents: authTransition.intentsDeleted,
+          },
         };
       });
       return {

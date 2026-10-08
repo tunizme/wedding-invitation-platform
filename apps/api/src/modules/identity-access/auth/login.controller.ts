@@ -16,6 +16,14 @@ import { RateLimitService } from '../infrastructure/rate-limit.service';
 import { BrowserSecurityService } from './browser-security.service';
 import { LocalLoginService } from './local-login.service';
 
+export function headerValue(
+  request: Pick<Request, 'headers'>,
+  name: string,
+): string | undefined {
+  const value = request.headers[name];
+  return typeof value === 'string' && value.length <= 64 ? value : undefined;
+}
+
 interface LoginInput {
   email: string;
   password: string;
@@ -67,12 +75,25 @@ export class LoginController {
     const input = loginInput(body);
     await this.limiter.consume('LOGIN_IP', this.limiter.ip(request));
     await this.limiter.consume('LOGIN_EMAIL', input.email);
-    const { session, user } = await this.loginService.login(
-      input.email,
-      input.password,
+    const contextId = headerValue(request, 'x-auth-context');
+    const intentId = headerValue(request, 'x-auth-intent');
+    if (!contextId || !intentId) throw new UnprocessableEntityException();
+    // 006 CSP-1: execute the reserved LOCAL_LOGIN intent (body allowlist unchanged).
+    const { session, user, contextRevision, cleanupNames } =
+      await this.loginService.login(input.email, input.password, {
+        request,
+        contextId,
+        intentId,
+      });
+    this.browser.clearProtocolNames(response, cleanupNames);
+    this.browser.writeSlot(
+      response,
+      session.slotTag ?? '',
+      session.refreshToken,
+      session.expiresAt,
     );
-    this.browser.writeCookie(response, session.refreshToken, session.expiresAt);
     return {
+      authProtocol: 2 as const,
       accessToken: session.accessToken,
       tokenType: 'Bearer' as const,
       expiresIn: 900 as const,
@@ -82,6 +103,8 @@ export class LoginController {
         seed: session.csrfSeed,
         keyVersion: session.csrfKeyVersion,
       }),
+      sessionTag: session.slotTag,
+      contextRevision,
       user,
     };
   }

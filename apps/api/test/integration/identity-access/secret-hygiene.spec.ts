@@ -36,6 +36,37 @@ describe('IAM secret hygiene', () => {
     );
   });
 
+  it('never copies cookie headers, credentials or request bodies into access logs', () => {
+    const secrets = [
+      'binding-secret-value',
+      'refresh-secret-value',
+      'csrf-secret-value',
+      'password-secret-value',
+      'proof-secret-value',
+    ];
+    const contaminatedRequest: { method: string; url: string } & Record<
+      string,
+      unknown
+    > = {
+      method: 'POST',
+      url: '/api/v1/auth/contexts',
+      headers: {
+        cookie: `wa_cb_opaque=${secrets[0]}; wa_s_opaque=${secrets[1]}`,
+        'set-cookie': `wa_s_opaque=${secrets[1]}`,
+        authorization: `Bearer ${secrets[2]}`,
+        'x-csrf-token': secrets[2],
+      },
+      body: {
+        password: secrets[3],
+        proof: secrets[4],
+      },
+    };
+    const logged = safeRequestLog(contaminatedRequest, 'safe-request', 200);
+    const serialized = JSON.stringify(logged);
+    for (const secret of secrets) expect(serialized).not.toContain(secret);
+    expect(serialized).not.toMatch(/cookie|authorization|password|proof/i);
+  });
+
   it('keeps request bodies, headers, callback values, and exception details out of application logs', async () => {
     const sourceFiles = (
       await filesBelow(resolve(repositoryRoot, 'apps/api/src'))
@@ -54,7 +85,14 @@ describe('IAM secret hygiene', () => {
       resolve(repositoryRoot, 'apps/api/src/common/errors/problem.filter.ts'),
       'utf8',
     );
-    expect(main).toContain("setHeader('Cache-Control', 'no-store')");
+    const boundaries = await readFile(
+      resolve(repositoryRoot, 'apps/api/src/common/http/request-boundaries.ts'),
+      'utf8',
+    );
+    expect(main).toContain(
+      "configureRequestBoundaries(app, config.getOrThrow<string>('FRONTEND_ORIGIN'))",
+    );
+    expect(boundaries).toContain("setHeader('Cache-Control', 'no-store')");
     expect(problem).not.toMatch(/error\.message|JSON\.stringify\(error\)/);
     expect(problem).toContain("'Cache-Control', 'no-store'");
   });

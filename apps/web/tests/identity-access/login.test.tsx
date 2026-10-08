@@ -13,6 +13,14 @@ import {
 } from '../../src/features/identity-access/api/client';
 import LoginPage from '../../src/app/(auth)/login/page';
 import { sessionStore } from '../../src/features/identity-access/session/store';
+import {
+  installSelector,
+  protocolSession,
+  routeProtocol,
+} from './auth-protocol-mock';
+
+// 006 (T062 allowlist): login now provisions/reserves a context first and sends
+// context headers (FR-002/FR-014); assertions target the /auth/login call.
 
 vi.mock('../../src/features/identity-access/api/client', async (original) => ({
   ...(await original<
@@ -21,7 +29,7 @@ vi.mock('../../src/features/identity-access/api/client', async (original) => ({
   iamRequest: vi.fn(),
 }));
 
-const session: AccessSession = {
+const session: AccessSession = protocolSession({
   accessToken: 'header.payload.signature',
   tokenType: 'Bearer',
   expiresIn: 900,
@@ -37,7 +45,18 @@ const session: AccessSession = {
     phoneNumber: null,
     avatarUrl: null,
   },
-};
+});
+
+function login(result: () => Promise<unknown>) {
+  routeProtocol(
+    vi.mocked(iamRequest) as unknown as ReturnType<typeof vi.fn>,
+    (path) =>
+      path === '/auth/login' ? result() : Promise.reject(new Error(path)),
+  );
+}
+const loginCalls = () =>
+  vi.mocked(iamRequest).mock.calls.filter(([path]) => path === '/auth/login')
+    .length;
 
 function submit(password = '  Exact Password 🔒  ') {
   fireEvent.change(screen.getByLabelText(/email/i), {
@@ -52,6 +71,7 @@ function submit(password = '  Exact Password 🔒  ') {
 beforeEach(() => {
   vi.mocked(iamRequest).mockReset();
   sessionStore.clear();
+  installSelector();
   localStorage.clear();
   sessionStorage.clear();
 });
@@ -63,7 +83,7 @@ afterEach(() => {
 describe('LOCAL login UI and memory-only session', () => {
   it('preserves the password, requests cookie credentials and stores the session only in memory', async () => {
     const storage = vi.spyOn(Storage.prototype, 'setItem');
-    vi.mocked(iamRequest).mockResolvedValue(session);
+    login(() => Promise.resolve(session));
     render(<LoginPage />);
     submit();
     await screen.findByText(/person@example\.test/);
@@ -89,16 +109,14 @@ describe('LOCAL login UI and memory-only session', () => {
 
   it('prevents duplicate submission and leaves the previous session untouched on failure', async () => {
     let reject!: (reason: Error) => void;
-    vi.mocked(iamRequest).mockImplementation(
-      () => new Promise((_, fail) => (reject = fail)),
-    );
+    login(() => new Promise((_, fail) => (reject = fail)));
     sessionStore.set(session);
     render(<LoginPage />);
     submit();
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
     fireEvent.click(button);
-    expect(iamRequest).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(loginCalls()).toBe(1));
     reject(new ApiError(401));
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent(
@@ -110,7 +128,7 @@ describe('LOCAL login UI and memory-only session', () => {
   });
 
   it('shows verification guidance only for the server 403 response', async () => {
-    vi.mocked(iamRequest).mockRejectedValue(new ApiError(403));
+    login(() => Promise.reject(new ApiError(403)));
     render(<LoginPage />);
     submit();
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -125,7 +143,7 @@ describe('LOCAL login UI and memory-only session', () => {
     [429, /thao tác quá nhanh/i],
     [0, /không thể kết nối/i],
   ])('shows a safe error for status %s', async (status, message) => {
-    vi.mocked(iamRequest).mockRejectedValue(new ApiError(status));
+    login(() => Promise.reject(new ApiError(status)));
     render(<LoginPage />);
     submit();
     expect(await screen.findByRole('alert')).toHaveTextContent(message);

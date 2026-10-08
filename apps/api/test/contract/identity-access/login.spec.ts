@@ -14,9 +14,12 @@ import {
 import { EmailOutboxWorker } from '../../../src/modules/identity-access/infrastructure/email-outbox.worker';
 import { registrationFixture } from '../../registration-fixture';
 
-const { validateSchema } = createRequire(__filename)(
+const { validateSchema, validateAuthContextSchema } = createRequire(__filename)(
   '../../../scripts/validate-iam-contract.cjs',
-) as { validateSchema: (name: string, value: unknown) => boolean };
+) as {
+  validateSchema: (name: string, value: unknown) => boolean;
+  validateAuthContextSchema: (name: string, value: unknown) => boolean;
+};
 
 interface LoginResponse {
   accessToken: string;
@@ -46,7 +49,38 @@ describe.sequential('POST /auth/login contract', () => {
     app.useGlobalFilters(new ProblemFilter());
     await app.init();
   });
-  beforeEach(async () => fixture.clear());
+  let contextId: string;
+  let intentId: string;
+  let bindingCookie: string;
+  // T062 / T100 (FR-002/FR-003/FR-014): exercise the bound CSP-1 login
+  // while retaining every 003 eligibility, secrecy, validation and rate limit check.
+  beforeEach(async () => {
+    await fixture.clear();
+    const provisioned = await request(app.getHttpServer())
+      .post('/api/v1/auth/contexts')
+      .set('Origin', fixture.config.frontendOrigin)
+      .send({})
+      .expect(201);
+    contextId = (provisioned.body as { contextId: string }).contextId;
+    bindingCookie = (
+      provisioned.headers['set-cookie'] as unknown as string[]
+    )[0].split(';')[0];
+    await request(app.getHttpServer())
+      .post(`/api/v1/auth/contexts/${contextId}/confirm`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', bindingCookie)
+      .send({})
+      .expect(200);
+    const reserved = await request(app.getHttpServer())
+      .post(`/api/v1/auth/contexts/${contextId}/intents`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', bindingCookie)
+      .send({ kind: 'LOCAL_LOGIN', expectedRevision: 0 })
+      .expect(201);
+    intentId = (reserved.body as { intentId: string }).intentId;
+  });
   afterAll(async () => {
     try {
       if (app) await app.close();
@@ -59,6 +93,9 @@ describe.sequential('POST /auth/login contract', () => {
     request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .set('Origin', 'http://localhost:3000')
+      .set('X-Auth-Context', contextId)
+      .set('X-Auth-Intent', intentId)
+      .set('Cookie', bindingCookie)
       .send(body as object);
 
   async function seed(
@@ -118,7 +155,8 @@ describe.sequential('POST /auth/login contract', () => {
     }).expect(200);
     const body = result.body as LoginResponse;
 
-    expect(validateSchema('AccessSession', body)).toBe(true);
+    expect(validateAuthContextSchema('AccessSession', body)).toBe(true);
+    expect(body).toMatchObject({ authProtocol: 2, contextRevision: 1 });
     expect(body).toMatchObject({
       tokenType: 'Bearer',
       expiresIn: 900,
@@ -142,9 +180,9 @@ describe.sequential('POST /auth/login contract', () => {
     expect(result.headers['cache-control']).toBe('no-store');
     const cookies = result.headers['set-cookie'] as unknown as string[];
     expect(cookies).toHaveLength(1);
-    expect(cookies[0]).toMatch(/^wedding_rt=[A-Za-z0-9_-]{43};/);
+    expect(cookies[0]).toMatch(/^wa_s_[A-Za-z0-9_-]{22}=[A-Za-z0-9_-]{43};/);
     expect(cookies[0]).toContain('HttpOnly');
-    expect(cookies[0]).toContain('Path=/api/v1/auth');
+    expect(cookies[0]).toContain('Path=/');
     expect(cookies[0]).toContain('SameSite=Lax');
     expect(cookies[0]).toMatch(/Max-Age=1209\d{3}/);
     expect(cookies[0]).not.toMatch(/Domain=|Secure/);

@@ -10,6 +10,7 @@
     "validate:builder": "node scripts/builder-validate.mjs",
     "builder:storage:init": "node --env-file-if-exists=.env --env-file-if-exists=apps/api/.env apps/api/scripts/builder-storage-init.cjs",
     "validate:iam": "node scripts/iam-validate.mjs",
+    "validate:auth-transition": "node scripts/auth-transition-validate.mjs",
     "validate:iam:mail": "node scripts/iam-mail-smoke.mjs",
     "dev": "node scripts/dev.mjs all",
     "dev:web": "pnpm --filter @wedding/web dev",
@@ -40,7 +41,8 @@
     "build": "pnpm -r --if-present build",
     "build:web": "pnpm --filter @wedding/web build",
     "build:api": "pnpm --filter @wedding/api build",
-    "scope:check": "node scripts/scope-check.mjs"
+    "scope:check": "node scripts/scope-check.mjs",
+    "validate:auth-transition:reuse": "node --env-file=.artifacts/auth-transition/persistent.env scripts/auth-transition-validate.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2"

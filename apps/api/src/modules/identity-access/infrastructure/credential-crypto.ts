@@ -65,6 +65,29 @@ export class CredentialCrypto {
     return createHmac('sha256', key).update(token).digest();
   }
 
+  /**
+   * 006 context binding digest. Reuses the refresh key versions with domain
+   * separation, so no additional secret is required.
+   */
+  bindingDigest(secret: string, version: number): Buffer {
+    const key = this.config.refreshKeys[version];
+    if (!key) throw new Error('UNKNOWN_KEY_VERSION');
+    return createHmac('sha256', key)
+      .update('wa-binding\0')
+      .update(secret)
+      .digest();
+  }
+
+  /** 006 cookie ledger: digest of an emitted cookie value (value never stored). */
+  emissionDigest(name: string, value: string): Buffer {
+    return createHmac('sha256', this.config.refreshKeys[this.config.keyVersion])
+      .update('wa-emission\0')
+      .update(name)
+      .update('\0')
+      .update(value)
+      .digest();
+  }
+
   encrypt(
     value: string,
     context: string,

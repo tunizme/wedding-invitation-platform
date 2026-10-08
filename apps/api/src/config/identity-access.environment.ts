@@ -15,6 +15,26 @@ export const rateDefaults = {
   OAUTH_START: { limit: 20, seconds: 600 },
   REFRESH: { limit: 60, seconds: 60 },
   PASSWORD_CHANGE: { limit: 5, seconds: 900 },
+  // 006 (CSP-1): provisioning per IP; confirm/reserve per context.
+  AUTH_CONTEXT_PROVISION: { limit: 20, seconds: 600 },
+  AUTH_CONTEXT_CONFIRM: { limit: 10, seconds: 600 },
+  AUTH_INTENT_RESERVE: { limit: 30, seconds: 600 },
+} as const;
+
+/**
+ * 006 CSP-1 bounds (research R12 numeric bounds, A5 verified 2026-10-07).
+ * Fixed like `ttl`: an env override must equal the contract value.
+ */
+export const authContextBounds = {
+  capNames: 8,
+  capBytes: 2048,
+  provisionalBindingSeconds: 900,
+  confirmedBindingSeconds: 2_592_000,
+  provisionalContextRetentionSeconds: 3600,
+  idleContextSeconds: 2_592_000,
+  intentSeconds: 60,
+  oauthIntentSeconds: 600,
+  outcomeRetentionSeconds: 86_400,
 } as const;
 export type RateAction = keyof typeof rateDefaults;
 
@@ -47,6 +67,7 @@ export interface IdentityEnvironment {
     verification: 86400;
     reset: 1800;
   }>;
+  authContext: typeof authContextBounds;
   retention: Readonly<{
     batchSize: number;
     oauthHours: number;
@@ -201,6 +222,11 @@ export function validateIdentityEnvironment(
     if (values[key] !== undefined && Number(values[key]) !== seconds)
       invalid(key);
   }
+  for (const [name, value] of Object.entries(authContextBounds)) {
+    const key = `IAM_AUTH_CONTEXT_${name.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase()}`;
+    if (values[key] !== undefined && Number(values[key]) !== value)
+      invalid(key);
+  }
   const boundedInteger = (
     key: string,
     fallback: number,
@@ -260,6 +286,7 @@ export function validateIdentityEnvironment(
     facebookClientSecret: facebook.clientSecret,
     rates: Object.freeze(rates),
     ttl: Object.freeze(ttl),
+    authContext: authContextBounds,
     retention,
   });
 }

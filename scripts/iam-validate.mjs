@@ -96,6 +96,13 @@ export function assertRequiredFiles(paths) {
     );
 }
 
+export function pnpmInvocation(args, execPath = process.env.npm_execpath) {
+  if (!execPath) return ['pnpm', args];
+  return /\.[cm]?js$/i.test(execPath)
+    ? [process.execPath, [execPath, ...args]]
+    : [execPath, args];
+}
+
 export function runCommand(
   command,
   args,
@@ -105,7 +112,11 @@ export function runCommand(
     if (signal?.aborted) return reject(new Error('IAM validation aborted'));
     if (!Number.isFinite(timeoutMs) || timeoutMs <= 0)
       return reject(new Error('IAM validation timeout'));
-    const child = spawn(command, args, {
+    const [executable, commandArgs] =
+      command === 'pnpm'
+        ? pnpmInvocation(args, env.npm_execpath)
+        : [command, args];
+    const child = spawn(executable, commandArgs, {
       cwd,
       env,
       stdio,
@@ -210,15 +221,23 @@ async function waitForHealthy(url, deadline) {
 }
 
 async function withHealthStack({ env, deadline, run }) {
+  const [pnpmExecutable, apiArgs] = pnpmInvocation(
+    ['--filter', '@wedding/api', 'start'],
+    env.npm_execpath,
+  );
+  const [, webArgs] = pnpmInvocation(
+    ['--filter', '@wedding/web', 'start'],
+    env.npm_execpath,
+  );
   const children = [
-    spawn('pnpm', ['--filter', '@wedding/api', 'start'], {
+    spawn(pnpmExecutable, apiArgs, {
       cwd: root,
       env,
       stdio: 'inherit',
       shell: false,
       detached: process.platform !== 'win32',
     }),
-    spawn('pnpm', ['--filter', '@wedding/web', 'start'], {
+    spawn(pnpmExecutable, webArgs, {
       cwd: root,
       env,
       stdio: 'inherit',
@@ -357,6 +376,12 @@ export async function validate(phase) {
                 '--project',
                 'integration',
                 '--maxWorkers=1',
+                // Each feature owns any extra fixture resources it needs.
+                // Builder suites require validate:builder's storage/scratch
+                // harness; this checkpoint owns IAM and shared DB health only.
+                'test/integration/identity-access',
+                'test/integration/migrations.integration.spec.ts',
+                'test/integration/health-ready.integration.spec.ts',
               ],
               env,
             );

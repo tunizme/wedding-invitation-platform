@@ -51,6 +51,12 @@ describe.sequential('IAM schema foundation', () => {
         'invitation_asset_refs',
         'publication_jobs',
         'publication_job_asset_refs',
+        // Pre-existing omission (InvitationRsvp migration), corrected with 006.
+        'rsvp_responses',
+        // 006 auth transition protocol (FR-001/FR-002/FR-006).
+        'auth_contexts',
+        'auth_intents',
+        'auth_cookie_names',
       ].sort(),
     );
     expect(db.options.synchronize).toBe(false);

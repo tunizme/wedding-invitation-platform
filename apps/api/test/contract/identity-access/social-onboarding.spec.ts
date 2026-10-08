@@ -41,17 +41,56 @@ describe.sequential('social onboarding HTTP contract', () => {
     }
   });
 
+  // T062 (FR-003/FR-014): completion now requires a selected CSP-1
+  // context and reserved intent; all existing onboarding security assertions remain.
+  const bindings = new Map<string, string>();
   async function pending(subject = 'provider-subject') {
-    return app.get(SocialOnboardingService).begin({
-      provider: 'FACEBOOK',
-      subject,
-      email: null,
-      emailVerified: false,
-      displayName: 'Khách mới',
-      avatarUrl: null,
-    });
+    const provision = await request(app.getHttpServer())
+      .post('/api/v1/auth/contexts')
+      .set('Origin', fixture.config.frontendOrigin)
+      .send({})
+      .expect(201);
+    const { contextId } = provision.body as { contextId: string };
+    const protocolCookie = (
+      provision.headers['set-cookie'] as unknown as string[]
+    )
+      .map((line) => line.split(';')[0])
+      .join('; ');
+    await request(app.getHttpServer())
+      .post(`/api/v1/auth/contexts/${contextId}/confirm`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', protocolCookie)
+      .send({})
+      .expect(200);
+    const reserved = await request(app.getHttpServer())
+      .post(`/api/v1/auth/contexts/${contextId}/intents`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', protocolCookie)
+      .send({ kind: 'ONBOARDING_COMPLETE', expectedRevision: 0 })
+      .expect(201);
+    const { intentId } = reserved.body as { intentId: string };
+    const context = await fixture.db.transaction((manager) =>
+      app.get(SocialOnboardingService).beginInTransaction(
+        manager,
+        {
+          provider: 'FACEBOOK',
+          subject,
+          email: null,
+          emailVerified: false,
+          displayName: 'Khách mới',
+          avatarUrl: null,
+        },
+        undefined,
+        contextId,
+      ),
+    );
+    bindings.set(context.binding, protocolCookie);
+    return { ...context, authContextId: contextId, intentId };
   }
-  const cookie = (binding: string) => `wedding_ob=${binding}`;
+  const cookie = (binding: string) =>
+    `wedding_ob=${binding}; ${bindings.get(binding) ?? ''}`;
 
   async function browserState(binding: string) {
     const response = await request(app.getHttpServer())
@@ -214,6 +253,8 @@ describe.sequential('social onboarding HTTP contract', () => {
     const confirm = () =>
       request(app.getHttpServer())
         .post('/api/v1/auth/social-onboarding/verifications/confirm')
+        .set('X-Auth-Context', context.authContextId)
+        .set('X-Auth-Intent', context.intentId)
         .set('Origin', 'http://localhost:3000')
         .set('X-CSRF-Token', csrfToken)
         .set('Cookie', cookie(context.binding))
@@ -232,7 +273,10 @@ describe.sequential('social onboarding HTTP contract', () => {
     const setCookie = completed.headers['set-cookie'] as unknown;
     expect(
       Array.isArray(setCookie) ? setCookie.join(';') : String(setCookie),
-    ).toMatch(/wedding_rt=.*wedding_ob=;/);
+    ).toMatch(/wa_s_[A-Za-z0-9_-]{22}=.*wedding_ob=;/);
+    expect(completed.body as Record<string, unknown>).toMatchObject({
+      authProtocol: 2,
+    });
     await fixture.db.query('TRUNCATE auth_rate_limit_buckets');
     await confirm().expect(401);
   });
@@ -269,6 +313,8 @@ describe.sequential('social onboarding HTTP contract', () => {
       }
       const response = await request(app.getHttpServer())
         .post('/api/v1/auth/social-onboarding/verifications/confirm')
+        .set('X-Auth-Context', flow.context.authContextId)
+        .set('X-Auth-Intent', flow.context.intentId)
         .set('Origin', fixture.config.frontendOrigin)
         .set('X-CSRF-Token', flow.csrfToken)
         .set('Cookie', cookie(flow.context.binding))
@@ -321,6 +367,8 @@ describe.sequential('social onboarding HTTP contract', () => {
     const confirm = (proof: string) =>
       request(app.getHttpServer())
         .post('/api/v1/auth/social-onboarding/verifications/confirm')
+        .set('X-Auth-Context', target.context.authContextId)
+        .set('X-Auth-Intent', target.context.intentId)
         .set('Origin', fixture.config.frontendOrigin)
         .set('X-CSRF-Token', target.csrfToken)
         .set('Cookie', cookie(target.context.binding))

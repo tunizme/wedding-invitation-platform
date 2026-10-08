@@ -79,6 +79,9 @@ describe.sequential('Google OAuth HTTP contract', () => {
   });
   beforeEach(async () => {
     await fixture.clear();
+    await fixture.db.query(
+      'TRUNCATE auth_cookie_names, auth_intents, auth_contexts CASCADE',
+    );
     google.authorizationUrl.mockClear();
     google.verifyCallback.mockClear();
   });
@@ -90,12 +93,44 @@ describe.sequential('Google OAuth HTTP contract', () => {
     }
   });
 
+  // 006 FR-003/FR-014: exercise the preserved provider contract through CSP1.
   async function start() {
-    const response = await request(app.getHttpServer())
+    const http = () => request(app.getHttpServer());
+    const created = await http()
+      .post('/api/v1/auth/contexts')
+      .set('Origin', fixture.config.frontendOrigin)
+      .send({})
+      .expect(201);
+    const contextId = (created.body as { contextId: string }).contextId;
+    const binding = (
+      created.headers['set-cookie'] as unknown as string[]
+    )[0].split(';')[0];
+    await http()
+      .post(`/api/v1/auth/contexts/${contextId}/confirm`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', binding)
+      .send({})
+      .expect(200);
+    const reserved = await http()
+      .post(`/api/v1/auth/contexts/${contextId}/intents`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', binding)
+      .send({ kind: 'OAUTH', expectedRevision: 0 })
+      .expect(201);
+    const intentId = (reserved.body as { intentId: string }).intentId;
+    const response = await http()
       .get('/api/v1/auth/oauth/google/start')
+      .set('Cookie', binding)
+      .query({ intent: intentId })
       .expect(302);
     const cookies = response.headers['set-cookie'] as unknown as string[];
-    return { response, cookie: cookies[0].split(';')[0] };
+    return {
+      response,
+      intentId,
+      cookie: `${binding}; ${cookies[0].split(';')[0]}`,
+    };
   }
 
   it('starts only the allowlisted provider with an HttpOnly one-time binding', async () => {
@@ -129,7 +164,7 @@ describe.sequential('Google OAuth HTTP contract', () => {
   });
 
   it('sets only an internal refresh cookie and redirects to a fixed frontend result', async () => {
-    const { cookie } = await start();
+    const { cookie, intentId } = await start();
     const transaction = google.authorizationUrl.mock.calls.at(-1)![0];
     const response = await request(app.getHttpServer())
       .get('/api/v1/auth/oauth/google/callback')
@@ -137,10 +172,12 @@ describe.sequential('Google OAuth HTTP contract', () => {
       .query({ code: 'provider-code', state: transaction.state })
       .expect(303);
     expect(response.headers.location).toBe(
-      'http://localhost:3000/oauth-result?result=success',
+      `http://localhost:3000/oauth-result?result=success&intent=${intentId}`,
     );
     expect(response.headers.location).not.toMatch(/code|token|provider-code/);
-    expect(String(response.headers['set-cookie'])).toMatch(/wedding_rt=/);
+    expect(String(response.headers['set-cookie'])).toMatch(
+      /wa_s_[A-Za-z0-9_-]{22}=[A-Za-z0-9_-]{43}/,
+    );
     expect(String(response.headers['set-cookie'])).toMatch(/wedding_oauth=;/);
     const callback = google.verifyCallback.mock.calls.at(-1)![0];
     expect(callback.code).toBe('provider-code');

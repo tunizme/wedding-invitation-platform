@@ -17,6 +17,12 @@ import { transaction } from '../infrastructure/transactions';
 import { BrowserSecurityService } from './browser-security.service';
 import { RefreshService } from './refresh.service';
 import { SessionService } from './session.service';
+import { headerValue } from './login.controller';
+import { AuthIntentService } from '../context/auth-intent.service';
+import {
+  IDENTITY_CONFIG,
+  type IdentityEnvironment,
+} from '../../../config/identity-access.environment';
 
 @Controller('auth')
 export class SessionController {
@@ -27,32 +33,36 @@ export class SessionController {
     private readonly browser: BrowserSecurityService,
     @Inject(RateLimitService) private readonly limiter: RateLimitService,
     @Inject(DataSource) private readonly db: DataSource,
+    @Inject(AuthIntentService) private readonly intents: AuthIntentService,
+    @Inject(IDENTITY_CONFIG) private readonly config: IdentityEnvironment,
   ) {}
-
-  private async active(request: Request) {
-    const token = this.browser.readCookie(request);
-    if (!token) return undefined;
-    try {
-      return { token, context: await this.refresh.context(token) };
-    } catch {
-      return undefined;
-    }
-  }
 
   @Get('csrf')
   @Public()
   @Header('Cache-Control', 'no-store')
-  async csrf(@Req() request: Request) {
-    const active = await this.active(request);
-    if (!active) throw new UnauthorizedException();
-    return {
-      csrfToken: this.browser.csrf({
-        type: 'session',
-        id: active.context.session.id,
-        seed: active.context.session.csrf_seed,
-        keyVersion: active.context.session.csrf_key_version,
-      }),
-    };
+  async csrf(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const contextId = headerValue(request, 'x-auth-context');
+    if (contextId) {
+      const current = await this.refresh.currentForContext(
+        request,
+        contextId,
+        headerValue(request, 'x-auth-session-tag'),
+      );
+      return {
+        csrfToken: this.browser.csrf({
+          type: 'session',
+          id: current.session.id,
+          seed: current.session.csrf_seed,
+          keyVersion: current.session.csrf_key_version,
+        }),
+      };
+    }
+    // Cutover: a legacy singleton cookie can never restore an IAM session.
+    this.browser.clearCookie(response);
+    throw new UnauthorizedException();
   }
 
   @Post('refresh')
@@ -64,19 +74,52 @@ export class SessionController {
     @Res({ passthrough: true }) response: Response,
   ) {
     this.browser.requireOrigin(request);
-    const token = this.browser.readCookie(request);
-    if (!token) throw new UnauthorizedException();
-    const context = await this.refresh.presented(token);
-    await this.limiter.consume('REFRESH', context.session.id);
+    const contextId = headerValue(request, 'x-auth-context');
+    if (contextId) return this.rotateInContext(request, response, contextId);
+    this.browser.clearCookie(response);
+    throw new UnauthorizedException();
+  }
+
+  /** 006 F3: current-slot rotation with CSRF of the current session (003). */
+  private async rotateInContext(
+    request: Request,
+    response: Response,
+    contextId: string,
+  ) {
+    const expectedTag = headerValue(request, 'x-auth-session-tag');
+    const current = await this.refresh.currentForContext(
+      request,
+      contextId,
+      expectedTag,
+      { requireEligible: false },
+    );
+    await this.limiter.consume('REFRESH', current.session.id);
     this.browser.requireCsrf(request, {
       type: 'session',
-      id: context.session.id,
-      seed: context.session.csrf_seed,
-      keyVersion: context.session.csrf_key_version,
+      id: current.session.id,
+      seed: current.session.csrf_seed,
+      keyVersion: current.session.csrf_key_version,
     });
-    const rotated = await this.refresh.rotate(token);
-    this.browser.writeCookie(response, rotated.refreshToken, rotated.expiresAt);
+    const rotated = await this.refresh.rotateCurrent(
+      request,
+      contextId,
+      expectedTag,
+    );
+    this.browser.clearProtocolNames(response, rotated.cleanupNames);
+    this.browser.writeSlot(
+      response,
+      rotated.slotTag,
+      rotated.refreshToken,
+      rotated.expiresAt,
+    );
+    this.browser.writeBinding(
+      response,
+      contextId,
+      rotated.bindingSecret,
+      this.config.authContext.confirmedBindingSeconds,
+    );
     return {
+      authProtocol: 2 as const,
       accessToken: rotated.accessToken,
       tokenType: 'Bearer' as const,
       expiresIn: 900 as const,
@@ -86,6 +129,8 @@ export class SessionController {
         seed: rotated.csrfSeed,
         keyVersion: rotated.csrfKeyVersion,
       }),
+      sessionTag: rotated.slotTag,
+      contextRevision: rotated.contextRevision,
       user: rotated.user,
     };
   }
@@ -98,17 +143,33 @@ export class SessionController {
     @Res({ passthrough: true }) response: Response,
   ) {
     this.browser.requireOrigin(request);
-    const active = await this.active(request);
-    if (active) {
-      this.browser.requireCsrf(request, {
-        type: 'session',
-        id: active.context.session.id,
-        seed: active.context.session.csrf_seed,
-        keyVersion: active.context.session.csrf_key_version,
-      });
-      await this.refresh.revokeCurrent(active.token);
+    const contextId = headerValue(request, 'x-auth-context');
+    if (contextId) {
+      const intentId = headerValue(request, 'x-auth-intent');
+      if (!intentId) throw new UnauthorizedException();
+      const { slotTag, cleanupNames } = await this.intents.logoutCaptured(
+        request,
+        contextId,
+        intentId,
+        (session) =>
+          this.browser.requireCsrf(request, {
+            type: 'session',
+            id: session.id,
+            seed: session.csrf_seed,
+            keyVersion: session.csrf_key_version,
+          }),
+      );
+      this.browser.clearProtocolNames(
+        response,
+        cleanupNames.filter(
+          (name) => !slotTag || name !== this.browser.slotCookieName(slotTag),
+        ),
+      );
+      if (slotTag) this.browser.clearSlot(response, slotTag);
+      return;
     }
     this.browser.clearCookie(response);
+    throw new UnauthorizedException();
   }
 
   @Post('logout-all')
@@ -120,6 +181,12 @@ export class SessionController {
     await transaction(this.db, (manager) =>
       this.sessions.revokeAll(manager, request.principal.userId, 'LOGOUT_ALL'),
     );
-    this.browser.clearCookie(response);
+    // 006: clear only the bearer session's own slot; never another session's.
+    const tag = await this.sessions.slotTagOf(
+      this.db,
+      request.principal.sessionId,
+    );
+    if (tag) this.browser.clearSlot(response, tag);
+    else this.browser.clearCookie(response);
   }
 }

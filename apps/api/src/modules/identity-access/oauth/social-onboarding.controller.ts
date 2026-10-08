@@ -68,6 +68,7 @@ export class SocialOnboardingController {
   async get(@Req() request: Request) {
     const context = await this.context(request);
     return {
+      contextId: context.context_id,
       provider: context.provider,
       status: context.status,
       emailCandidate: context.email_candidate,
@@ -131,6 +132,10 @@ export class SocialOnboardingController {
     @Res({ passthrough: true }) response: Response,
   ) {
     this.browser.requireOrigin(request, true);
+    const contextId = request.headers['x-auth-context'];
+    const intentId = request.headers['x-auth-intent'];
+    if (typeof contextId !== 'string' || typeof intentId !== 'string')
+      throw new UnprocessableEntityException();
     if (
       !body ||
       typeof body !== 'object' ||
@@ -146,14 +151,37 @@ export class SocialOnboardingController {
     this.csrf(request, context);
     const known = await this.challenges.identify(this.db.manager, proof);
     await this.limiter.consumeProof(known?.id, this.limiter.ip(request));
-    const result = await this.completion.complete(this.binding(request), proof);
-    this.browser.writeCookie(
-      response,
-      result.session.refreshToken,
-      result.session.expiresAt,
+    const result = await this.completion.complete(
+      this.binding(request),
+      proof,
+      request,
+      contextId,
+      intentId,
     );
+    this.browser.clearProtocolNames(response, result.cleanupNames ?? []);
+    if (result.session.slotTag) {
+      this.browser.writeSlot(
+        response,
+        result.session.slotTag,
+        result.session.refreshToken,
+        result.session.expiresAt,
+      );
+    } else {
+      this.browser.writeCookie(
+        response,
+        result.session.refreshToken,
+        result.session.expiresAt,
+      );
+    }
     this.browser.clearCookie(response, 'ob');
     return {
+      ...(result.session.slotTag
+        ? {
+            authProtocol: 2 as const,
+            sessionTag: result.session.slotTag,
+            contextRevision: result.contextRevision,
+          }
+        : {}),
       accessToken: result.session.accessToken,
       tokenType: 'Bearer' as const,
       expiresIn: 900 as const,

@@ -153,6 +153,233 @@ describe.sequential('IAM retention worker', () => {
     expect(Number(count)).toBe(1);
   });
 
+  it('retires stale contexts and expires/deletes old intents without releasing unresolved cookie names', async () => {
+    const contextId = randomUUID();
+    const groupId = randomUUID();
+    const intentId = randomUUID();
+    const name = `wa_s_${'A'.repeat(22)}`;
+    await fixture.db.query(
+      `INSERT INTO auth_contexts
+       (id,binding_digest,binding_key_version,group_id,state,confirmed_seq,revision,created_at,confirmed_at,last_seen_at,retired_at)
+       VALUES ($1,$2,1,$3,'ACTIVE',nextval('auth_context_confirm_seq'),1,
+         now()-interval '40 days',now()-interval '40 days',now()-interval '31 days',NULL)`,
+      [contextId, randomBytes(32), groupId],
+    );
+    await fixture.db.query(
+      `INSERT INTO auth_intents
+       (id,context_id,kind,revision,state,expires_at,created_at)
+       VALUES ($1,$2,'LOCAL_LOGIN',1,'RESERVED',now()-interval '30 hours',now()-interval '31 hours')`,
+      [intentId, contextId],
+    );
+    await fixture.db.query(
+      'UPDATE auth_contexts SET current_intent_id=$2 WHERE id=$1',
+      [contextId, intentId],
+    );
+    await fixture.db.query(
+      `INSERT INTO auth_cookie_names
+       (group_id,name,kind,owner_session_id,last_set_digest,unresolved_set,observed_present,bytes)
+       VALUES ($1,$2,'SLOT',NULL,$3,true,false,80)`,
+      [groupId, name, randomBytes(32)],
+    );
+    const result = await new RetentionWorker(
+      fixture.db,
+      fixture.config,
+    ).runOnce();
+    expect(result.terminalized).toMatchObject({
+      authContextsRetired: 1,
+      authIntentsExpired: 1,
+      authIntents: 1,
+    });
+    const [context] = await fixture.db.query<
+      { current_intent_id: string | null }[]
+    >('SELECT current_intent_id FROM auth_contexts WHERE id=$1', [contextId]);
+    expect(context?.current_intent_id).toBeNull();
+    expect(
+      await fixture.db.query(
+        'SELECT name,unresolved_set FROM auth_cookie_names WHERE name=$1',
+        [name],
+      ),
+    ).toEqual([{ name, unresolved_set: true }]);
+  });
+
+  it('expires matching intent/context pairs when bounded batches have different orders', async () => {
+    const groupId = randomUUID();
+    const firstContext = randomUUID();
+    const secondContext = randomUUID();
+    const firstIntent = randomUUID();
+    const secondIntent = randomUUID();
+    for (const contextId of [firstContext, secondContext]) {
+      await fixture.db.query(
+        `INSERT INTO auth_contexts
+         (id,binding_digest,binding_key_version,group_id,state,confirmed_seq,revision,created_at,confirmed_at,last_seen_at)
+         VALUES ($1,$2,1,$3,'ACTIVE',nextval('auth_context_confirm_seq'),1,now(),now(),now())`,
+        [contextId, randomBytes(32), groupId],
+      );
+    }
+    await fixture.db.query(
+      `INSERT INTO auth_intents
+       (id,context_id,kind,revision,state,expires_at,created_at)
+       VALUES
+       ($1,$2,'LOCAL_LOGIN',1,'RESERVED',now()-interval '1 hour',now()-interval '2 hours'),
+       ($3,$4,'LOCAL_LOGIN',1,'RESERVED',now()-interval '2 hours',now()-interval '3 hours')`,
+      [firstIntent, firstContext, secondIntent, secondContext],
+    );
+    await fixture.db.query(
+      `UPDATE auth_contexts SET current_intent_id=CASE id
+         WHEN $1 THEN $3::uuid WHEN $2 THEN $4::uuid END
+       WHERE id=ANY($5::uuid[])`,
+      [
+        firstContext,
+        secondContext,
+        firstIntent,
+        secondIntent,
+        [firstContext, secondContext],
+      ],
+    );
+
+    const worker = new RetentionWorker(fixture.db, {
+      ...fixture.config,
+      retention: { ...fixture.config.retention, batchSize: 1 },
+    });
+    const result = await worker.runOnce();
+    expect(result.terminalized.authIntentsExpired).toBe(1);
+    const rows = await fixture.db.query<
+      { id: string; state: string; current_intent_id: string | null }[]
+    >(
+      `SELECT i.id,i.state,c.current_intent_id FROM auth_intents i
+       JOIN auth_contexts c ON c.id=i.context_id ORDER BY i.id`,
+    );
+    expect(rows.find((row) => row.id === secondIntent)).toMatchObject({
+      state: 'EXPIRED',
+      current_intent_id: null,
+    });
+    expect(rows.find((row) => row.id === firstIntent)).toMatchObject({
+      state: 'RESERVED',
+      current_intent_id: firstIntent,
+    });
+  });
+
+  it('clears the context pointer before deleting an aged current session', async () => {
+    const userId = randomUUID();
+    const contextId = randomUUID();
+    const sessionId = randomUUID();
+    await seedUser(userId, 'retention-context-session@example.test');
+    await fixture.db.query(
+      `INSERT INTO auth_contexts
+       (id,binding_digest,binding_key_version,group_id,state,confirmed_seq,revision,created_at,confirmed_at,last_seen_at)
+       VALUES ($1,$2,1,$3,'ACTIVE',nextval('auth_context_confirm_seq'),1,
+         now()-interval '40 days',now()-interval '40 days',now())`,
+      [contextId, randomBytes(32), randomUUID()],
+    );
+    await fixture.db.query(
+      `INSERT INTO auth_sessions
+       (id,user_id,csrf_seed,csrf_key_version,created_at,absolute_expires_at,revoked_at,revocation_reason,context_id,slot_tag)
+       VALUES ($1,$2,$3,1,now()-interval '100 days',now()-interval '86 days',
+         now()-interval '75 days','LOGOUT',$4,$5)`,
+      [sessionId, userId, randomBytes(32), contextId, 'T'.repeat(22)],
+    );
+    await fixture.db.query(
+      'UPDATE auth_contexts SET current_session_id=$2 WHERE id=$1',
+      [contextId, sessionId],
+    );
+
+    const result = await new RetentionWorker(
+      fixture.db,
+      fixture.config,
+    ).runOnce();
+    expect(result.deleted.authSessions).toBe(1);
+    const [context] = await fixture.db.query<
+      { current_session_id: string | null }[]
+    >('SELECT current_session_id FROM auth_contexts WHERE id=$1', [contextId]);
+    expect(context?.current_session_id).toBeNull();
+  });
+
+  it('serializes context cleanup before a concurrent intent reservation', async () => {
+    const userId = randomUUID();
+    const contextId = randomUUID();
+    const sessionId = randomUUID();
+    const intentId = randomUUID();
+    await seedUser(userId, 'retention-concurrent@example.test');
+    await fixture.db.query(
+      `INSERT INTO auth_contexts
+       (id,binding_digest,binding_key_version,group_id,state,confirmed_seq,revision,created_at,confirmed_at,last_seen_at)
+       VALUES ($1,$2,1,$3,'ACTIVE',nextval('auth_context_confirm_seq'),1,
+         now()-interval '40 days',now()-interval '40 days',now())`,
+      [contextId, randomBytes(32), randomUUID()],
+    );
+    await fixture.db.query(
+      `INSERT INTO auth_sessions
+       (id,user_id,csrf_seed,csrf_key_version,created_at,absolute_expires_at,revoked_at,revocation_reason,context_id,slot_tag)
+       VALUES ($1,$2,$3,1,now()-interval '100 days',now()-interval '86 days',
+         now()-interval '75 days','LOGOUT',$4,$5)`,
+      [sessionId, userId, randomBytes(32), contextId, 'U'.repeat(22)],
+    );
+    await fixture.db.query(
+      'UPDATE auth_contexts SET current_session_id=$2 WHERE id=$1',
+      [contextId, sessionId],
+    );
+
+    const blocker = fixture.db.createQueryRunner();
+    await blocker.connect();
+    await blocker.startTransaction();
+    await blocker.query('SELECT id FROM auth_contexts WHERE id=$1 FOR UPDATE', [
+      contextId,
+    ]);
+    const cleanup = new RetentionWorker(fixture.db, fixture.config).runOnce();
+    let waiting = false;
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      const [activity] = await fixture.db.query<{ count: string }[]>(
+        `SELECT count(*) FROM pg_stat_activity
+         WHERE wait_event_type='Lock'
+           AND query ILIKE '%FROM auth_contexts WHERE id = ANY%'`,
+      );
+      if (Number(activity?.count) > 0) {
+        waiting = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    const reserve = fixture.db.transaction(async (manager) => {
+      await manager.query(
+        'SELECT id FROM auth_contexts WHERE id=$1 FOR UPDATE',
+        [contextId],
+      );
+      await manager.query(
+        'UPDATE auth_contexts SET revision=revision+1 WHERE id=$1',
+        [contextId],
+      );
+      const [row] = await manager.query<{ revision: number }[]>(
+        'SELECT revision FROM auth_contexts WHERE id=$1',
+        [contextId],
+      );
+      await manager.query(
+        `INSERT INTO auth_intents
+         (id,context_id,kind,revision,state,expires_at,created_at)
+         VALUES ($1,$2,'LOCAL_LOGIN',$3,'RESERVED',now()+interval '1 minute',now())`,
+        [intentId, contextId, row.revision],
+      );
+      await manager.query(
+        'UPDATE auth_contexts SET current_intent_id=$2 WHERE id=$1',
+        [contextId, intentId],
+      );
+    });
+    await blocker.commitTransaction();
+    await blocker.release();
+    const [cleanupResult] = await Promise.all([cleanup, reserve]);
+    expect(waiting).toBe(true);
+    expect(cleanupResult.failure).toBe(false);
+    const [context] = await fixture.db.query<
+      { current_session_id: string | null; current_intent_id: string | null }[]
+    >(
+      'SELECT current_session_id,current_intent_id FROM auth_contexts WHERE id=$1',
+      [contextId],
+    );
+    expect(context).toEqual({
+      current_session_id: null,
+      current_intent_id: intentId,
+    });
+  });
+
   it('clears terminal OAuth ciphertext before deleting metadata', async () => {
     const oauth = randomUUID();
     await fixture.db.query(

@@ -3,9 +3,12 @@ info:
   title: Wedding Invitation Platform Identity & Access API
   version: 0.1.0
   description: >-
-    Versioned IAM contract. Passwords, tokens, proofs, authorization codes and secrets are never
-    returned except the short-lived Access Token and CSRF token explicitly defined by session
-    responses. Refresh credentials are carried only by HttpOnly cookies.
+    Superseded by 006 CSP-1 for context-bound browser session transitions; see
+    ../../006-iam-auth-transition-reliability/contracts/auth-context.openapi.yaml.
+    This document remains the contract for unchanged IAM routes. Passwords, tokens, proofs,
+    authorization codes and secrets are never returned except the short-lived Access Token and
+    CSRF token explicitly defined by session responses. Refresh credentials are carried only by
+    HttpOnly cookies.
 servers:
   - url: http://localhost:3001/api/v1
 tags:

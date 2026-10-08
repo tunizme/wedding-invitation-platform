@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useRef, useState, type FormEvent } from 'react';
-import { ApiError, iamRequest, type AccessSession } from '../api/client';
-import { sessionStore } from '../session/store';
+import { ApiError, type AccessSession } from '../api/client';
+import { AuthFlowError, authFlowMessage } from '../session/auth-context-flow';
+import { SelectorStorageUnavailable } from '../session/auth-selector';
+import { loginLocal } from '../session/refresh-coordinator';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -24,12 +26,8 @@ export function LoginForm() {
     setError('');
     setNeedsVerification(false);
     try {
-      const session = await iamRequest<AccessSession>('/auth/login', {
-        method: 'POST',
-        body: { email, password },
-        cookieAuth: true,
-      });
-      sessionStore.set(session);
+      // 006: provision (if needed) → reserve LOCAL_LOGIN → execute → admit.
+      const session = await loginLocal(email, password);
       setPassword('');
       setAuthenticated(session);
     } catch (cause) {
@@ -38,6 +36,22 @@ export function LoginForm() {
         setError('Bạn cần xác minh email trước khi đăng nhập.');
       } else if (cause instanceof ApiError && cause.status === 401) {
         setError('Email hoặc mật khẩu không đúng.');
+      } else if (
+        (cause instanceof ApiError && cause.knowledge === 'UNCERTAIN') ||
+        (cause instanceof AuthFlowError && cause.reason === 'UNCERTAIN')
+      ) {
+        setError(
+          'Chưa xác nhận được kết quả đăng nhập. Vui lòng kiểm tra lại trước khi thử tiếp.',
+        );
+      } else if (cause instanceof AuthFlowError) {
+        setError(
+          authFlowMessage(cause) ??
+            (cause.reason === 'RECOVERY_REQUIRED'
+              ? 'Không thể xác nhận phiên đăng nhập trong trình duyệt này.'
+              : 'Yêu cầu đăng nhập đã được thay thế bởi thao tác mới hơn.'),
+        );
+      } else if (cause instanceof SelectorStorageUnavailable) {
+        setError('Không thể xác nhận phiên đăng nhập trong trình duyệt này.');
       } else {
         setError(
           cause instanceof ApiError

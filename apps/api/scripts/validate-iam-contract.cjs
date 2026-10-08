@@ -133,6 +133,81 @@ test('onboarding conflict is documented only after proof and browser binding', (
   );
 });
 
+// Feature 006 (CSP-1) delta contract.
+const authContextPath = resolve(
+  __dirname,
+  '../../../specs/006-iam-auth-transition-reliability/contracts/auth-context.openapi.yaml',
+);
+const authContext = load(readFileSync(authContextPath, 'utf8'));
+const authAjv = new Ajv2020({ strict: true, allErrors: true });
+addFormats(authAjv);
+authAjv.addSchema({
+  $id: 'urn:iam:auth-context:schemas',
+  $defs: toJsonSchema(authContext.components.schemas),
+});
+const authSchema = (name) =>
+  authAjv.compile({ $ref: `urn:iam:auth-context:schemas#/$defs/${name}` });
+module.exports.validateAuthContextSchema = (name, value) =>
+  authSchema(name)(value);
+
+test('006 auth-context OpenAPI 3.1 document validates', async () => {
+  assert.equal(authContext.openapi, '3.1.0');
+  await SwaggerParser.validate(structuredClone(authContext), {
+    resolve: { external: false },
+  });
+  for (const name of Object.keys(authContext.components.schemas))
+    assert.equal(typeof authSchema(name), 'function');
+});
+
+const accessSession = {
+  authProtocol: 2,
+  accessToken: 'synthetic-access',
+  tokenType: 'Bearer',
+  expiresIn: 900,
+  csrfToken: 'c'.repeat(43),
+  sessionTag: 'A'.repeat(22),
+  contextRevision: 1,
+  user: {},
+};
+
+test('006 AccessSession accepts the complete fixture', () => {
+  const validate = authSchema('AccessSession');
+  assert.equal(validate(accessSession), true, JSON.stringify(validate.errors));
+});
+
+for (const field of ['authProtocol', 'sessionTag', 'contextRevision']) {
+  test(`006 AccessSession rejects missing ${field}`, () => {
+    const fixture = { ...accessSession };
+    delete fixture[field];
+    assert.equal(authSchema('AccessSession')(fixture), false);
+  });
+}
+
+test('006 ReserveIntentRequest rejects unknown fields', () => {
+  const validate = authSchema('ReserveIntentRequest');
+  assert.equal(validate({ kind: 'LOCAL_LOGIN', expectedRevision: 0 }), true);
+  assert.equal(
+    validate({ kind: 'LOCAL_LOGIN', expectedRevision: 0, contextId: 'x' }),
+    false,
+  );
+});
+
+test('006 ReserveIntentRequest requires expectedSessionTag for LOGOUT', () => {
+  const validate = authSchema('ReserveIntentRequest');
+  assert.equal(validate({ kind: 'LOGOUT', expectedRevision: 0 }), false);
+  assert.equal(
+    validate({ kind: 'LOGOUT', expectedRevision: 0, expectedSessionTag: null }),
+    true,
+  );
+  assert.equal(validate({ kind: 'LOCAL_LOGIN', expectedRevision: 0 }), true);
+});
+
+test('006 EmptyRequest rejects any property', () => {
+  const validate = authSchema('EmptyRequest');
+  assert.equal(validate({}), true);
+  assert.equal(validate({ attemptId: 'x' }), false);
+});
+
 test('logout contract protects active revocation and permits no-session cleanup', () => {
   const operation = contract.paths['/auth/logout'].post;
   assert.deepEqual(operation.security, [

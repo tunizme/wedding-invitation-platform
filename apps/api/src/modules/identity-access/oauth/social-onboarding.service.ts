@@ -66,6 +66,7 @@ export class SocialOnboardingService {
     manager: EntityManager,
     identity: VerifiedProviderIdentity,
     observedContextId?: string,
+    contextId?: string,
   ): Promise<OnboardingStart> {
     this.validateIdentity(identity);
     const [linked] = await manager.query<{ user_id: string }[]>(
@@ -106,8 +107,8 @@ export class SocialOnboardingService {
     }
     await manager.query(
       `INSERT INTO pending_social_onboardings
-       (id,provider,provider_subject,email_candidate,display_name,avatar_url,binding_hash,csrf_seed,csrf_key_version,status,expires_at,created_at,updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12)`,
+       (id,provider,provider_subject,email_candidate,display_name,avatar_url,binding_hash,csrf_seed,csrf_key_version,status,expires_at,created_at,updated_at,context_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$13)`,
       [
         id,
         identity.provider,
@@ -121,6 +122,7 @@ export class SocialOnboardingService {
         identity.email ? 'PENDING_VERIFICATION' : 'PENDING_EMAIL',
         expiresAt,
         now,
+        contextId ?? null,
       ],
     );
     return { id, binding: `${id}.${secret}`, expiresAt };

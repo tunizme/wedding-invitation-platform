@@ -1,3 +1,4 @@
+import type { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -7,7 +8,12 @@ import { requestValidationPipe } from './common/errors/validation';
 import { configureRequestBoundaries } from './common/http/request-boundaries';
 
 export async function createApplication() {
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  return configureApplication(
+    await NestFactory.create(AppModule, { bodyParser: false }),
+  );
+}
+
+export function configureApplication(app: INestApplication) {
   const config = app.get(ConfigService);
   app.setGlobalPrefix('api/v1');
   configureRequestBoundaries(app, config.getOrThrow<string>('FRONTEND_ORIGIN'));

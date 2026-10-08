@@ -43,6 +43,32 @@ export class BuilderProblemException extends HttpException {
   }
 }
 
+/** 006 CSP-1 problem codes (contracts/auth-context.openapi.yaml). */
+export type AuthTransitionProblemCode =
+  | 'BINDING_INVALID'
+  | 'STALE_REVISION'
+  | 'SUPERSEDED'
+  | 'CREDENTIAL_MISSING'
+  | 'CAPACITY_EXHAUSTED'
+  | 'CONTEXT_UNAVAILABLE';
+const authTransitionStatus: Record<AuthTransitionProblemCode, number> = {
+  BINDING_INVALID: 401,
+  STALE_REVISION: 409,
+  SUPERSEDED: 409,
+  CREDENTIAL_MISSING: 401,
+  CAPACITY_EXHAUSTED: 409,
+  CONTEXT_UNAVAILABLE: 410,
+};
+export class AuthTransitionProblemException extends HttpException {
+  constructor(
+    readonly problemCode: AuthTransitionProblemCode,
+    /** Only for STALE_REVISION: read-only current revision of the context. */
+    readonly currentRevision?: number,
+  ) {
+    super(problemCode, authTransitionStatus[problemCode]);
+  }
+}
+
 export class OnboardingCannotCompleteException extends ConflictException {
   readonly problemCode = 'ONBOARDING_CANNOT_COMPLETE' as const;
 }

@@ -179,20 +179,97 @@ async function main() {
       ).status,
       400,
     );
+    const jar = new Map();
+    const applyCookies = (response) => {
+      for (const value of response.headers.getSetCookie()) {
+        const [pair, ...attributes] = value
+          .split(';')
+          .map((part) => part.trim());
+        const index = pair.indexOf('=');
+        const name = pair.slice(0, index);
+        if (attributes.some((attribute) => /^max-age=0$/i.test(attribute)))
+          jar.delete(name);
+        else jar.set(name, pair.slice(index + 1));
+      }
+    };
+    const cookieHeader = () =>
+      [...jar].map(([name, value]) => `${name}=${value}`).join('; ');
+    safeStage = 'auth-context-provision';
+    const provision = await fetch(`${awaitBase}/api/v1/auth/contexts`, {
+      method: 'POST',
+      headers: {
+        Origin: process.env.FRONTEND_ORIGIN,
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.equal(provision.status, 201);
+    applyCookies(provision);
+    const contextId = (await provision.json()).contextId;
+    safeStage = 'auth-context-confirm';
+    const confirm = await fetch(
+      `${awaitBase}/api/v1/auth/contexts/${contextId}/confirm`,
+      {
+        method: 'POST',
+        headers: {
+          Origin: process.env.FRONTEND_ORIGIN,
+          'Content-Type': 'application/json',
+          'X-Auth-Context': contextId,
+          Cookie: cookieHeader(),
+        },
+        body: '{}',
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+    assert.equal(confirm.status, 200);
+    applyCookies(confirm);
+    safeStage = 'auth-intent-reserve';
+    const reserve = await fetch(
+      `${awaitBase}/api/v1/auth/contexts/${contextId}/intents`,
+      {
+        method: 'POST',
+        headers: {
+          Origin: process.env.FRONTEND_ORIGIN,
+          'Content-Type': 'application/json',
+          'X-Auth-Context': contextId,
+          Cookie: cookieHeader(),
+        },
+        body: JSON.stringify({ kind: 'LOCAL_LOGIN', expectedRevision: 0 }),
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+    assert.equal(reserve.status, 201);
+    const intentId = (await reserve.json()).intentId;
     safeStage = 'login';
-    const login = await post('login', { email, password: newPassword });
+    const login = await fetch(`${awaitBase}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: {
+        Origin: process.env.FRONTEND_ORIGIN,
+        'Content-Type': 'application/json',
+        'X-Auth-Context': contextId,
+        'X-Auth-Intent': intentId,
+        Cookie: cookieHeader(),
+      },
+      body: JSON.stringify({ email, password: newPassword }),
+      signal: AbortSignal.timeout(10000),
+    });
     safeDetail = `status-${login.status}`;
     assert.equal(login.status, 200);
     safeStage = 'login-cookie';
-    const cookie = login.headers.get('set-cookie');
-    assert.match(cookie, /^wedding_rt=[A-Za-z0-9_-]+/);
+    const cookie = login.headers.getSetCookie().join(',');
+    assert.match(cookie, /^wa_s_[A-Za-z0-9_-]{22}=/);
     assert.match(cookie, /HttpOnly/i);
     assert.match(cookie, /Path=\/api\/v1\/auth/i);
     assert.match(cookie, /SameSite=Lax/i);
+    applyCookies(login);
     safeStage = 'login-body';
     const loginBody = await login.json();
+    assert.equal(loginBody.authProtocol, 2);
     assert.equal(loginBody.tokenType, 'Bearer');
     assert.equal(loginBody.expiresIn, 900);
+    assert.match(loginBody.sessionTag, /^[A-Za-z0-9_-]{22}$/);
+    assert.equal(loginBody.contextRevision, 1);
     assert.match(loginBody.csrfToken, /^[A-Za-z0-9_-]+$/);
     safeStage = 'login-user-projection';
     assert.equal(loginBody.user.id, user.id);
@@ -232,10 +309,13 @@ async function main() {
       )[0].count,
       '1',
     );
-    const loginCookie = cookie.match(/^([^;]+)/)[1];
     safeStage = 'refresh';
     const csrfResponse = await fetch(`${awaitBase}/api/v1/auth/csrf`, {
-      headers: { Cookie: loginCookie },
+      headers: {
+        'X-Auth-Context': contextId,
+        'X-Auth-Session-Tag': loginBody.sessionTag,
+        Cookie: cookieHeader(),
+      },
       signal: AbortSignal.timeout(10000),
     });
     assert.equal(csrfResponse.status, 200);
@@ -245,7 +325,9 @@ async function main() {
       method: 'POST',
       headers: {
         Origin: process.env.FRONTEND_ORIGIN,
-        Cookie: loginCookie,
+        'X-Auth-Context': contextId,
+        'X-Auth-Session-Tag': loginBody.sessionTag,
+        Cookie: cookieHeader(),
         'X-CSRF-Token': csrfBody.csrfToken,
       },
       signal: AbortSignal.timeout(10000),
@@ -254,21 +336,48 @@ async function main() {
     const refreshedBody = await refreshed.json();
     assert.equal(refreshedBody.csrfToken, csrfBody.csrfToken);
     app.get(AccessTokenService).verify(refreshedBody.accessToken);
-    const refreshedCookie = refreshed.headers.get('set-cookie');
-    assert.match(refreshedCookie, /^wedding_rt=[A-Za-z0-9_-]+/);
-    assert.notEqual(refreshedCookie.match(/^([^;]+)/)[1], loginCookie);
+    applyCookies(refreshed);
+    assert.equal(refreshedBody.authProtocol, 2);
+    assert.equal(refreshedBody.sessionTag, loginBody.sessionTag);
+    assert.equal(refreshedBody.contextRevision, loginBody.contextRevision);
+    safeStage = 'logout-intent';
+    const logoutReservation = await fetch(
+      `${awaitBase}/api/v1/auth/contexts/${contextId}/intents`,
+      {
+        method: 'POST',
+        headers: {
+          Origin: process.env.FRONTEND_ORIGIN,
+          'Content-Type': 'application/json',
+          'X-Auth-Context': contextId,
+          Cookie: cookieHeader(),
+        },
+        body: JSON.stringify({
+          kind: 'LOGOUT',
+          expectedRevision: refreshedBody.contextRevision,
+          expectedSessionTag: refreshedBody.sessionTag,
+        }),
+        signal: AbortSignal.timeout(10000),
+      },
+    );
+    assert.equal(logoutReservation.status, 201);
+    const logoutIntentId = (await logoutReservation.json()).intentId;
     safeStage = 'logout';
     const logout = await fetch(`${awaitBase}/api/v1/auth/logout`, {
       method: 'POST',
       headers: {
         Origin: process.env.FRONTEND_ORIGIN,
-        Cookie: refreshedCookie.match(/^([^;]+)/)[1],
+        'X-Auth-Context': contextId,
+        'X-Auth-Intent': logoutIntentId,
+        Cookie: cookieHeader(),
         'X-CSRF-Token': refreshedBody.csrfToken,
       },
       signal: AbortSignal.timeout(10000),
     });
     assert.equal(logout.status, 204);
-    assert.match(logout.headers.get('set-cookie'), /Max-Age=0/);
+    assert.match(
+      logout.headers.getSetCookie().join(','),
+      new RegExp(`wa_s_${refreshedBody.sessionTag}=;.*Max-Age=0`),
+    );
     assert.equal(
       (
         await db.query(

@@ -94,3 +94,31 @@ automatic migration-on-boot remain disabled. `migration:revert` for IAM is inten
 only with `NODE_ENV=test` and a runner-owned `iam_test_<32 hex>` schema. Production rollback means
 deploying a reviewed forward migration or restoring through the approved database recovery plan;
 never edit migration history or drop IAM tables to recover an application release.
+
+## CSP-1 auth cutover rollback
+
+Use this only when rolling the application back from the context-bound CSP-1 auth protocol.
+Coordinate a maintenance window and stop all API traffic/admission across the fleet before running
+the command; otherwise an active instance could issue a new context-bound session during rollback.
+Keep the additive 006 schema and migration history in place while deploying the reviewed legacy
+application version. Do not run `migration:revert` or remove cookie/intent ledgers as part of this
+application rollback.
+
+The command revokes every active session with a non-null `context_id`, clears those contexts'
+`current_session_id`, and reports the number of sessions affected. This destroys active login state
+for those sessions; affected users must sign in again. It does not delete accounts or retained
+protocol ledgers. Verify that the command reports the expected count, legacy traffic is healthy,
+and no CSP-1 API instance is still accepting traffic before ending maintenance. If CSP-1 is later
+re-enabled, old selectors point at revoked sessions and must enter `CREDENTIAL_MISSING` recovery;
+users sign in explicitly to create new sessions.
+
+Run from the repository root with the same `DATABASE_URL` as the API, after the coordinated traffic
+stop:
+
+```sh
+pnpm --filter @wedding/api exec ts-node src/modules/identity-access/context/auth-cutover.command.ts REVOKE_CONTEXT_SESSIONS
+```
+
+The exact confirmation argument `REVOKE_CONTEXT_SESSIONS` is mandatory. The command refuses to
+run without it. Review the affected-session count in the command output and API/database health
+before restoring traffic.

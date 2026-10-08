@@ -20,8 +20,19 @@ import {
   logoutAll,
   logoutCurrent,
 } from '../../src/features/identity-access/session/refresh-coordinator';
+import { acquireRefreshLease } from '../../src/features/identity-access/session/auth-selector';
 import { useDirtyNavigationGuard } from '../../src/features/identity-access/session/navigation-guard';
 import { sessionStore } from '../../src/features/identity-access/session/store';
+import {
+  CONTEXT_ID,
+  TAG,
+  installSelectedSelector,
+  protocolSession,
+} from './auth-protocol-mock';
+
+// 006 (T062 allowlist): 003 session tests updated for CSP-1 — refresh now
+// carries context headers and requires a selected context (FR-001/FR-014);
+// peer sessions are adopted only when they match the selector (FR-001).
 
 const route = vi.hoisted(() => ({ pathname: '/account' }));
 vi.mock('next/navigation', () => ({ usePathname: () => route.pathname }));
@@ -33,7 +44,7 @@ vi.mock('../../src/features/identity-access/api/client', async (original) => ({
   iamRequest: vi.fn(),
 }));
 
-const session: AccessSession = {
+const session: AccessSession = protocolSession({
   accessToken: 'access-one',
   tokenType: 'Bearer',
   expiresIn: 900,
@@ -49,12 +60,14 @@ const session: AccessSession = {
     phoneNumber: null,
     avatarUrl: null,
   },
-};
+});
+const auth = { contextId: CONTEXT_ID, sessionTag: TAG };
 
-beforeEach(() => {
+beforeEach(async () => {
   route.pathname = '/account';
   vi.mocked(iamRequest).mockReset();
   sessionStore.clear();
+  await installSelectedSelector();
 });
 afterEach(() => cleanup());
 
@@ -84,6 +97,7 @@ describe('frontend session coordination', () => {
       useDirtyNavigationGuard(true);
       return <input defaultValue="Local edits" aria-label="Draft" />;
     }
+    route.pathname = '/i/00000000-0000-4000-8000-000000000001';
     sessionStore.set(session);
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
     render(
@@ -118,40 +132,42 @@ describe('frontend session coordination', () => {
     expect(iamRequest).toHaveBeenCalledTimes(2);
     expect(iamRequest).toHaveBeenNthCalledWith(1, '/auth/csrf', {
       cookieAuth: true,
+      auth,
     });
     expect(iamRequest).toHaveBeenNthCalledWith(2, '/auth/refresh', {
       method: 'POST',
       cookieAuth: true,
       csrfToken: 'csrf-one',
+      auth,
+      expectProtocol: true,
     });
   });
 
-  it('waits for the tab holding the refresh lock and adopts its memory session', async () => {
-    const original = navigator.locks;
-    Object.defineProperty(navigator, 'locks', {
-      configurable: true,
-      value: {
-        request: vi.fn(
-          (
-            _name: string,
-            _options: LockOptions,
-            callback: (lock: Lock | null) => Promise<AccessSession | null>,
-          ) => callback(null),
-        ),
+  it('waits for the tab holding the refresh lease and adopts only a matching peer session', async () => {
+    const store = await installSelectedSelector();
+    await acquireRefreshLease(store, 'other-tab');
+    const pending = bootstrapSession(true);
+    await acceptPeerSession({
+      type: 'session',
+      session,
+      admission: { contextId: CONTEXT_ID, sessionTag: TAG, contextRevision: 1 },
+    });
+    await expect(pending).resolves.toEqual(session);
+    expect(iamRequest).not.toHaveBeenCalled();
+    expect(sessionStore.get()).toEqual(session);
+  });
+
+  it('ignores a peer session that does not match the selected context', async () => {
+    await acceptPeerSession({
+      type: 'session',
+      session,
+      admission: {
+        contextId: CONTEXT_ID,
+        sessionTag: 'ZZZZZZZZZZZZZZZZZZZZZZ',
+        contextRevision: 9,
       },
     });
-    try {
-      const pending = bootstrapSession();
-      acceptPeerSession({ type: 'session', session });
-      await expect(pending).resolves.toEqual(session);
-      expect(iamRequest).not.toHaveBeenCalled();
-      expect(sessionStore.get()).toEqual(session);
-    } finally {
-      Object.defineProperty(navigator, 'locks', {
-        configurable: true,
-        value: original,
-      });
-    }
+    expect(sessionStore.get()).toBeNull();
   });
 
   it('retries an API request once after refresh and does not loop', async () => {
@@ -182,8 +198,8 @@ describe('frontend session coordination', () => {
     sessionStore.set(session);
     vi.mocked(iamRequest)
       .mockResolvedValueOnce({ csrfToken: 'csrf-one' })
-      .mockRejectedValueOnce(new ApiError(0));
-    await expect(bootstrapSession()).resolves.toBeNull();
+      .mockRejectedValueOnce(new ApiError(0, undefined, 'UNCERTAIN'));
+    await expect(bootstrapSession(true)).resolves.toBeNull();
     expect(sessionStore.get()).toBeNull();
     expect(iamRequest).toHaveBeenCalledTimes(2);
   });
@@ -218,6 +234,7 @@ describe('frontend session coordination', () => {
       </SessionProvider>,
     );
     expect(screen.getByText('Nội dung công khai')).toBeInTheDocument();
+    await waitFor(() => expect(iamRequest).toHaveBeenCalled());
     await act(async () => reject(new ApiError(0)));
     await waitFor(() => expect(sessionStore.get()).toBeNull());
   });

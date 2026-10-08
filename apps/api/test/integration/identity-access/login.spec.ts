@@ -56,11 +56,47 @@ describe.sequential('LOCAL login transactions and races', () => {
     }
   });
 
-  const login = (email: string, supplied = password) =>
-    request(app.getHttpServer())
+  // T062/T100 (FR-002/FR-003/FR-014): each explicit attempt owns a
+  // separate browser context; preserve the original isolated-family/race assertions.
+  async function login(
+    email: string,
+    supplied = password,
+    expectedStatus?: number,
+  ) {
+    const http = () => request(app.getHttpServer());
+    const provision = await http()
+      .post('/api/v1/auth/contexts')
+      .set('Origin', fixture.config.frontendOrigin)
+      .send({})
+      .expect(201);
+    const { contextId } = provision.body as { contextId: string };
+    const binding = (
+      provision.headers['set-cookie'] as unknown as string[]
+    )[0].split(';')[0];
+    await http()
+      .post(`/api/v1/auth/contexts/${contextId}/confirm`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', binding)
+      .send({})
+      .expect(200);
+    const reserved = await http()
+      .post(`/api/v1/auth/contexts/${contextId}/intents`)
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('Cookie', binding)
+      .send({ kind: 'LOCAL_LOGIN', expectedRevision: 0 })
+      .expect(201);
+    const { intentId } = reserved.body as { intentId: string };
+    const call = http()
       .post('/api/v1/auth/login')
-      .set('Origin', 'http://localhost:3000')
+      .set('Origin', fixture.config.frontendOrigin)
+      .set('X-Auth-Context', contextId)
+      .set('X-Auth-Intent', intentId)
+      .set('Cookie', binding)
       .send({ email, password: supplied });
+    return expectedStatus === undefined ? call : call.expect(expectedStatus);
+  }
 
   async function seed(
     email = 'owner@example.test',
@@ -83,7 +119,7 @@ describe.sequential('LOCAL login transactions and races', () => {
 
   it('performs a real dummy password verification for an unknown account', async () => {
     const verify = vi.spyOn(CredentialCrypto.prototype, 'verifyPassword');
-    await login('missing@example.test').expect(401);
+    await login('missing@example.test', password, 401);
     expect(verify).toHaveBeenCalledTimes(1);
     expect(verify.mock.calls[0][0]).toMatch(/^\$argon2id\$/);
     expect(verify.mock.calls[0][1]).toBe(password);
@@ -95,8 +131,8 @@ describe.sequential('LOCAL login transactions and races', () => {
 
   it('creates isolated session families for repeated successful logins', async () => {
     const userId = await seed();
-    const first = await login(' OWNER@example.test ').expect(200);
-    const second = await login('owner@example.test').expect(200);
+    const first = await login(' OWNER@example.test ', password, 200);
+    const second = await login('owner@example.test', password, 200);
     const tokens = app.get(AccessTokenService);
     const firstPrincipal = tokens.verify(accessToken(first));
     const secondPrincipal = tokens.verify(accessToken(second));
@@ -130,9 +166,9 @@ describe.sequential('LOCAL login transactions and races', () => {
     await seed('wrong@example.test');
     await seed('unverified@example.test', { verified: false });
     await seed('locked@example.test', { status: 'LOCKED' });
-    await login('wrong@example.test', 'wrong password').expect(401);
-    await login('unverified@example.test').expect(403);
-    await login('locked@example.test').expect(401);
+    await login('wrong@example.test', 'wrong password', 401);
+    await login('unverified@example.test', password, 403);
+    await login('locked@example.test', password, 401);
     expect(await fixture.db.query('SELECT id FROM auth_sessions')).toHaveLength(
       0,
     );
@@ -148,7 +184,7 @@ describe.sequential('LOCAL login transactions and races', () => {
       hashLength: 32,
     });
     const id = await seed('rehash@example.test', { hash: oldHash });
-    await login('rehash@example.test').expect(200);
+    await login('rehash@example.test', password, 200);
     const [user] = await fixture.db.query<
       {
         password_hash: string;
@@ -204,7 +240,7 @@ describe.sequential('LOCAL login transactions and races', () => {
         await fixture.db.query('SELECT id FROM auth_sessions'),
       ).toHaveLength(0);
       await fixture.db.query('TRUNCATE auth_rate_limit_buckets');
-      await login('owner@example.test', replacement).expect(200);
+      await login('owner@example.test', replacement, 200);
     } finally {
       if (runner.isTransactionActive) await runner.rollbackTransaction();
       await runner.release();
@@ -213,7 +249,7 @@ describe.sequential('LOCAL login transactions and races', () => {
 
   it('revokes a newly logged-in session when password reset wins afterward', async () => {
     await seed();
-    const loggedIn = await login('owner@example.test').expect(200);
+    const loggedIn = await login('owner@example.test', password, 200);
     const sid = app
       .get(AccessTokenService)
       .verify(accessToken(loggedIn)).sessionId;
@@ -255,7 +291,7 @@ describe.sequential('LOCAL login transactions and races', () => {
     expect(session.revoked_at).not.toBeNull();
     expect(session.revocation_reason).toBe('PASSWORD_RESET');
     await fixture.db.query('TRUNCATE auth_rate_limit_buckets');
-    await login('owner@example.test').expect(401);
-    await login('owner@example.test', 'Reset winner password').expect(200);
+    await login('owner@example.test', password, 401);
+    await login('owner@example.test', 'Reset winner password', 200);
   });
 });

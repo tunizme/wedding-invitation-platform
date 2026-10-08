@@ -7,6 +7,9 @@ export default defineConfig([
   ...nextTypeScript,
   globalIgnores([
     '.next/**',
+    '.next-auth-transition-*/**',
+    '.tsconfig-auth-transition-*.json',
+    '.artifacts/**',
     'dist/**',
     'build/**',
     'coverage/**',

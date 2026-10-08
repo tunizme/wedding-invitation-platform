@@ -94,6 +94,10 @@ export function configureRequestBoundaries(
       'Content-Type',
       'X-CSRF-Token',
       'Idempotency-Key',
+      // 006 CSP-1 context/intent/session headers (contracts/auth-context.openapi.yaml).
+      'X-Auth-Context',
+      'X-Auth-Intent',
+      'X-Auth-Session-Tag',
     ],
     exposedHeaders: ['Retry-After', 'Location'],
   });

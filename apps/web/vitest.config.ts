@@ -10,6 +10,12 @@ export default defineConfig({
     },
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    exclude: [...configDefaults.exclude, 'e2e/**', 'tests/fixtures/**'],
+    exclude: [
+      ...configDefaults.exclude,
+      'e2e/**',
+      'tests/fixtures/**',
+      // Playwright browser suite for 006; runs via playwright.auth-transition.config.ts.
+      'tests/auth-transition/**/*.spec.ts',
+    ],
   },
 });

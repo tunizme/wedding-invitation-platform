@@ -44,6 +44,10 @@ import { CustomerController } from './admin/customer.controller';
 import { CustomerQueryService } from './admin/customer-query.service';
 import { CustomerStatusService } from './admin/customer-status.service';
 import { RetentionWorker } from './infrastructure/retention.worker';
+import { CookieLedgerService } from './context/cookie-ledger.service';
+import { AuthContextService } from './context/auth-context.service';
+import { AuthIntentService } from './context/auth-intent.service';
+import { AuthContextController } from './context/auth-context.controller';
 
 export { AuthGuard, Public } from './authorization/auth.guard';
 export { Roles, RolesGuard } from './authorization/roles.guard';
@@ -66,8 +70,41 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
     OAuthController,
     ProfileController,
     CustomerController,
+    AuthContextController,
   ],
   providers: [
+    {
+      provide: CookieLedgerService,
+      inject: [IDENTITY_CONFIG, CredentialCrypto],
+      useFactory: (config: IdentityEnvironment, crypto: CredentialCrypto) =>
+        new CookieLedgerService(config, crypto),
+    },
+    {
+      provide: AuthContextService,
+      inject: [
+        DataSource,
+        IDENTITY_CONFIG,
+        CredentialCrypto,
+        BrowserSecurityService,
+        CookieLedgerService,
+      ],
+      useFactory: (
+        db: DataSource,
+        config: IdentityEnvironment,
+        crypto: CredentialCrypto,
+        browser: BrowserSecurityService,
+        ledger: CookieLedgerService,
+      ) => new AuthContextService(db, config, crypto, browser, ledger),
+    },
+    {
+      provide: AuthIntentService,
+      inject: [DataSource, IDENTITY_CONFIG, AuthContextService],
+      useFactory: (
+        db: DataSource,
+        config: IdentityEnvironment,
+        contexts: AuthContextService,
+      ) => new AuthIntentService(db, config, contexts),
+    },
     {
       provide: RetentionWorker,
       inject: [DataSource, IDENTITY_CONFIG],
@@ -98,12 +135,20 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
     },
     {
       provide: OAuthTransactionService,
-      inject: [DataSource, IDENTITY_CONFIG, CredentialCrypto],
+      inject: [
+        DataSource,
+        IDENTITY_CONFIG,
+        CredentialCrypto,
+        AuthContextService,
+        AuthIntentService,
+      ],
       useFactory: (
         db: DataSource,
         config: IdentityEnvironment,
         crypto: CredentialCrypto,
-      ) => new OAuthTransactionService(db, config, crypto),
+        contexts: AuthContextService,
+        intents: AuthIntentService,
+      ) => new OAuthTransactionService(db, config, crypto, contexts, intents),
     },
     {
       provide: GoogleAdapter,
@@ -122,18 +167,24 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
         SessionService,
         SocialOnboardingService,
         OAuthTransactionService,
+        AuthContextService,
+        AuthIntentService,
       ],
       useFactory: (
         db: DataSource,
         sessions: SessionService,
         onboarding: SocialOnboardingService,
         oauthTransactions: OAuthTransactionService,
+        contexts: AuthContextService,
+        intents: AuthIntentService,
       ) =>
         new ResolveSocialIdentityService(
           db,
           sessions,
           onboarding,
           oauthTransactions,
+          contexts,
+          intents,
         ),
     },
     {
@@ -153,14 +204,25 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
         CredentialCrypto,
         SessionService,
         SocialOnboardingService,
+        AuthContextService,
+        AuthIntentService,
       ],
       useFactory: (
         db: DataSource,
         crypto: CredentialCrypto,
         sessions: SessionService,
         onboarding: SocialOnboardingService,
+        contexts: AuthContextService,
+        intents: AuthIntentService,
       ) =>
-        new CompleteSocialOnboardingService(db, crypto, sessions, onboarding),
+        new CompleteSocialOnboardingService(
+          db,
+          crypto,
+          sessions,
+          onboarding,
+          contexts,
+          intents,
+        ),
     },
     {
       provide: RefreshService,
@@ -169,22 +231,37 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
         IDENTITY_CONFIG,
         CredentialCrypto,
         AccessTokenService,
+        AuthContextService,
+        BrowserSecurityService,
       ],
       useFactory: (
         db: DataSource,
         config: IdentityEnvironment,
         crypto: CredentialCrypto,
         tokens: AccessTokenService,
-      ) => new RefreshService(db, config, crypto, tokens),
+        contexts: AuthContextService,
+        browser: BrowserSecurityService,
+      ) => new RefreshService(db, config, crypto, tokens, contexts, browser),
     },
     {
       provide: LocalLoginService,
-      inject: [DataSource, CredentialCrypto, SessionService],
+      inject: [
+        DataSource,
+        CredentialCrypto,
+        SessionService,
+        AuthContextService,
+        AuthIntentService,
+        BrowserSecurityService,
+      ],
       useFactory: (
         db: DataSource,
         crypto: CredentialCrypto,
         sessions: SessionService,
-      ) => new LocalLoginService(db, crypto, sessions),
+        contexts: AuthContextService,
+        intents: AuthIntentService,
+        browser: BrowserSecurityService,
+      ) =>
+        new LocalLoginService(db, crypto, sessions, contexts, intents, browser),
     },
     {
       provide: LocalVerificationService,

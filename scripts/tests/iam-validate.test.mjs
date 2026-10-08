@@ -6,7 +6,19 @@ import {
   runCommand,
   withTestSchema,
   assertRequiredFiles,
+  pnpmInvocation,
 } from '../iam-validate.mjs';
+
+test('pnpm child launch follows npm_execpath for JS and native Windows shims', () => {
+  assert.deepEqual(pnpmInvocation(['health'], '/tooling/pnpm.cjs'), [
+    process.execPath,
+    ['/tooling/pnpm.cjs', 'health'],
+  ]);
+  assert.deepEqual(pnpmInvocation(['health'], 'C:\\tools\\pnpm.exe'), [
+    'C:\\tools\\pnpm.exe',
+    ['health'],
+  ]);
+});
 
 test('phase parser accepts only the documented phases', () => {
   assert.equal(parsePhase(['--phase', 'setup']), 'setup');

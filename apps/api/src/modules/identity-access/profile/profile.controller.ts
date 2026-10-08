@@ -16,6 +16,8 @@ import { BrowserSecurityService } from '../auth/browser-security.service';
 import { RateLimitService } from '../infrastructure/rate-limit.service';
 import { ChangePasswordService } from './change-password.service';
 import { ProfileService, type ProfileUpdate } from './profile.service';
+import { DataSource } from 'typeorm';
+import { SessionService } from '../auth/session.service';
 
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -83,6 +85,8 @@ export class ProfileController {
     @Inject(BrowserSecurityService)
     private readonly browser: BrowserSecurityService,
     @Inject(RateLimitService) private readonly limiter: RateLimitService,
+    @Inject(SessionService) private readonly sessions: SessionService,
+    @Inject(DataSource) private readonly db: DataSource,
   ) {}
 
   @Get()
@@ -109,6 +113,13 @@ export class ProfileController {
       input.currentPassword,
       input.newPassword,
     );
-    this.browser.clearCookie(response);
+    // 006: clear only the bearer session's own slot (never a newer session's);
+    // legacy sessions keep the 003 singleton clear until cutover.
+    const tag = await this.sessions.slotTagOf(
+      this.db,
+      request.principal.sessionId,
+    );
+    if (tag) this.browser.clearSlot(response, tag);
+    else this.browser.clearCookie(response);
   }
 }
