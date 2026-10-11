@@ -266,6 +266,8 @@ export interface ValidationIssue {
   path: string;
   code: string;
   nodeId?: UUID;
+  sectionId?: UUID;
+  layout?: 'mobile' | 'desktop';
 }
 export type ValidationResult<T> =
   | { valid: true; value: T }
@@ -332,3 +334,113 @@ export const PROPERTY_MATRIX = {
     borderRadius: true,
   },
 } as const;
+
+/** Responsive document contract v2; legacy names above retain exact v1 shapes. */
+export type TypographyOverride = Partial<
+  Pick<TextStyle, 'fontSize' | 'lineHeight' | 'letterSpacing' | 'textAlign'>
+>;
+export type AppearanceOverride = {
+  padding?: Partial<Padding>;
+  borderRadius?: number;
+};
+export type FlowLayout = {
+  widthPercent: number;
+  maxWidth: number | null;
+  align: 'start' | 'center' | 'end';
+};
+export type ArtworkLayout = {
+  xPercent: number;
+  yPercent: number;
+  widthPercent: number;
+  aspectRatio: number;
+  rotation: number;
+};
+export type SectionRule = {
+  layout: 'stack' | 'grid';
+  columns: 1 | 2;
+  contentPreset: 'full' | 'information' | 'story' | 'form' | 'custom';
+  customMaxWidth: number | null;
+  padding: Padding;
+  gap: number;
+  minHeight: number;
+  align: 'start' | 'center' | 'end';
+};
+export type SectionDesktop = Partial<Omit<SectionRule, 'padding'>> & {
+  padding?: Partial<Padding>;
+};
+export type InvitationSection = {
+  id: UUID;
+  label: string;
+  hidden: boolean;
+  background: Background;
+  flowNodeIds: UUID[];
+  artworkNodeIds: UUID[];
+  mobile: SectionRule;
+  desktop: SectionDesktop;
+};
+export type FlowMobile = {
+  layout: FlowLayout;
+  typography: TypographyOverride;
+  appearance: AppearanceOverride;
+};
+export type FlowDesktop = {
+  layout?: Partial<FlowLayout>;
+  typography?: TypographyOverride;
+  appearance?: AppearanceOverride;
+};
+export type ArtworkMobile = { layout: ArtworkLayout };
+export type ArtworkDesktop = { layout?: Partial<ArtworkLayout> };
+export type ContentV2<K extends ComponentName> = ContentByKind[K] &
+  (K extends 'Image' | 'Decoration'
+    ? { alt: string; aspectRatio?: number }
+    : object);
+export type LeafV2 = {
+  [K in ComponentName]: {
+    id: UUID;
+    type: K;
+    content: ContentV2<K>;
+    bindings: Binding[];
+    appearance: Appearance;
+    custom: { layerName: string; locked: boolean; optional: boolean };
+    hidden: boolean;
+  } & (
+    | { role: 'flow'; mobile: FlowMobile; desktop: FlowDesktop }
+    | (K extends 'Image' | 'Decoration' | 'Shape'
+        ? { role: 'artwork'; mobile: ArtworkMobile; desktop: ArtworkDesktop }
+        : never)
+  );
+}[ComponentName];
+export type ResponsiveViewport = {
+  mobileMaxWidth: 480;
+  desktopMinWidth: 768;
+  desktopMaxWidth: 900;
+};
+export interface TemplateDesignV2 {
+  schemaVersion: 2;
+  viewport: ResponsiveViewport;
+  background: Background;
+  sectionOrder: UUID[];
+  sections: Record<UUID, InvitationSection>;
+  nodes: Record<UUID, LeafV2>;
+}
+export type ResolvedSectionV2 = Omit<InvitationSection, 'label' | 'hidden'>;
+type ResolveLeafV2<N extends LeafV2> = N extends LeafV2
+  ? Omit<N, 'bindings' | 'custom' | 'hidden' | 'content'> & {
+      content: ResolvedContentByKind[N['type']] &
+        (N['type'] extends 'Image' | 'Decoration'
+          ? { alt: string; aspectRatio?: number }
+          : object);
+    }
+  : never;
+export type ResolvedLeafV2 = ResolveLeafV2<LeafV2>;
+export interface ResolvedSceneV2 {
+  schemaVersion: 2;
+  rendererContractVersion: 2;
+  viewport: ResponsiveViewport;
+  background: Background;
+  sectionOrder: UUID[];
+  sections: Record<UUID, ResolvedSectionV2>;
+  nodes: Record<UUID, ResolvedLeafV2>;
+}
+export type SupportedTemplateDesign = TemplateDesign | TemplateDesignV2;
+export type SupportedResolvedScene = ResolvedScene | ResolvedSceneV2;

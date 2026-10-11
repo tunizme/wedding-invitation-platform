@@ -1,3 +1,5 @@
+import { validateTemplateDesignV2 } from './schema-v2';
+import type { SupportedTemplateDesign } from './types';
 import { z } from 'zod';
 import { rawDesignSchema } from './schema-definitions';
 import {
@@ -15,7 +17,7 @@ import {
   UUID_EXPRESSION,
 } from './validation-helpers';
 
-export function validateTemplateDesign(
+export function validateTemplateDesignV1(
   input: unknown,
 ): ValidationResult<TemplateDesign> {
   if (!jsonWithinLimit(input, DOCUMENT_LIMITS.bytes))
@@ -136,3 +138,16 @@ export const templateDesignSchema = z
       });
     return z.NEVER;
   });
+
+export function validateSupportedTemplateDesign(
+  input: unknown,
+): ValidationResult<SupportedTemplateDesign> {
+  return input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 2
+    ? validateTemplateDesignV2(input)
+    : validateTemplateDesignV1(input);
+}
+// Legacy consumers keep their v1 type until the versioned readers are integrated.
+export const validateTemplateDesign = validateTemplateDesignV1;

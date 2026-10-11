@@ -1,6 +1,6 @@
 import { EntitySchema } from 'typeorm';
 import type {
-  TemplateDesign,
+  SupportedTemplateDesign,
   ValidationIssue,
   WeddingData,
 } from '../domain/document.types';
@@ -13,7 +13,7 @@ export interface PublicationJob {
   request_key: string;
   request_hash: string;
   expected_edit_version: number;
-  candidate_document: TemplateDesign | null;
+  candidate_document: SupportedTemplateDesign | null;
   candidate_data: WeddingData | null;
   candidate_hash: string;
   status: 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';

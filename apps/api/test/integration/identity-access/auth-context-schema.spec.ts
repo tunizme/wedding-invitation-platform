@@ -141,8 +141,15 @@ describe.sequential('006 auth context schema', () => {
   });
 
   it('reverts and re-applies the 006 migration only inside a test schema', async () => {
-    await db.undoLastMigration();
-    await db.undoLastMigration();
+    const applied = await db.query<{ name: string }[]>(
+      'SELECT name FROM foundation_migrations ORDER BY id DESC',
+    );
+    const count =
+      applied.findIndex(
+        (row) => row.name === 'AuthTransitionContexts20261007000100',
+      ) + 1;
+    expect(count).toBeGreaterThan(0);
+    for (let index = 0; index < count; index++) await db.undoLastMigration();
     const tables = (
       await db.query<{ tablename: string }[]>(
         'SELECT tablename FROM pg_tables WHERE schemaname=current_schema()',
@@ -150,7 +157,7 @@ describe.sequential('006 auth context schema', () => {
     ).map((row) => row.tablename);
     expect(tables).not.toContain('auth_contexts');
     expect((await columns('auth_sessions')).context_id).toBeUndefined();
-    expect(await db.runMigrations()).toHaveLength(2);
+    expect(await db.runMigrations()).toHaveLength(count);
     expect(await columns('auth_contexts')).toHaveProperty('revision');
   });
 });

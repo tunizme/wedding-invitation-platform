@@ -1,7 +1,7 @@
 import { EntitySchema } from 'typeorm';
 import type { PublicationStatus } from '../../invitation-builder/domain/entities';
 import type {
-  ResolvedScene,
+  SupportedResolvedScene,
   WeddingData,
 } from '../../invitation-builder/domain/document.types';
 
@@ -11,7 +11,7 @@ export interface Invitation {
   design_revision_id: string;
   draft_wedding_data: WeddingData;
   published_wedding_data: WeddingData | null;
-  published_scene: ResolvedScene | null;
+  published_scene: SupportedResolvedScene | null;
   status: PublicationStatus;
   public_slug: string | null;
   public_version: number;

@@ -42,7 +42,8 @@
     "build:web": "pnpm --filter @wedding/web build",
     "build:api": "pnpm --filter @wedding/api build",
     "scope:check": "node scripts/scope-check.mjs",
-    "validate:auth-transition:reuse": "node --env-file=.artifacts/auth-transition/persistent.env scripts/auth-transition-validate.mjs"
+    "validate:auth-transition:reuse": "node --env-file=.artifacts/auth-transition/persistent.env scripts/auth-transition-validate.mjs",
+    "validate:responsive": "node scripts/responsive-validate.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2"

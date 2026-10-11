@@ -1,0 +1,444 @@
+{
+  "nodes": {
+    "70000000-0000-4000-8000-000000000020": {
+      "id": "70000000-0000-4000-8000-000000000020",
+      "role": "flow",
+      "type": "RSVP",
+      "custom": {
+        "locked": false,
+        "optional": false,
+        "layerName": "RSVP"
+      },
+      "hidden": false,
+      "mobile": {
+        "layout": {
+          "align": "start",
+          "maxWidth": null,
+          "widthPercent": 100
+        },
+        "appearance": {},
+        "typography": {}
+      },
+      "content": {
+        "title": "Xác nhận tham dự",
+        "textStyle": {
+          "color": "#000000FF",
+          "fontId": "noto-sans-v1",
+          "italic": false,
+          "fontSize": 18,
+          "textAlign": "left",
+          "underline": false,
+          "fontWeight": 400,
+          "lineHeight": 1.5,
+          "letterSpacing": 0,
+          "textTransform": "none"
+        },
+        "closedLabel": "Đã đóng xác nhận",
+        "successLabel": "Cảm ơn bạn đã phản hồi"
+      },
+      "desktop": {},
+      "bindings": [],
+      "appearance": {
+        "border": {
+          "color": "#000000FF",
+          "style": "solid",
+          "width": 0
+        },
+        "shadow": null,
+        "opacity": 1,
+        "padding": {
+          "top": 8,
+          "left": 8,
+          "right": 8,
+          "bottom": 8
+        },
+        "background": {
+          "kind": "solid",
+          "color": "#FFFFFF00"
+        },
+        "borderRadius": 0
+      }
+    },
+    "70000000-0000-4000-8000-000000000021": {
+      "id": "70000000-0000-4000-8000-000000000021",
+      "role": "flow",
+      "type": "Image",
+      "custom": {
+        "locked": false,
+        "optional": false,
+        "layerName": "Hình ảnh"
+      },
+      "hidden": false,
+      "mobile": {
+        "layout": {
+          "align": "start",
+          "maxWidth": null,
+          "widthPercent": 100
+        },
+        "appearance": {},
+        "typography": {}
+      },
+      "content": {
+        "alt": "Ảnh kỷ niệm của đôi uyên ương 1",
+        "fit": "cover",
+        "assetId": "70000000-0000-4000-8000-000000000100",
+        "positionX": 0.5,
+        "positionY": 0.5,
+        "aspectRatio": 1.5
+      },
+      "desktop": {},
+      "bindings": [],
+      "appearance": {
+        "border": {
+          "color": "#000000FF",
+          "style": "solid",
+          "width": 0
+        },
+        "shadow": null,
+        "opacity": 1,
+        "borderRadius": 0
+      }
+    },
+    "70000000-0000-4000-8000-000000000022": {
+      "id": "70000000-0000-4000-8000-000000000022",
+      "role": "flow",
+      "type": "Text",
+      "custom": {
+        "locked": false,
+        "optional": false,
+        "layerName": "Văn bản"
+      },
+      "hidden": false,
+      "mobile": {
+        "layout": {
+          "align": "start",
+          "maxWidth": null,
+          "widthPercent": 100
+        },
+        "appearance": {},
+        "typography": {}
+      },
+      "content": {
+        "text": "Trân trọng kính mời gia đình và bạn bè đến chung vui. Địa chỉ minh họa, Thành phố Hồ Chí Minh.",
+        "textStyle": {
+          "color": "#000000FF",
+          "fontId": "noto-sans-v1",
+          "italic": false,
+          "fontSize": 18,
+          "textAlign": "left",
+          "underline": false,
+          "fontWeight": 400,
+          "lineHeight": 1.5,
+          "letterSpacing": 0,
+          "textTransform": "none"
+        }
+      },
+      "desktop": {},
+      "bindings": [],
+      "appearance": {
+        "border": {
+          "color": "#000000FF",
+          "style": "solid",
+          "width": 0
+        },
+        "shadow": null,
+        "opacity": 1,
+        "padding": {
+          "top": 0,
+          "left": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "background": {
+          "kind": "solid",
+          "color": "#FFFFFF00"
+        },
+        "borderRadius": 0
+      }
+    },
+    "70000000-0000-4000-8000-000000000023": {
+      "id": "70000000-0000-4000-8000-000000000023",
+      "role": "flow",
+      "type": "Text",
+      "custom": {
+        "locked": false,
+        "optional": false,
+        "layerName": "Tên cô dâu và chú rể"
+      },
+      "hidden": false,
+      "mobile": {
+        "layout": {
+          "align": "center",
+          "maxWidth": null,
+          "widthPercent": 100
+        },
+        "appearance": {},
+        "typography": {
+          "fontSize": 30
+        }
+      },
+      "content": {
+        "text": "Nguyễn Minh Anh & Đặng Hoàng Nam",
+        "textStyle": {
+          "color": "#342B28FF",
+          "fontId": "noto-serif-v1",
+          "italic": false,
+          "fontSize": 24,
+          "textAlign": "center",
+          "underline": false,
+          "fontWeight": 400,
+          "lineHeight": 1.5,
+          "letterSpacing": 0,
+          "textTransform": "none"
+        }
+      },
+      "desktop": {},
+      "bindings": [
+        {
+          "source": "bride.name",
+          "target": "text"
+        }
+      ],
+      "appearance": {
+        "border": {
+          "color": "#00000000",
+          "style": "solid",
+          "width": 0
+        },
+        "shadow": null,
+        "opacity": 1,
+        "padding": {
+          "top": 0,
+          "left": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "background": {
+          "kind": "solid",
+          "color": "#FFFFFF00"
+        },
+        "borderRadius": 0
+      }
+    },
+    "70000000-0000-4000-8000-000000000024": {
+      "id": "70000000-0000-4000-8000-000000000024",
+      "role": "artwork",
+      "type": "Shape",
+      "custom": {
+        "locked": false,
+        "optional": false,
+        "layerName": "Hình trang trí"
+      },
+      "hidden": false,
+      "mobile": {
+        "layout": {
+          "rotation": 0,
+          "xPercent": 70,
+          "yPercent": 0,
+          "aspectRatio": 1,
+          "widthPercent": 20
+        }
+      },
+      "content": {
+        "fill": "#E7C7CFFF",
+        "primitive": "rectangle"
+      },
+      "desktop": {},
+      "bindings": [],
+      "appearance": {
+        "border": {
+          "color": "#000000FF",
+          "style": "solid",
+          "width": 0
+        },
+        "shadow": null,
+        "opacity": 1,
+        "background": {
+          "kind": "solid",
+          "color": "#FFFFFF00"
+        },
+        "borderRadius": 0
+      }
+    },
+    "70000000-0000-4000-8000-000000000025": {
+      "id": "70000000-0000-4000-8000-000000000025",
+      "role": "flow",
+      "type": "Image",
+      "custom": {
+        "locked": false,
+        "optional": false,
+        "layerName": "Hình ảnh"
+      },
+      "hidden": false,
+      "mobile": {
+        "layout": {
+          "align": "start",
+          "maxWidth": null,
+          "widthPercent": 100
+        },
+        "appearance": {},
+        "typography": {}
+      },
+      "content": {
+        "alt": "Ảnh kỷ niệm của đôi uyên ương 2",
+        "fit": "cover",
+        "assetId": "70000000-0000-4000-8000-000000000101",
+        "positionX": 0.5,
+        "positionY": 0.5,
+        "aspectRatio": 1.5
+      },
+      "desktop": {},
+      "bindings": [],
+      "appearance": {
+        "border": {
+          "color": "#000000FF",
+          "style": "solid",
+          "width": 0
+        },
+        "shadow": null,
+        "opacity": 1,
+        "borderRadius": 0
+      }
+    }
+  },
+  "sections": {
+    "70000000-0000-4000-8000-000000000003": {
+      "id": "70000000-0000-4000-8000-000000000003",
+      "label": "Ảnh đôi",
+      "hidden": false,
+      "mobile": {
+        "gap": 16,
+        "align": "center",
+        "layout": "stack",
+        "columns": 1,
+        "padding": {
+          "top": 24,
+          "left": 24,
+          "right": 24,
+          "bottom": 24
+        },
+        "minHeight": 0,
+        "contentPreset": "full",
+        "customMaxWidth": null
+      },
+      "desktop": {
+        "layout": "grid",
+        "columns": 2
+      },
+      "background": {
+        "kind": "solid",
+        "color": "#FFFFFF00"
+      },
+      "flowNodeIds": [
+        "70000000-0000-4000-8000-000000000021",
+        "70000000-0000-4000-8000-000000000025"
+      ],
+      "artworkNodeIds": []
+    },
+    "70000000-0000-4000-8000-000000000004": {
+      "id": "70000000-0000-4000-8000-000000000004",
+      "label": "Xác nhận",
+      "hidden": false,
+      "mobile": {
+        "gap": 16,
+        "align": "center",
+        "layout": "stack",
+        "columns": 1,
+        "padding": {
+          "top": 24,
+          "left": 24,
+          "right": 24,
+          "bottom": 24
+        },
+        "minHeight": 0,
+        "contentPreset": "form",
+        "customMaxWidth": null
+      },
+      "desktop": {},
+      "background": {
+        "kind": "solid",
+        "color": "#FFFFFF00"
+      },
+      "flowNodeIds": [
+        "70000000-0000-4000-8000-000000000020"
+      ],
+      "artworkNodeIds": []
+    },
+    "70000000-0000-4000-8000-000000000002": {
+      "id": "70000000-0000-4000-8000-000000000002",
+      "label": "Thông tin",
+      "hidden": false,
+      "mobile": {
+        "gap": 16,
+        "align": "center",
+        "layout": "stack",
+        "columns": 1,
+        "padding": {
+          "top": 24,
+          "left": 24,
+          "right": 24,
+          "bottom": 24
+        },
+        "minHeight": 0,
+        "contentPreset": "full",
+        "customMaxWidth": null
+      },
+      "desktop": {},
+      "background": {
+        "kind": "solid",
+        "color": "#FFFFFF00"
+      },
+      "flowNodeIds": [
+        "70000000-0000-4000-8000-000000000022"
+      ],
+      "artworkNodeIds": []
+    },
+    "70000000-0000-4000-8000-000000000001": {
+      "id": "70000000-0000-4000-8000-000000000001",
+      "label": "Lễ thành hôn",
+      "hidden": false,
+      "mobile": {
+        "gap": 24,
+        "align": "center",
+        "layout": "stack",
+        "columns": 1,
+        "padding": {
+          "top": 24,
+          "left": 24,
+          "right": 24,
+          "bottom": 24
+        },
+        "minHeight": 0,
+        "contentPreset": "full",
+        "customMaxWidth": null
+      },
+      "desktop": {},
+      "background": {
+        "kind": "solid",
+        "color": "#FFFFFF00"
+      },
+      "flowNodeIds": [
+        "70000000-0000-4000-8000-000000000023"
+      ],
+      "artworkNodeIds": [
+        "70000000-0000-4000-8000-000000000024"
+      ]
+    }
+  },
+  "viewport": {
+    "mobileMaxWidth": 480,
+    "desktopMaxWidth": 900,
+    "desktopMinWidth": 768
+  },
+  "background": {
+    "kind": "solid",
+    "color": "#FFFAF4FF"
+  },
+  "sectionOrder": [
+    "70000000-0000-4000-8000-000000000001",
+    "70000000-0000-4000-8000-000000000002",
+    "70000000-0000-4000-8000-000000000003",
+    "70000000-0000-4000-8000-000000000004"
+  ],
+  "schemaVersion": 2
+}

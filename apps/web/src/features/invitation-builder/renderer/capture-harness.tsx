@@ -1,6 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import type { RenderContext, ResolvedScene } from '../document/types';
+import type {
+  RenderContext,
+  ResolvedScene,
+  SupportedResolvedScene,
+} from '../document/types';
+import { ResponsiveCaptureHarness } from './capture-harness-v2';
 import { InvitationRenderer } from './invitation-renderer';
 import { measureReadyScene, SceneReadinessError } from './measure';
 
@@ -32,9 +37,16 @@ type Active = {
   step: number;
   issues: Report['issues'];
 };
-function variants(request: Request): RenderContext[] {
+export function captureVariants(request: {
+  scene: SupportedResolvedScene;
+  context: RenderContext;
+}): RenderContext[] {
+  const elements =
+    request.scene.schemaVersion === 1
+      ? request.scene.elements
+      : Object.values(request.scene.nodes);
   const contexts: RenderContext[] = [];
-  if (request.scene.elements.some((element) => element.type === 'RSVP')) {
+  if (elements.some((element) => element.type === 'RSVP')) {
     for (const rsvp of [
       'open',
       'error',
@@ -61,7 +73,7 @@ function variants(request: Request): RenderContext[] {
         },
       });
   }
-  if (request.scene.elements.some((element) => element.type === 'Countdown')) {
+  if (elements.some((element) => element.type === 'Countdown')) {
     for (const countdown of ['worst-case', 'expired'] as const)
       contexts.push({ ...request.context, validationState: { countdown } });
   }
@@ -69,7 +81,15 @@ function variants(request: Request): RenderContext[] {
   return [...contexts, { ...request.context, validationState: undefined }];
 }
 
-export function CaptureHarness() {
+function LegacyCaptureHarness({
+  visible,
+  onStart,
+  onEnd,
+}: {
+  visible: boolean;
+  onStart: () => void;
+  onEnd: () => void;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<Active | null>(null);
   useEffect(() => {
@@ -84,15 +104,28 @@ export function CaptureHarness() {
           !/^[a-f0-9]{64}$/.test(request.candidateHash)
         )
           return Promise.reject(new Error('RENDER_REQUEST_INVALID'));
+        try {
+          onStart();
+        } catch (error) {
+          return Promise.reject(error);
+        }
         return new Promise((resolve) =>
-          setActive({ request, resolve, step: 0, issues: [] }),
+          setActive({
+            request,
+            resolve: (report) => {
+              onEnd();
+              resolve(report);
+            },
+            step: 0,
+            issues: [],
+          }),
         );
       },
     };
     return () => {
       delete window.invitationRenderer;
     };
-  }, []);
+  }, [onStart, onEnd]);
   useEffect(() => {
     if (!active || !root.current) return;
     let cancelled = false;
@@ -108,7 +141,7 @@ export function CaptureHarness() {
             ]),
           ).values(),
         ];
-        if (active.step < variants(request).length - 1) {
+        if (active.step < captureVariants(request).length - 1) {
           setActive({ ...active, step: active.step + 1, issues });
           return;
         }
@@ -159,6 +192,7 @@ export function CaptureHarness() {
   return (
     <main
       aria-label="Bộ đo thiệp"
+      hidden={!visible}
       style={{
         position: 'absolute',
         left: 0,
@@ -169,16 +203,50 @@ export function CaptureHarness() {
     >
       <div
         ref={root}
-        data-testid="capture-root"
+        data-testid={visible ? 'capture-root' : undefined}
         style={{ width: 390, minHeight: 520, position: 'relative' }}
       >
         {active && (
           <InvitationRenderer
             scene={active.request.scene}
-            context={variants(active.request)[active.step]}
+            context={captureVariants(active.request)[active.step]}
           />
         )}
       </div>
     </main>
+  );
+}
+
+export function CaptureHarness() {
+  const [surface, setSurface] = useState<1 | 2>(1);
+  const busy = useRef(false);
+  const [callbacks] = useState(() => ({
+    legacyStart: () => {
+      if (busy.current) throw new Error('RENDER_BUSY');
+      busy.current = true;
+      setSurface(1);
+    },
+    responsiveStart: () => {
+      if (busy.current) throw new Error('RENDER_BUSY');
+      busy.current = true;
+      setSurface(2);
+    },
+    end: () => {
+      busy.current = false;
+    },
+  }));
+  return (
+    <>
+      <LegacyCaptureHarness
+        visible={surface === 1}
+        onStart={callbacks.legacyStart}
+        onEnd={callbacks.end}
+      />
+      <ResponsiveCaptureHarness
+        visible={surface === 2}
+        onStart={callbacks.responsiveStart}
+        onEnd={callbacks.end}
+      />
+    </>
   );
 }

@@ -2,8 +2,9 @@
 
 Monorepo nền tảng cho sản phẩm tạo thiệp cưới online. Frontend là Next.js + TypeScript; backend là NestJS modular monolith + TypeScript, cung cấp REST API; PostgreSQL local chạy bằng Docker Compose.
 
-Repository hiện có bounded module Identity & Access Management (IAM). Invitation Editor, payment
-và VNPay vẫn ngoài phạm vi.
+Repository hiện có Identity & Access Management (IAM), Admin thiết kế mẫu, Customer nhập dữ liệu và xuất bản thiệp, cùng trang khách gửi RSVP. Editor hỗ trợ canvas legacy390px và mẫu responsive theo section (feature007). Payment và VNPay vẫn ngoài phạm vi.
+
+Feature007 giữ nguyên mẫu/revision legacy, thêm document2 với nội dung tự xuống dòng: host dưới768px rộng tối đa480px, từ768px tối đa900px. Customer preview luôn dùng bố cục mobile tối đa390px; Admin xem390/900. Album dùng các Image leaf tĩnh; Customer chỉ sửa WeddingData1, không có album/audio mới hoặc điều khiển layout. Xem [validation](specs/007-responsive-invitation-layout/validation.md), [commands](specs/007-responsive-invitation-layout/quickstart.md) và [rollout](specs/007-responsive-invitation-layout/rollout.md).
 
 ## Prerequisites
 

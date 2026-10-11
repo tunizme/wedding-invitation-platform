@@ -1,8 +1,14 @@
+import { randomUUID } from 'node:crypto';
+import { assertV2Report, type CaptureIdentity } from './capture-report-v2';
+export { assertV2Report } from './capture-report-v2';
 import { Inject } from '@nestjs/common';
 import { chromium, type Browser, type BrowserContext } from 'playwright';
 import type { InvitationBuilderEnvironment } from '../../../config/invitation-builder.environment';
 import { INVITATION_BUILDER_CONFIG } from '../../../config/invitation-builder.environment';
-import type { ResolvedScene, ValidationIssue } from '../domain/document.types';
+import type {
+  SupportedResolvedScene,
+  ValidationIssue,
+} from '../domain/document.types';
 
 export class TrustedRenderError extends Error {
   constructor(
@@ -42,12 +48,19 @@ export class ChromiumRenderer {
   ) {}
 
   async capture(input: {
-    scene: ResolvedScene;
+    scene: SupportedResolvedScene;
     candidateHash: string;
     asOf: string;
     assets: Record<string, RenderAsset>;
     hasVisibleRsvp: boolean;
   }): Promise<TrustedCapture> {
+    if (!(
+      (input.scene.schemaVersion === 1 &&
+        input.scene.rendererContractVersion === 1) ||
+      (input.scene.schemaVersion === 2 &&
+        input.scene.rendererContractVersion === 2)
+    ))
+      throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
     let browser: Browser | undefined, context: BrowserContext | undefined;
     let timedOut = false;
     const timeout = setTimeout(() => {
@@ -136,6 +149,114 @@ export class ChromiumRenderer {
       const assetUrls = Object.fromEntries(
         Object.keys(input.assets).map((id) => [id, `/__render-assets/${id}`]),
       );
+      if (scene.schemaVersion === 2) {
+        await page.waitForFunction(
+          () =>
+            Boolean(
+              (
+                window as Window & {
+                  invitationRendererV2?: {
+                    protocolVersion: number;
+                    supportedScenePairs: number[][];
+                    render: (request: unknown) => Promise<unknown>;
+                  };
+                }
+              ).invitationRendererV2,
+            ),
+          undefined,
+          { timeout: 5000 },
+        );
+        let mobilePng: Buffer | undefined;
+        for (const [pass, containerWidth] of (
+          [390, 900, 390] as const
+        ).entries()) {
+          await page.setViewportSize({ width: containerWidth, height: 780 });
+          const identity: CaptureIdentity = {
+            candidateHash: input.candidateHash,
+            containerWidth,
+            scenePair: [2, 2],
+            correlationId: randomUUID(),
+            hasVisibleRsvp: input.hasVisibleRsvp,
+          };
+          const report: unknown = await page.evaluate(
+            async (request) => {
+              const renderer = (
+                window as Window & {
+                  invitationRendererV2?: {
+                    protocolVersion: number;
+                    supportedScenePairs: number[][];
+                    render: (request: unknown) => Promise<unknown>;
+                  };
+                }
+              ).invitationRendererV2;
+              if (
+                !renderer ||
+                renderer.protocolVersion !== 2 ||
+                JSON.stringify(renderer.supportedScenePairs) !== '[[1,1],[2,2]]'
+              )
+                throw new Error('RENDER_VERSION_MISMATCH');
+              return renderer.render(request);
+            },
+            {
+              protocolVersion: 2 as const,
+              candidateHash: identity.candidateHash,
+              scene,
+              context: {
+                mode: 'capture' as const,
+                asOf: input.asOf,
+                assetUrls,
+              },
+              states: 'publication-validation' as const,
+              containerWidth,
+              scenePair: [2, 2] as [2, 2],
+              correlationId: identity.correlationId,
+            },
+          );
+          assertV2Report(report, identity);
+          if (violations.length)
+            throw new TrustedRenderError('RENDER_UNAVAILABLE');
+          if (!report.ready)
+            throw new TrustedRenderError(
+              report.issues.some((issue) => issue.code === 'FONT_UNAVAILABLE')
+                ? 'FONT_UNAVAILABLE'
+                : 'CONTENT_OVERFLOW',
+              report.issues,
+            );
+          const root = await page
+            .locator('[data-testid="capture-root"] [data-invitation-root]')
+            .boundingBox();
+          const capture = await page
+            .locator('[data-testid="capture-root"]')
+            .boundingBox();
+          if (
+            !root ||
+            !capture ||
+            Math.abs(root.x - report.rootRect.x) > 1 ||
+            Math.abs(root.y - report.rootRect.y) > 1 ||
+            Math.abs(root.width - report.rootRect.width) > 1 ||
+            Math.abs(root.height - report.rootRect.height) > 1 ||
+            capture.x !== 0 ||
+            capture.y !== 0 ||
+            capture.width !== containerWidth ||
+            capture.height < 520
+          )
+            throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
+          if (pass === 2)
+            mobilePng = await page.screenshot({
+              type: 'png',
+              clip: { x: 0, y: 0, width: 390, height: 520 },
+              animations: 'disabled',
+              timeout: 10000,
+            });
+        }
+        if (!mobilePng?.length)
+          throw new TrustedRenderError('RENDER_UNAVAILABLE');
+        return {
+          png: mobilePng,
+          issues: [],
+          hasVisibleRsvp: input.hasVisibleRsvp,
+        };
+      }
       const report = await page.evaluate(
         async (request) => {
           const renderer = (
@@ -201,6 +322,12 @@ export class ChromiumRenderer {
       };
     } catch (error) {
       if (error instanceof TrustedRenderError) throw error;
+      if (
+        /RENDER_VERSION_MISMATCH/.test(
+          error instanceof Error ? error.message : '',
+        )
+      )
+        throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
       if (timedOut) throw new TrustedRenderError('RENDER_TIMEOUT');
       const message = error instanceof Error ? error.message : '';
       throw new TrustedRenderError(

@@ -113,3 +113,56 @@ jobs:
       - name: Cleanup
         if: always()
         run: docker compose --profile ci down --volumes --remove-orphans
+
+  responsive-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    env:
+      IAM_TEST_DATABASE_URL: postgresql://wedding_local:local-development-only@127.0.0.1:55432/wedding_local
+      BUILDER_TEST_DATABASE_URL: postgresql://wedding_local:local-development-only@127.0.0.1:55432/wedding_local
+      POSTGRES_PORT: '55432'
+      MINIO_ROOT_USER: frontend-ci-root
+      MINIO_ROOT_PASSWORD: frontend-ci-root-local-only
+      BUILDER_S3_ENDPOINT: http://127.0.0.1:9000
+      BUILDER_S3_REGION: us-east-1
+      BUILDER_S3_BUCKET: frontend-ci-development
+      BUILDER_S3_PREFIX: development/
+      BUILDER_S3_FORCE_PATH_STYLE: 'true'
+      BUILDER_S3_ACCESS_KEY_ID: frontend-ci-development
+      BUILDER_S3_SECRET_ACCESS_KEY: frontend-ci-development-local-only
+      BUILDER_TEST_S3_ENDPOINT: http://127.0.0.1:9000
+      BUILDER_TEST_S3_REGION: us-east-1
+      BUILDER_TEST_S3_BUCKET: frontend-ci-test
+      BUILDER_TEST_S3_FORCE_PATH_STYLE: 'true'
+      BUILDER_TEST_S3_ACCESS_KEY_ID: frontend-ci-test
+      BUILDER_TEST_S3_SECRET_ACCESS_KEY: frontend-ci-test-local-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: docker compose build minio
+      - run: docker build --target client --tag wedding-builder-mc:2025-08-13 infra/minio
+      - run: pnpm infra:up
+      - run: pnpm builder:storage:init
+      - run: pnpm --filter @wedding/web exec playwright install --with-deps chromium firefox webkit
+      - run: node --test --test-isolation=none --test-timeout=30000 apps/api/scripts/validate-iam-contract.cjs
+      - name: Responsive invitation acceptance
+        run: node scripts/responsive-validate.mjs --phase all
+        env:
+          RESPONSIVE_TEST_BROWSER_MODE: native
+      - name: Status evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-acceptance-status
+          path: |
+            .artifacts/responsive/**/report.json
+            .artifacts/responsive/**/cleanup.json
+            .artifacts/responsive/**/publication-timing.jsonl
+      - name: Cleanup owned CI infrastructure
+        if: always()
+        run: docker compose down --volumes --remove-orphans

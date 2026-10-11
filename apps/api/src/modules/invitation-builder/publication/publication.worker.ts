@@ -244,11 +244,22 @@ export class PublicationWorker implements OnModuleInit, OnModuleDestroy {
           JSON.stringify(
             issues
               .slice(0, 100)
+              .map((issue) => ({
+                path: issue.path,
+                code: issue.code,
+                ...(issue.nodeId ? { nodeId: issue.nodeId } : {}),
+                ...(issue.sectionId ? { sectionId: issue.sectionId } : {}),
+                ...(issue.layout ? { layout: issue.layout } : {}),
+              }))
               .filter(
                 (issue) =>
                   /^\/[a-zA-Z0-9/_-]{0,255}$/.test(issue.path) &&
                   /^[A-Z_]{3,40}$/.test(issue.code) &&
-                  (!issue.nodeId || /^[0-9a-f-]{36}$/i.test(issue.nodeId)),
+                  (!issue.nodeId || /^[0-9a-f-]{36}$/i.test(issue.nodeId)) &&
+                  (!issue.sectionId ||
+                    /^[0-9a-f-]{36}$/i.test(issue.sectionId)) &&
+                  (!issue.layout ||
+                    ['mobile', 'desktop'].includes(issue.layout)),
               ),
           ),
         ],

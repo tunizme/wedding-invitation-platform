@@ -82,3 +82,9 @@ export function newestCursor(
 export function encodeNewestCursor(createdAt: string, id: string): string {
   return Buffer.from(JSON.stringify({ createdAt, id })).toString('base64url');
 }
+
+export function documentVersion(value: unknown): 1 | 2 {
+  if (value === undefined || value === 1) return 1;
+  if (value === 2) return 2;
+  throw new UnprocessableEntityException();
+}

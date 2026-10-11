@@ -118,6 +118,12 @@ export class ProblemFilter implements ExceptionFilter {
               ...(entry.nodeId && UUID_EXPRESSION.test(entry.nodeId)
                 ? { nodeId: entry.nodeId }
                 : {}),
+              ...(entry.sectionId && UUID_EXPRESSION.test(entry.sectionId)
+                ? { sectionId: entry.sectionId }
+                : {}),
+              ...(entry.layout && ['mobile', 'desktop'].includes(entry.layout)
+                ? { layout: entry.layout }
+                : {}),
             })),
           }
         : {}),

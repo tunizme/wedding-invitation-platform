@@ -1,4 +1,9 @@
 'use client';
+import {
+  scopedDelay,
+  useOperationLifetime,
+  type OperationLifetime,
+} from '../../identity-access/session/operation-scope';
 import { useState } from 'react';
 import { BuilderApiError, type TemplateDetail } from '../api/client';
 import {
@@ -17,6 +22,7 @@ export function PublicationControls({
   saveBeforePublish,
   onChanged,
   onBusy,
+  lifetime: ownerLifetime,
 }: {
   template: TemplateDetail;
   dirty: boolean;
@@ -25,24 +31,33 @@ export function PublicationControls({
   saveBeforePublish: () => Promise<TemplateDetail | null>;
   onChanged: (committed?: TemplateLifecycle) => Promise<void>;
   onBusy?: (busy: boolean) => void;
+  lifetime?: OperationLifetime;
 }) {
+  const localLifetime = useOperationLifetime(template.id);
+  const lifetime = ownerLifetime ?? localLifetime;
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(''),
     [refreshPending, setRefreshPending] = useState(false);
 
   async function publish() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (busy || externalBusy || canStart?.() === false) return;
     setBusy(true);
     setMessage('');
     try {
       const current = dirty ? await saveBeforePublish() : template;
+      if (!scope.isActive()) return;
       if (!current) return;
       onBusy?.(true);
       const accepted = await enqueueTemplatePublication(
         current.id,
         current.editVersion,
         crypto.randomUUID(),
+        { scope },
       );
+      if (!scope.isActive()) return;
       setMessage('Đang chuẩn bị bản xuất bản…');
       const deadline = Date.now() + 90_000;
       let operation = accepted;
@@ -50,8 +65,10 @@ export function PublicationControls({
         Date.now() < deadline &&
         (operation.status === 'PENDING' || operation.status === 'RUNNING')
       ) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        operation = await getPublicationOperation(operation.id);
+        await scopedDelay(1000, scope);
+        if (!scope.isActive()) return;
+        operation = await getPublicationOperation(operation.id, { scope });
+        if (!scope.isActive()) return;
       }
       if (operation.status === 'SUCCEEDED') {
         const result = publicationResult(operation, current.id);
@@ -63,8 +80,10 @@ export function PublicationControls({
             editVersion: result.editVersion,
             publishedRevisionId: result.revisionId,
           });
+          if (!scope.isActive()) return;
           setRefreshPending(false);
         } catch (error) {
+          if (!scope.isActive()) return;
           setRefreshPending(true);
           setMessage(
             error instanceof BuilderApiError &&
@@ -78,13 +97,14 @@ export function PublicationControls({
         setMessage(
           'Không thể xuất bản. Bản công khai hiện tại vẫn được giữ.' +
             (issue
-              ? ` Cần sửa ${issue.code} tại ${issue.path}.`
+              ? ` Cần sửa ${issue.code} tại ${issue.path}${issue.sectionId ? ` · section ${issue.sectionId}` : ''}${issue.layout ? ` · ${issue.layout}` : ''}.`
               : operation.error
                 ? ` Mã lỗi: ${operation.error.code}.`
                 : ''),
         );
       } else setMessage('Tác vụ vẫn đang xử lý. Bạn có thể kiểm tra lại sau.');
     } catch (error) {
+      if (!scope.isActive()) return;
       setMessage(
         error instanceof BuilderApiError
           ? error.message +
@@ -94,12 +114,16 @@ export function PublicationControls({
           : 'Không thể xuất bản mẫu.',
       );
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
       onBusy?.(false);
     }
   }
 
   async function unpublish() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (busy || externalBusy || canStart?.() === false) return;
     setBusy(true);
     onBusy?.(true);
@@ -108,14 +132,19 @@ export function PublicationControls({
       const committed = await unpublishTemplate(
         template.id,
         template.editVersion,
+        { scope },
       );
+      if (!scope.isActive()) return;
       setMessage('Đã gỡ mẫu khỏi thư viện.');
       await onChanged(committed);
+      if (!scope.isActive()) return;
     } catch (error) {
+      if (!scope.isActive()) return;
       setMessage(
         error instanceof BuilderApiError ? error.message : 'Không thể gỡ mẫu.',
       );
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
       onBusy?.(false);
     }
@@ -147,14 +176,18 @@ export function PublicationControls({
           type="button"
           disabled={busy || externalBusy}
           onClick={async () => {
+            const scope = lifetime.capture();
+            if (!scope.isActive()) return;
             if (busy || externalBusy || canStart?.() === false) return;
             setBusy(true);
             onBusy?.(true);
             try {
               await onChanged();
+              if (!scope.isActive()) return;
               setRefreshPending(false);
               setMessage('Đã tải lại thông tin xuất bản.');
             } catch (error) {
+              if (!scope.isActive()) return;
               setMessage(
                 error instanceof BuilderApiError &&
                   error.code === 'VERSION_CONFLICT'
@@ -162,6 +195,7 @@ export function PublicationControls({
                   : 'Đã xuất bản phiên bản mới nhưng chưa tải được thông tin.',
               );
             } finally {
+              if (!scope.isActive()) return;
               setBusy(false);
               onBusy?.(false);
             }

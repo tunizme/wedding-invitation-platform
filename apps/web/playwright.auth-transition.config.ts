@@ -25,6 +25,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
+  maxFailures: process.env.AUTH_TRANSITION_FAIL_FAST === '1' ? 1 : 0,
   workers: 1,
   timeout: 60_000,
   expect: { timeout: 10_000 },

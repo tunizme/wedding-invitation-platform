@@ -1,4 +1,8 @@
 import { builderRequest, type TemplateDetail } from './client';
+import type { OperationScope } from '../../identity-access/session/operation-scope';
+
+/** Optional captured owner scope for the request and its continuation. */
+type Scoped = { scope?: OperationScope };
 
 export type PublicationOperation = {
   id: string;
@@ -12,7 +16,13 @@ export type PublicationOperation = {
   } | null;
   error: {
     code: string;
-    issues: { path: string; nodeId?: string; code: string }[];
+    issues: {
+      path: string;
+      nodeId?: string;
+      sectionId?: string;
+      layout?: 'mobile' | 'desktop';
+      code: string;
+    }[];
   } | null;
 };
 
@@ -20,10 +30,12 @@ export function enqueueTemplatePublication(
   templateId: string,
   expectedVersion: number,
   idempotencyKey: string,
+  options: Scoped = {},
 ) {
   return builderRequest<PublicationOperation>(
     `/admin/templates/${templateId}/publish`,
     {
+      ...options,
       method: 'POST',
       body: { expectedVersion },
       idempotencyKey,
@@ -31,14 +43,21 @@ export function enqueueTemplatePublication(
   );
 }
 
-export function getPublicationOperation(id: string) {
-  return builderRequest<PublicationOperation>(`/publication-operations/${id}`);
+export function getPublicationOperation(id: string, options: Scoped = {}) {
+  return builderRequest<PublicationOperation>(
+    `/publication-operations/${id}`,
+    options,
+  );
 }
 
-export function unpublishTemplate(templateId: string, expectedVersion: number) {
+export function unpublishTemplate(
+  templateId: string,
+  expectedVersion: number,
+  options: Scoped = {},
+) {
   return builderRequest<TemplateDetail>(
     `/admin/templates/${templateId}/unpublish`,
-    { method: 'POST', body: { expectedVersion } },
+    { ...options, method: 'POST', body: { expectedVersion } },
   );
 }
 

@@ -1,7 +1,18 @@
 'use client';
+import { validateSupportedTemplateDesign } from '../document/schema';
 import { bootstrapSession } from '../../identity-access/session/refresh-coordinator';
 import { sessionStore } from '../../identity-access/session/store';
-import type { TemplateDesign, WeddingData } from '../document/types';
+import {
+  withSignal,
+  combinedDeadline,
+  createOperationScope,
+  type OperationScope,
+} from '../../identity-access/session/operation-scope';
+import type {
+  SupportedTemplateDesign,
+  WeddingData,
+  ValidationIssue,
+} from '../document/types';
 
 export interface TemplateSummary {
   id: string;
@@ -17,7 +28,7 @@ export interface TemplateSummary {
   updatedAt: string;
 }
 export interface TemplateDetail extends TemplateSummary {
-  draftDocument: TemplateDesign;
+  draftDocument: SupportedTemplateDesign;
   draftSampleData: WeddingData;
   coverAssetId: string | null;
   createdBy: string;
@@ -50,7 +61,7 @@ export class BuilderApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
-    readonly issues: { path: string; code: string; nodeId?: string }[] = [],
+    readonly issues: ValidationIssue[] = [],
   ) {
     super(
       messages[code] ??
@@ -62,7 +73,8 @@ export class BuilderApiError extends Error {
     );
   }
 }
-type Options = {
+export type Options = {
+  scope?: OperationScope;
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   form?: FormData;
@@ -101,12 +113,14 @@ async function fetchBuilder(
     return await fetch(base.replace(/\/$/, '') + path, {
       method: options.method ?? 'GET',
       headers,
-      body: options.form ?? (options.body === undefined ? undefined : JSON.stringify(options.body)),
+      body:
+        options.form ??
+        (options.body === undefined ? undefined : JSON.stringify(options.body)),
       credentials: 'omit',
       cache: 'no-store',
       redirect: 'error',
       referrerPolicy: 'no-referrer',
-      signal: options.signal ?? AbortSignal.timeout(15000),
+      signal: options.signal,
     });
   } catch {
     throw new BuilderApiError(0, 'NETWORK_ERROR');
@@ -116,43 +130,99 @@ export async function builderRequest<T>(
   path: string,
   options: Options = {},
 ): Promise<T> {
-  let response = await fetchBuilder(
-    path,
-    options,
-    sessionStore.get()?.accessToken,
-  );
-  if (response.status === 401) {
-    const session = await bootstrapSession();
-    if (!session) throw new BuilderApiError(401, 'AUTHENTICATION_REQUIRED');
-    response = await fetchBuilder(path, options, session.accessToken);
-  }
-  if (!response.ok) {
-    let code = 'REQUEST_FAILED';
-    let issues: BuilderApiError['issues'] = [];
-    try {
-      const error = (await response.json()) as {
-        code?: unknown;
-        issues?: unknown;
-      };
-      if (typeof error.code === 'string' && /^[A-Z_]{1,50}$/.test(error.code))
-        code = error.code;
-      if (Array.isArray(error.issues))
-        issues = error.issues
-          .slice(0, 100)
-          .filter(
-            (issue): issue is BuilderApiError['issues'][number] =>
-              !!issue &&
-              typeof issue === 'object' &&
-              typeof (issue as { path?: unknown }).path === 'string' &&
-              typeof (issue as { code?: unknown }).code === 'string',
-          );
-    } catch {
-      /* Status still provides a safe fallback. */
+  const scope = options.scope ?? createOperationScope(path);
+  const deadline = combinedDeadline(options.signal, 15000);
+  const abort = () => deadlineController.abort();
+  const deadlineController = new AbortController();
+  const forwardDeadline = () => deadlineController.abort();
+  if (scope.signal.aborted || deadline.signal.aborted)
+    deadlineController.abort();
+  scope.signal.addEventListener('abort', abort, { once: true });
+  deadline.signal.addEventListener('abort', forwardDeadline, { once: true });
+  const check = () => {
+    if (!scope.isActive()) throw new BuilderApiError(409, 'SUPERSEDED');
+    if (deadlineController.signal.aborted)
+      throw new BuilderApiError(0, 'REQUEST_CANCELLED');
+  };
+  const transport = { ...options, signal: deadlineController.signal };
+  try {
+    check();
+    const current = sessionStore.get();
+    let response = await withSignal(
+      () => fetchBuilder(path, transport, current?.accessToken),
+      deadlineController.signal,
+    );
+    check();
+    if (response.status === 401) {
+      if (!current) throw new BuilderApiError(401, 'AUTHENTICATION_REQUIRED');
+      const session = await withSignal(
+        () => bootstrapSession(),
+        deadlineController.signal,
+      );
+      check();
+      if (!session) throw new BuilderApiError(401, 'AUTHENTICATION_REQUIRED');
+      response = await withSignal(
+        () => fetchBuilder(path, transport, session.accessToken),
+        deadlineController.signal,
+      );
+      check();
     }
-    throw new BuilderApiError(response.status, code, issues);
+    if (!response.ok) {
+      let code = 'REQUEST_FAILED';
+      let issues: BuilderApiError['issues'] = [];
+      try {
+        const error = (await withSignal(
+          () => response.json(),
+          deadlineController.signal,
+        )) as {
+          code?: unknown;
+          issues?: unknown;
+        };
+        if (typeof error.code === 'string' && /^[A-Z_]{1,50}$/.test(error.code))
+          code = error.code;
+        if (Array.isArray(error.issues))
+          issues = error.issues
+            .slice(0, 100)
+            .filter(
+              (issue): issue is BuilderApiError['issues'][number] =>
+                !!issue &&
+                typeof issue === 'object' &&
+                typeof (issue as { path?: unknown }).path === 'string' &&
+                typeof (issue as { code?: unknown }).code === 'string',
+            );
+      } catch {
+        /* Preserve safe status fallback after body admission. */
+      }
+      check();
+      throw new BuilderApiError(response.status, code, issues);
+    }
+    if (response.status === 204) return undefined as T;
+    const value = (
+      options.bytes
+        ? await withSignal(() => response.blob(), deadlineController.signal)
+        : await withSignal(() => response.json(), deadlineController.signal)
+    ) as T;
+    check();
+    if (!options.bytes && value && typeof value === 'object') {
+      for (const key of ['draftDocument', 'document'] as const)
+        if (key in value) {
+          const checked = validateSupportedTemplateDesign(
+            (value as Record<string, unknown>)[key],
+          );
+          if (!checked.valid)
+            throw new BuilderApiError(422, checked.code, checked.issues);
+        }
+    }
+    return value;
+  } catch (error) {
+    check();
+    throw error;
+  } finally {
+    deadline.dispose();
+    scope.signal.removeEventListener('abort', abort);
+    deadline.signal.removeEventListener('abort', forwardDeadline);
+    if (!options.scope) scope.dispose();
   }
-  if (response.status === 204) return undefined as T;
-  return (options.bytes ? await response.blob() : await response.json()) as T;
 }
 export function scopedAssetPath(url: string): string {
   if (!url.startsWith('/api/v1/'))
@@ -165,8 +235,12 @@ export async function uploadBuilderAsset(
   name: string,
   kind: Exclude<AssetSummary['kind'], 'THUMBNAIL'>,
   scope: 'template' | 'customer' = 'template',
+  options: Pick<Options, 'signal' | 'scope'> = {},
 ): Promise<AssetSummary> {
-  if (file.size > 10 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
+  if (
+    file.size > 10 * 1024 * 1024 ||
+    !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+  )
     throw new BuilderApiError(422, 'UPLOAD_INVALID');
   const form = new FormData();
   form.append('file', file, file.name);
@@ -175,5 +249,9 @@ export async function uploadBuilderAsset(
   if (scope === 'customer' && kind !== 'IMAGE')
     throw new BuilderApiError(422, 'UPLOAD_INVALID');
   const path = scope === 'template' ? '/admin/template-assets' : '/assets';
-  return builderRequest<AssetSummary>(path, { method: 'POST', form });
+  return builderRequest<AssetSummary>(path, {
+    ...options,
+    method: 'POST',
+    form,
+  });
 }

@@ -1,3 +1,5 @@
+import { validateTemplateDesignV2 } from './document-validator-v2';
+import type { SupportedTemplateDesign } from './document.types';
 import Ajv from 'ajv';
 import { designSchema } from './document-schema';
 import {
@@ -20,7 +22,7 @@ const validate = new Ajv({
   strict: true,
   strictNumbers: true,
 }).compile<TemplateDesign>(designSchema);
-export function validateTemplateDesign(
+export function validateTemplateDesignV1(
   input: unknown,
 ): ValidationResult<TemplateDesign> {
   if (!jsonWithinLimit(input, DOCUMENT_LIMITS.bytes))
@@ -121,3 +123,16 @@ export function validateTemplateDesign(
       }
     : { valid: true, value: design };
 }
+
+export function validateSupportedTemplateDesign(
+  input: unknown,
+): ValidationResult<SupportedTemplateDesign> {
+  return input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 2
+    ? validateTemplateDesignV2(input)
+    : validateTemplateDesignV1(input);
+}
+// Legacy consumers keep their v1 type until the versioned readers are integrated.
+export const validateTemplateDesign = validateTemplateDesignV1;

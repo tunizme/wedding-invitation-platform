@@ -1,7 +1,12 @@
-import type { ResolvedScene, TextStyle } from '../document/types';
+import { measureSceneV2, waitForSceneReadyV2 } from './measure-v2';
+import type {
+  ResolvedScene,
+  SupportedResolvedScene,
+  TextStyle,
+} from '../document/types';
 import { fontFamily } from './font-registry';
 
-export type MeasureIssue = { nodeId?: string; path: string; code: string };
+export type MeasureIssue = import('../document/types').ValidationIssue;
 export class SceneReadinessError extends Error {
   constructor(readonly code: 'FONT_UNAVAILABLE' | 'RENDER_ASSET_NOT_READY') {
     super(code);
@@ -24,7 +29,7 @@ const fontsIn = (scene: ResolvedScene) => [
   ).values(),
 ];
 
-export async function waitForSceneReady(
+export async function waitForSceneReadyV1(
   root: HTMLElement,
   scene: ResolvedScene,
 ) {
@@ -75,7 +80,7 @@ export async function waitForSceneReady(
   );
 }
 
-export function measureScene(
+export function measureSceneV1(
   root: HTMLElement,
   scene: ResolvedScene,
 ): MeasureIssue[] {
@@ -161,8 +166,27 @@ export function measureScene(
 
 export async function measureReadyScene(
   root: HTMLElement,
-  scene: ResolvedScene,
+  scene: SupportedResolvedScene,
+  options?: { signal?: AbortSignal; deadline?: number },
 ) {
-  await waitForSceneReady(root, scene);
+  await waitForSceneReady(root, scene, options);
   return measureScene(root, scene);
+}
+
+export function waitForSceneReady(
+  root: HTMLElement,
+  scene: SupportedResolvedScene,
+  options?: { signal?: AbortSignal; deadline?: number },
+) {
+  if (scene.schemaVersion === 2)
+    return waitForSceneReadyV2(root, scene, options?.signal, options?.deadline);
+  return waitForSceneReadyV1(root, scene);
+}
+export function measureScene(
+  root: HTMLElement,
+  scene: SupportedResolvedScene,
+): MeasureIssue[] {
+  return scene.schemaVersion === 2
+    ? measureSceneV2(root, scene)
+    : measureSceneV1(root, scene);
 }

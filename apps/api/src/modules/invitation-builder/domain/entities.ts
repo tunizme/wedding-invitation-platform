@@ -1,5 +1,5 @@
 import { EntitySchema } from 'typeorm';
-import type { TemplateDesign, WeddingData } from './document.types';
+import type { SupportedTemplateDesign, WeddingData } from './document.types';
 
 export type PublicationStatus = 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED';
 export interface InvitationTemplate {
@@ -10,7 +10,7 @@ export interface InvitationTemplate {
   sort_order: number;
   cover_asset_id: string | null;
   status: PublicationStatus;
-  draft_document: TemplateDesign;
+  draft_document: SupportedTemplateDesign;
   draft_sample_data: WeddingData;
   edit_version: number;
   published_revision_id: string | null;
@@ -42,11 +42,11 @@ export interface TemplateDesignRevision {
   id: string;
   template_id: string;
   revision_number: number;
-  schema_version: 1;
-  document: TemplateDesign;
+  schema_version: 1 | 2;
+  document: SupportedTemplateDesign;
   sample_data: WeddingData;
   document_hash: string;
-  renderer_contract_version: 1;
+  renderer_contract_version: 1 | 2;
   thumbnail_asset_id: string;
   created_by: string;
   created_at: Date;

@@ -30,6 +30,8 @@ export type BuilderProblemCode = (typeof BUILDER_PROBLEM_CODES)[number];
 export interface SafeProblemIssue {
   path: string;
   nodeId?: string;
+  sectionId?: string;
+  layout?: 'mobile' | 'desktop';
   code: string;
 }
 export class BuilderProblemException extends HttpException {

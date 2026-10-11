@@ -1,0 +1,73 @@
+.host,
+.mobileHost {
+  container: invitation / inline-size;
+  width: 100%;
+  min-width: 0;
+}
+.mobileHost {
+  max-width: 390px;
+  margin-inline: auto;
+}
+.invitation {
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+.section {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.leaf {
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+.leaf input,
+.leaf select,
+.leaf textarea,
+.leaf button,
+.leaf a {
+  min-height: 44px !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.leaf button {
+  white-space: normal;
+}
+.leaf img {
+  display: block;
+  max-width: 100%;
+}
+.artworkLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.artwork {
+  position: absolute;
+  pointer-events: none;
+}
+@container invitation (min-width: 768px) {
+  .invitation {
+    max-width: 900px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .invitation *,
+  .invitation *::before,
+  .invitation *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,3 +1,4 @@
+import { validateSupportedTemplateDesign } from '../domain/document.validator';
 import { randomUUID } from 'node:crypto';
 import { Inject, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
@@ -132,7 +133,16 @@ export class PublicationService {
       if (counts[0].count >= 12)
         throw new BuilderProblemException(503, 'RENDER_QUEUE_FULL', [], 5);
 
-      const document = template.draft_document,
+      const validated = validateSupportedTemplateDesign(
+        template.draft_document,
+      );
+      if (!validated.valid)
+        throw new BuilderProblemException(
+          422,
+          validated.code,
+          validated.issues,
+        );
+      const document = validated.value,
         data = template.draft_sample_data;
       const resolved = resolveDesign(document, data, {
         mode: 'capture',
@@ -290,7 +300,19 @@ export class PublicationService {
         'SELECT clock_timestamp() AS now',
       );
       const enqueuedAt = new Date(clock[0].now);
-      const document = revision.document,
+      const validated = validateSupportedTemplateDesign(revision.document);
+      if (!validated.valid)
+        throw new BuilderProblemException(
+          422,
+          validated.code,
+          validated.issues,
+        );
+      if (
+        revision.schema_version !== validated.value.schemaVersion ||
+        revision.renderer_contract_version !== validated.value.schemaVersion
+      )
+        throw new BuilderProblemException(422, 'UNSUPPORTED_SCHEMA');
+      const document = validated.value,
         data = invitation.draft_wedding_data;
       const resolved = resolveDesign(document, data, {
         mode: 'capture',

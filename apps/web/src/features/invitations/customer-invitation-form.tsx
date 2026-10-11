@@ -1,4 +1,9 @@
 'use client';
+import {
+  usePrivateOwner,
+  scopedDelay,
+  useOperationLifetime,
+} from '../identity-access/session/operation-scope';
 import Link from 'next/link';
 import {
   useEffect,
@@ -161,7 +166,8 @@ function changed(data: WeddingData, field: Field, value: string): WeddingData {
   return next;
 }
 
-export function CustomerInvitationForm({ id }: { id: string }) {
+function OwnedCustomerInvitationForm({ id }: { id: string }) {
+  const lifetime = useOperationLifetime(`CustomerInvitationForm:${id}`);
   const customer =
     useSyncExternalStore(sessionStore.subscribe, sessionStore.get, () => null)
       ?.user.role === 'CUSTOMER';
@@ -174,17 +180,18 @@ export function CustomerInvitationForm({ id }: { id: string }) {
   const [dirty, setDirty] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
-  const [status, setStatus] = useState(''),
-    [preview, setPreview] = useState<'mobile' | 'desktop'>('mobile');
+  const [status, setStatus] = useState('');
   useEffect(() => {
     if (!customer) return;
     let active = true;
+    const scope = lifetime.capture();
     void Promise.all([
-      getInvitation(id),
-      builderRequest<ListPage<AssetSummary>>('/assets'),
+      getInvitation(id, { scope }),
+      builderRequest<ListPage<AssetSummary>>('/assets', { scope }),
     ])
       .then(([invitation, library]) => {
-        if (active) {
+        if (!lifetime.isActive()) return;
+        if (active && lifetime.isActive()) {
           versionRef.current = invitation.editVersion;
           setDetail(invitation);
           setData(invitation.draftWeddingData);
@@ -193,12 +200,14 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         }
       })
       .catch((cause) => {
-        if (active) setError(errorMessage(cause));
+        if (!lifetime.isActive()) return;
+        if (active && lifetime.isActive()) setError(errorMessage(cause));
       });
     return () => {
       active = false;
+      scope.dispose();
     };
-  }, [customer, id]);
+  }, [customer, id, lifetime]);
   const fields = useMemo(() => {
     const deduped = new Map<string, Field>();
     for (const field of detail?.formFields ?? []) {
@@ -252,17 +261,20 @@ export function CustomerInvitationForm({ id }: { id: string }) {
             { bytes: true, signal: abort.signal },
           );
         }
-        if (!active) return [assetId, ''] as const;
+        if (!active || !lifetime.isActive()) return [assetId, ''] as const;
         const url = URL.createObjectURL(blob);
         created.push(url);
         return [assetId, url] as const;
       }),
     )
       .then((entries) => {
-        if (active) setAssetUrls(Object.fromEntries(entries));
+        if (!lifetime.isActive()) return;
+        if (active && lifetime.isActive())
+          setAssetUrls(Object.fromEntries(entries));
       })
       .catch(() => {
-        if (active) {
+        if (!lifetime.isActive()) return;
+        if (active && lifetime.isActive()) {
           setAssetUrls({});
           setError(
             'Không thể tải ảnh xem trước. Dữ liệu vẫn được giữ; bạn có thể tải lại bản đã lưu.',
@@ -274,7 +286,7 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       abort.abort();
       created.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [detail, visibleKey]);
+  }, [detail, visibleKey, lifetime]);
   function edit(field: Field, value: string) {
     if (!data || busy) return;
     setData(changed(data, field, value));
@@ -313,12 +325,16 @@ export function CustomerInvitationForm({ id }: { id: string }) {
     setStatus('');
   }
   async function moreAssets() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (!assetCursor || busy) return;
     setBusy(true);
     try {
       const page = await builderRequest<ListPage<AssetSummary>>(
         '/assets?' + new URLSearchParams({ cursor: assetCursor }),
       );
+      if (!scope.isActive()) return;
       setAssets((current) => [
         ...current,
         ...page.items.filter(
@@ -327,12 +343,17 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       ]);
       setAssetCursor(page.nextCursor);
     } catch (cause) {
+      if (!scope.isActive()) return;
       setError(errorMessage(cause));
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
     }
   }
   async function upload(field: Field, event: ChangeEvent<HTMLInputElement>) {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     const file = event.target.files?.[0];
     if (!file) return;
     const form = new FormData();
@@ -346,17 +367,23 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         method: 'POST',
         form,
       });
+      if (!scope.isActive()) return;
       setAssets((current) => [asset, ...current]);
       edit(field, asset.id);
     } catch (cause) {
+      if (!scope.isActive()) return;
       setError(errorMessage(cause));
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
       event.target.value = '';
     }
   }
   useDirtyNavigationGuard(dirty);
   async function reload() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (
       busy ||
       (dirty &&
@@ -365,7 +392,8 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       return;
     setBusy(true);
     try {
-      const current = await getInvitation(id);
+      const current = await getInvitation(id, { scope });
+      if (!scope.isActive()) return;
       versionRef.current = current.editVersion;
       setDetail(current);
       setData(current.draftWeddingData);
@@ -373,12 +401,17 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       setError('');
       setStatus('Đã tải lại bản đã lưu.');
     } catch (cause) {
+      if (!scope.isActive()) return;
       setError(errorMessage(cause));
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
     }
   }
   async function save(): Promise<InvitationDetail | null> {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return null;
+
     if (!detail || !data || busy) return null;
     const parsed = validateWeddingData(data);
     if (!parsed.valid) {
@@ -392,7 +425,9 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         detail.id,
         detail.editVersion,
         parsed.value,
+        { scope },
       );
+      if (!scope.isActive()) return null;
       versionRef.current = saved.editVersion;
       setDetail(saved);
       setData(saved.draftWeddingData);
@@ -400,16 +435,22 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       setStatus('Đã lưu bản nháp.');
       return saved;
     } catch (cause) {
+      if (!scope.isActive()) return null;
       setError(errorMessage(cause));
       return null;
     } finally {
+      if (!scope.isActive()) return null;
       setBusy(false);
     }
   }
   const [refreshPending, setRefreshPending] = useState(false);
   async function refreshLifecycle() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     try {
-      const refreshed = await getInvitation(id);
+      const refreshed = await getInvitation(id, { scope });
+      if (!scope.isActive()) return;
       if (refreshed.id !== id || refreshed.editVersion !== versionRef.current)
         throw new BuilderApiError(409, 'VERSION_CONFLICT');
       setDetail(
@@ -428,6 +469,7 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       setRefreshPending(false);
       setError('');
     } catch (cause) {
+      if (!scope.isActive()) return;
       setRefreshPending(true);
       setError(
         cause instanceof BuilderApiError && cause.code === 'VERSION_CONFLICT'
@@ -437,17 +479,26 @@ export function CustomerInvitationForm({ id }: { id: string }) {
     }
   }
   async function retryRefresh() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (busy) return;
     setBusy(true);
     try {
       await refreshLifecycle();
+      if (!scope.isActive()) return;
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
     }
   }
   async function publish() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (!detail || busy) return;
     const current = dirty ? await save() : detail;
+    if (!scope.isActive()) return;
     if (!current) return;
     setBusy(true);
     setStatus('Đang kiểm tra thiệp…');
@@ -457,14 +508,18 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         current.id,
         current.editVersion,
         crypto.randomUUID(),
+        { scope },
       );
+      if (!scope.isActive()) return;
       const deadline = Date.now() + 90_000;
       while (
         Date.now() < deadline &&
         ['PENDING', 'RUNNING'].includes(operation.status)
       ) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        operation = await getPublicationOperation(operation.id);
+        await scopedDelay(1000, scope);
+        if (!scope.isActive()) return;
+        operation = await getPublicationOperation(operation.id, { scope });
+        if (!scope.isActive()) return;
       }
       if (operation.status === 'SUCCEEDED') {
         const result = publicationResult(operation, current.id);
@@ -485,6 +540,7 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         );
         setStatus('Đã xuất bản thiệp.');
         await refreshLifecycle();
+        if (!scope.isActive()) return;
       } else if (operation.status === 'FAILED') {
         setStatus('');
         const issue = operation.error?.issues[0];
@@ -493,13 +549,18 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         );
       } else setStatus('Tác vụ vẫn đang xử lý. Bạn có thể kiểm tra lại sau.');
     } catch (cause) {
+      if (!scope.isActive()) return;
       setStatus('');
       setError(errorMessage(cause));
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
     }
   }
   async function unpublish() {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (!detail || busy) return;
     setBusy(true);
     setError('');
@@ -507,7 +568,9 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       const committed = await unpublishInvitation(
         detail.id,
         detail.editVersion,
+        { scope },
       );
+      if (!scope.isActive()) return;
       if (committed.id !== detail.id) throw new Error('Invalid resource');
       versionRef.current = committed.editVersion;
       setDetail(
@@ -526,9 +589,12 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       );
       setStatus('Đã gỡ thiệp công khai.');
       await refreshLifecycle();
+      if (!scope.isActive()) return;
     } catch (cause) {
+      if (!scope.isActive()) return;
       setError(errorMessage(cause));
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
     }
   }
@@ -832,18 +898,6 @@ export function CustomerInvitationForm({ id }: { id: string }) {
       {error && <p role="alert">{error}</p>}
       <section aria-label="Xem trước thiệp">
         <h2>Xem trước</h2>
-        <label>
-          Thiết bị{' '}
-          <select
-            value={preview}
-            onChange={(event) =>
-              setPreview(event.target.value as 'mobile' | 'desktop')
-            }
-          >
-            <option value="mobile">Mobile</option>
-            <option value="desktop">Desktop</option>
-          </select>
-        </label>
         {resolution?.issues.length ? (
           <p role="alert">Cần bổ sung: {resolution.issues[0].path}</p>
         ) : null}
@@ -858,13 +912,15 @@ export function CustomerInvitationForm({ id }: { id: string }) {
             bindingIssues={resolution.issues}
           >
             <div
+              data-testid="customer-preview-host"
               style={{
-                width: preview === 'mobile' ? 360 : 780,
+                width: 390,
                 maxWidth: '100%',
               }}
             >
               <PublicInvitationView
                 scene={resolution.scene}
+                hostPolicy="mobile"
                 context={{
                   mode: 'preview',
                   asOf: new Date().toISOString(),
@@ -876,5 +932,14 @@ export function CustomerInvitationForm({ id }: { id: string }) {
         )}
       </section>
     </section>
+  );
+}
+
+export function CustomerInvitationForm({ id }: { id: string }) {
+  const owner = usePrivateOwner(`CustomerInvitationForm:${id}`, 'CUSTOMER');
+  return owner ? (
+    <OwnedCustomerInvitationForm key={owner} id={id} />
+  ) : (
+    <p role="alert">Khu vực này chỉ dành cho CUSTOMER.</p>
   );
 }

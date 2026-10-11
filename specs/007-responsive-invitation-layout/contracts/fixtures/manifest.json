@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "valid": [
+    "valid-v2.json"
+  ],
+  "invalid": "invalid-v2.json",
+  "resolution": "resolution-v2.json",
+  "legacyManifest": "../../../004-invitation-builder/contracts/fixtures/manifest.json"
+}

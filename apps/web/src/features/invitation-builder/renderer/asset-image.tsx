@@ -5,10 +5,12 @@ export function AssetImage({
   source,
   background = false,
   style,
+  alt = '',
 }: {
   source?: string;
   background?: boolean;
   style?: CSSProperties;
+  alt?: string;
 }) {
   const [failed, setFailed] = useState(false);
   if (!source || failed)
@@ -35,7 +37,7 @@ export function AssetImage({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={source}
-      alt=""
+      alt={alt}
       draggable={false}
       onError={() => setFailed(true)}
       style={background ? { display: 'none' } : style}

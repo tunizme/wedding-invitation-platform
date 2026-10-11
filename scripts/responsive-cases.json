@@ -1,0 +1,232 @@
+[
+  {
+    "id": "prototype-browser",
+    "phase": "prototype",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-browser.mjs",
+      "--suite",
+      "prototype"
+    ],
+    "files": [
+      "scripts/responsive-browser.mjs",
+      "apps/web/e2e/invitation-builder/responsive-prototype.spec.ts",
+      "apps/web/e2e/responsive-host/mount.tsx"
+    ],
+    "timeoutMs": 600000
+  },
+  {
+    "id": "runner-contracts",
+    "phase": "contracts",
+    "cwd": ".",
+    "command": [
+      "node",
+      "--test",
+      "scripts/tests/responsive-validate.test.mjs"
+    ],
+    "files": [
+      "scripts/tests/responsive-validate.test.mjs"
+    ],
+    "timeoutMs": 120000
+  },
+  {
+    "id": "web-contracts",
+    "phase": "contracts",
+    "cwd": "apps/web",
+    "command": [
+      "pnpm",
+      "exec",
+      "vitest",
+      "run",
+      "--configLoader",
+      "runner",
+      "tests/invitation-builder/schema-v2.test.ts",
+      "tests/invitation-builder/resolve-v2.test.ts"
+    ],
+    "files": [
+      "apps/web/tests/invitation-builder/schema-v2.test.ts",
+      "apps/web/tests/invitation-builder/resolve-v2.test.ts"
+    ],
+    "timeoutMs": 600000
+  },
+  {
+    "id": "api-contracts",
+    "phase": "contracts",
+    "cwd": "apps/api",
+    "command": [
+      "pnpm",
+      "exec",
+      "vitest",
+      "run",
+      "--configLoader",
+      "runner",
+      "--project",
+      "unit",
+      "test/unit/invitation-builder/schema-v2.spec.ts",
+      "test/unit/invitation-builder/resolve-v2.spec.ts"
+    ],
+    "files": [
+      "apps/api/test/unit/invitation-builder/schema-v2.spec.ts",
+      "apps/api/test/unit/invitation-builder/resolve-v2.spec.ts"
+    ],
+    "timeoutMs": 600000
+  },
+  {
+    "id": "resolver-parity",
+    "phase": "contracts",
+    "cwd": ".",
+    "command": [
+      "node",
+      "--test",
+      "scripts/tests/responsive-parity.test.mjs"
+    ],
+    "files": [
+      "scripts/tests/responsive-parity.test.mjs"
+    ],
+    "timeoutMs": 600000
+  },
+  {
+    "id": "persistence",
+    "phase": "persistence",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-api.mjs",
+      "--suite",
+      "persistence"
+    ],
+    "files": [
+      "scripts/responsive-api.mjs",
+      "apps/api/test/integration/invitation-builder/responsive-migration.spec.ts",
+      "apps/api/test/integration/invitation-builder/responsive-reference-races.spec.ts"
+    ],
+    "timeoutMs": 900000
+  },
+  {
+    "id": "renderer-unit",
+    "phase": "rendering",
+    "cwd": "apps/web",
+    "command": [
+      "pnpm",
+      "exec",
+      "vitest",
+      "run",
+      "--configLoader",
+      "runner",
+      "tests/invitation-builder/responsive-renderer.test.tsx",
+      "tests/invitation-builder/capture-resolved-bounds.test.ts"
+    ],
+    "files": [
+      "apps/web/tests/invitation-builder/responsive-renderer.test.tsx",
+      "apps/web/tests/invitation-builder/capture-resolved-bounds.test.ts"
+    ],
+    "timeoutMs": 900000,
+    "story": "US1"
+  },
+  {
+    "id": "renderer-browser",
+    "phase": "rendering",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-browser.mjs",
+      "--suite",
+      "renderer"
+    ],
+    "files": [
+      "scripts/responsive-browser.mjs",
+      "apps/web/e2e/invitation-builder/responsive-renderer.spec.ts"
+    ],
+    "timeoutMs": 900000,
+    "story": "US1"
+  },
+  {
+    "id": "customer",
+    "phase": "rendering",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-product.mjs",
+      "--suite",
+      "customer"
+    ],
+    "files": [
+      "scripts/responsive-product.mjs",
+      "apps/web/e2e/invitation-builder/responsive-customer.spec.ts",
+      "apps/web/tests/invitation-builder/responsive-customer.test.tsx",
+      "apps/api/test/contract/invitation-builder/responsive-customer.spec.ts"
+    ],
+    "timeoutMs": 900000,
+    "story": "US2"
+  },
+  {
+    "id": "capture-browser",
+    "phase": "publication",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-browser.mjs",
+      "--suite",
+      "capture"
+    ],
+    "files": [
+      "scripts/responsive-browser.mjs",
+      "apps/web/e2e/invitation-builder/responsive-capture.spec.ts"
+    ],
+    "timeoutMs": 120000
+  },
+  {
+    "id": "publication-api",
+    "phase": "publication",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-api.mjs",
+      "--suite",
+      "publication"
+    ],
+    "files": [
+      "scripts/responsive-api.mjs",
+      "apps/api/test/contract/invitation-builder/responsive-publication.spec.ts",
+      "apps/api/test/integration/invitation-builder/responsive-publication-races.spec.ts"
+    ],
+    "timeoutMs": 180000
+  },
+  {
+    "id": "publication",
+    "phase": "publication",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-product.mjs",
+      "--suite",
+      "publication"
+    ],
+    "files": [
+      "scripts/responsive-product.mjs",
+      "apps/api/test/contract/invitation-builder/responsive-publication.spec.ts",
+      "apps/api/test/integration/invitation-builder/responsive-publication-races.spec.ts",
+      "apps/web/e2e/invitation-builder/responsive-publication.spec.ts"
+    ],
+    "timeoutMs": 900000
+  },
+  {
+    "id": "authoring",
+    "phase": "authoring",
+    "cwd": ".",
+    "command": [
+      "node",
+      "scripts/responsive-product.mjs",
+      "--suite",
+      "authoring"
+    ],
+    "files": [
+      "scripts/responsive-product.mjs",
+      "apps/web/e2e/invitation-builder/responsive-authoring.spec.ts",
+      "apps/web/tests/invitation-builder/section-authoring.test.tsx",
+      "apps/api/test/contract/invitation-builder/responsive-authoring.spec.ts"
+    ],
+    "timeoutMs": 900000
+  }
+]

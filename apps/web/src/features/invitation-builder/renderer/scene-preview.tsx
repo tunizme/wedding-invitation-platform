@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type {
   RenderContext,
-  ResolvedScene,
+  SupportedResolvedScene,
   ValidationIssue,
 } from '../document/types';
 import { InvitationRenderer } from './invitation-renderer';
@@ -19,7 +19,7 @@ export function ScenePreview({
   bindingIssues = [],
   children,
 }: {
-  scene: ResolvedScene;
+  scene: SupportedResolvedScene;
   context: RenderContext;
   bindingIssues?: ValidationIssue[];
   children?: ReactNode;
@@ -30,25 +30,52 @@ export function ScenePreview({
   useEffect(() => {
     const element = root.current;
     if (!element) return;
-    let active = true;
-    void measureReadyScene(element, scene)
-      .then((issues) => {
-        if (active) setMeasured(issues);
+    let active = true,
+      generation = 0;
+    let controller: AbortController | undefined;
+    const measure = () => {
+      const current = ++generation;
+      controller?.abort();
+      controller = new AbortController();
+      void measureReadyScene(element, scene, {
+        signal: controller.signal,
+        deadline: Date.now() + 10000,
       })
-      .catch((error: unknown) => {
-        if (active)
-          setMeasured([
-            {
-              path: '/',
-              code:
-                error instanceof SceneReadinessError
-                  ? error.code
-                  : 'RENDER_ASSET_NOT_READY',
-            },
-          ]);
-      });
+        .then((issues) => {
+          if (active && generation === current) setMeasured(issues);
+        })
+        .catch((error: unknown) => {
+          if (
+            active &&
+            generation === current &&
+            !(error instanceof DOMException && error.name === 'AbortError')
+          )
+            setMeasured([
+              {
+                path: '/',
+                code:
+                  error instanceof SceneReadinessError
+                    ? error.code
+                    : 'RENDER_ASSET_NOT_READY',
+              },
+            ]);
+        });
+    };
+    const observer =
+      scene.schemaVersion === 2 ? new ResizeObserver(measure) : undefined;
+    observer?.observe(element);
+    element.addEventListener('load', measure, true);
+    element.addEventListener('error', measure, true);
+    document.fonts?.addEventListener?.('loadingdone', measure);
+    measure();
     return () => {
       active = false;
+      generation++;
+      controller?.abort();
+      observer?.disconnect();
+      element.removeEventListener('load', measure, true);
+      element.removeEventListener('error', measure, true);
+      document.fonts?.removeEventListener?.('loadingdone', measure);
     };
   }, [scene, assetKey]);
   const issues = [...bindingIssues, ...measured];
@@ -64,6 +91,8 @@ export function ScenePreview({
             {issues.map((issue, index) => (
               <li key={`${issue.path}:${issue.code}:${index}`}>
                 {issue.nodeId ? `Phần tử ${issue.nodeId}: ` : ''}
+                {issue.sectionId ? `Section ${issue.sectionId}: ` : ''}
+                {issue.layout ? `${issue.layout}: ` : ''}
                 {issue.code} tại {issue.path}
               </li>
             ))}

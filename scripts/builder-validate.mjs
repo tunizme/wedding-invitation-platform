@@ -339,10 +339,19 @@ export async function withOwnedResources({
         statement_timeout: 6000,
         lock_timeout: 2000,
         application_name: 'builder-validation-control',
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10_000,
       });
   const s3 = storageFactory ? storageFactory(childEnv) : clientFor(childEnv);
   let schemaOwned = false;
   let outcome;
+  // pg emits idle connection failures outside an awaited query. Keep them in
+  // the bounded lifecycle so owned cleanup evidence is always produced.
+  const connectionFailed = () => {
+    outcome ??= new Error('Owned database control connection failed.');
+    controller.abort();
+  };
+  db.on?.('error', connectionFailed);
   let result;
   const extraCleanup = [];
   try {
@@ -462,7 +471,7 @@ export async function withOwnedResources({
   return result;
 }
 
-async function healthy(url, context, child) {
+export async function healthy(url, context, child) {
   while (Date.now() < context.workDeadline && !context.signal.aborted) {
     if (child?.exitCode !== null && child?.exitCode !== undefined)
       throw new Error('Builder server exited before readiness.');
@@ -480,7 +489,7 @@ async function healthy(url, context, child) {
   throw new Error('Builder server readiness timed out.');
 }
 
-async function browserServer(context) {
+export async function browserServer(context) {
   if (context.env.BUILDER_TEST_BROWSER_MODE !== 'docker') return;
   const port = await freePort();
   const name = `builder-browser-${context.runId}`;

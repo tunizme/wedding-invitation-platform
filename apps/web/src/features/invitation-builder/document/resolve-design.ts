@@ -1,3 +1,5 @@
+import { resolveDesignV2, type ResolutionV2 } from './resolve-design-v2';
+import type { SupportedTemplateDesign, TemplateDesignV2 } from './types';
 import type {
   Binding,
   ComponentName,
@@ -179,7 +181,7 @@ function bindContent(
   return content;
 }
 
-export function resolveDesign(
+export function resolveDesignV1(
   document: TemplateDesign,
   inputData: WeddingData,
   options: Options,
@@ -310,4 +312,31 @@ export function resolveDesign(
     visibleAssetIds: [...assets].sort(),
     hasVisibleRsvp: elements.some((element) => element.type === 'RSVP'),
   };
+}
+
+export function resolveDesign(
+  document: TemplateDesign,
+  inputData: WeddingData,
+  options: Options,
+): LocalResolution;
+export function resolveDesign(
+  document: TemplateDesignV2,
+  inputData: WeddingData,
+  options: Options,
+): ResolutionV2;
+export function resolveDesign(
+  document: SupportedTemplateDesign,
+  inputData: WeddingData,
+  options: Options,
+): LocalResolution | ResolutionV2;
+export function resolveDesign(
+  document: SupportedTemplateDesign,
+  inputData: WeddingData,
+  options: Options,
+): LocalResolution | ResolutionV2 {
+  if (document.schemaVersion === 2)
+    return resolveDesignV2(document, inputData, options);
+  if (document.schemaVersion === 1)
+    return resolveDesignV1(document, inputData, options);
+  throw new Error('UNSUPPORTED_SCHEMA');
 }

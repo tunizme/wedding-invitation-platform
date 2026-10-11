@@ -1,4 +1,9 @@
 'use client';
+import SectionEditor from './section-editor';
+import {
+  usePrivateOwner,
+  useOperationLifetime,
+} from '../../identity-access/session/operation-scope';
 import {
   Editor,
   Frame,
@@ -27,10 +32,11 @@ import type {
 import {
   builderRequest,
   BuilderApiError,
-  type TemplateDetail,
+  type TemplateDetail as SupportedTemplateDetail,
   type AssetSummary,
 } from '../api/client';
 import { AssetLibrary, type AssetChoice } from '../assets/asset-library';
+import mediaTrigger from '../assets/media-trigger.module.css';
 import { importDesign, exportDesign } from './craft-adapter';
 import { canonicalJson } from '../document/validation-helpers';
 import { applyCommand, type EditorCommand } from './commands';
@@ -50,6 +56,9 @@ import { PublicationControls } from './publication-controls';
 import { useDirtyNavigationGuard } from '../../identity-access/session/navigation-guard';
 import '../renderer/fonts.css';
 
+type TemplateDetail = Omit<SupportedTemplateDetail, 'draftDocument'> & {
+  draftDocument: TemplateDesign;
+};
 const EditorPreview = createContext(false);
 const EditorScene = createContext<ResolvedScene | null>(null);
 const Assets = createContext<Record<string, string>>({});
@@ -194,6 +203,7 @@ function Workarea({
   initial: TemplateDetail;
   onSaved: (value: TemplateDetail) => void;
 }) {
+  const lifetime = useOperationLifetime(initial.id);
   const { actions, serialized, selected, canUndo, canRedo } = useEditor(
     (state, query) => ({
       serialized: query.serialize(),
@@ -238,15 +248,21 @@ function Workarea({
   const sampleDirty =
     canonicalJson(publicationSample) !== canonicalJson(saved.draftSampleData);
   useEffect(() => {
+    const scope = lifetime.capture();
     void builderRequest<{ items: AssetSummary[]; nextCursor: string | null }>(
       '/admin/template-assets?limit=100',
+      { scope },
     )
       .then((page) => {
+        if (!scope.isActive()) return;
         setSampleAssets(page.items);
         setSampleCursor(page.nextCursor);
       })
-      .catch(() => setError('Không thể tải ảnh mẫu.'));
-  }, []);
+      .catch(() => {
+        if (scope.isActive()) setError('Không thể tải ảnh mẫu.');
+      });
+    return () => scope.dispose();
+  }, [lifetime]);
   const [choice, setChoice] = useState<AssetChoice | null>(null);
   const [assets, setAssets] = useState<Record<string, string>>({});
   const [metadata, setMetadata] = useState({
@@ -295,6 +311,7 @@ function Workarea({
   useEffect(() => {
     const abort = new AbortController(),
       urls: string[] = [];
+    const scope = lifetime.capture();
     let active = true;
     void Promise.all(
       assetKey
@@ -302,8 +319,9 @@ function Workarea({
             const blob = await builderRequest<Blob>(`/assets/${id}/content`, {
               bytes: true,
               signal: abort.signal,
+              scope,
             });
-            if (!active) return [id, ''] as const;
+            if (!active || !lifetime.isActive()) return [id, ''] as const;
             const url = URL.createObjectURL(blob);
             urls.push(url);
             return [id, url] as const;
@@ -311,17 +329,22 @@ function Workarea({
         : [],
     )
       .then((entries) => {
-        if (active) setAssets(Object.fromEntries(entries));
+        if (!lifetime.isActive()) return;
+        if (active && lifetime.isActive())
+          setAssets(Object.fromEntries(entries));
       })
       .catch(() => {
-        if (active) setError('Không thể tải một số ảnh. Vui lòng thử lại.');
+        if (!lifetime.isActive()) return;
+        if (active && lifetime.isActive())
+          setError('Không thể tải một số ảnh. Vui lòng thử lại.');
       });
     return () => {
       active = false;
       abort.abort();
+      scope.dispose();
       for (const url of urls) URL.revokeObjectURL(url);
     };
-  }, [assetKey]);
+  }, [assetKey, lifetime]);
   useEffect(() => {
     const frame = requestAnimationFrame(() =>
       setTarget(
@@ -394,6 +417,9 @@ function Workarea({
     return () => window.removeEventListener('keydown', keyboard);
   });
   async function save(): Promise<TemplateDetail | null> {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return null;
+
     if (busy || saving || publicationBusy || gestureBusy.current) return null;
     setSaving(true);
     setError('');
@@ -402,6 +428,7 @@ function Workarea({
         `/admin/templates/${saved.id}/draft`,
         {
           method: 'PATCH',
+          scope,
           body: {
             expectedVersion: saved.editVersion,
             document,
@@ -409,6 +436,7 @@ function Workarea({
           },
         },
       );
+      if (!scope.isActive()) return null;
       savedRef.current = result;
       setSaved(result);
       setPublicationSample(result.draftSampleData);
@@ -416,11 +444,13 @@ function Workarea({
       setStatus('Đã lưu');
       return result;
     } catch (cause) {
+      if (!scope.isActive()) return null;
       setError(
         cause instanceof BuilderApiError ? cause.message : 'Không thể lưu mẫu.',
       );
       return null;
     } finally {
+      if (!scope.isActive()) return null;
       setSaving(false);
     }
   }
@@ -435,14 +465,20 @@ function Workarea({
     onSaved(next);
   }
   async function refreshPublication(committed?: TemplateLifecycle) {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (committed) applyLifecycle(committed);
     if (committed?.status === 'UNPUBLISHED') {
       await reload(true);
+      if (!scope.isActive()) return;
       return;
     }
     const result = await builderRequest<TemplateDetail>(
       `/admin/templates/${savedRef.current.id}`,
+      { scope },
     );
+    if (!scope.isActive()) return;
     if (result.editVersion !== savedRef.current.editVersion)
       throw new BuilderApiError(409, 'VERSION_CONFLICT');
     applyLifecycle({
@@ -454,6 +490,9 @@ function Workarea({
     });
   }
   async function reload(fromPublication = false) {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return;
+
     if (
       busy ||
       saving ||
@@ -470,7 +509,9 @@ function Workarea({
     try {
       const result = await builderRequest<TemplateDetail>(
         `/admin/templates/${saved.id}`,
+        { scope },
       );
+      if (!scope.isActive()) return;
       actions.deserialize(importDesign(result.draftDocument));
       actions.history.clear();
       setMetadata({
@@ -488,17 +529,27 @@ function Workarea({
       setError('');
       setStatus('Đã tải lại');
     } catch {
+      if (!scope.isActive()) return;
       setError('Không thể tải lại mẫu.');
     } finally {
+      if (!scope.isActive()) return;
       setBusy(false);
     }
   }
-  function choose(kind: AssetChoice) {
+  // Safari/WebKit does not focus a clicked button, so the opening trigger is
+  // recorded explicitly instead of relying on document.activeElement.
+  const libraryTriggerRef = useRef<HTMLElement | null>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  function choose(kind: AssetChoice, trigger: HTMLElement | null) {
+    libraryTriggerRef.current = trigger;
     setChoice(kind);
   }
   async function saveMetadata(
     base: TemplateDetail = saved,
   ): Promise<TemplateDetail | null> {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return null;
+
     if (busy || saving || publicationBusy || gestureBusy.current) return null;
     setSaving(true);
     setError('');
@@ -508,6 +559,7 @@ function Workarea({
         `/admin/templates/${saved.id}`,
         {
           method: 'PATCH',
+          scope,
           body: {
             expectedVersion: base.editVersion,
             name: metadata.name,
@@ -521,6 +573,7 @@ function Workarea({
           },
         },
       );
+      if (!scope.isActive()) return null;
       savedRef.current = result;
       setSaved(result);
       onSaved(result);
@@ -534,6 +587,7 @@ function Workarea({
       setStatus('Đã lưu thông tin mẫu');
       return result;
     } catch (cause) {
+      if (!scope.isActive()) return null;
       setError(
         cause instanceof BuilderApiError
           ? cause.message
@@ -541,14 +595,19 @@ function Workarea({
       );
       return null;
     } finally {
+      if (!scope.isActive()) return null;
       setSaving(false);
       setBusy(false);
     }
   }
   async function saveBeforePublish(): Promise<TemplateDetail | null> {
+    const scope = lifetime.capture();
+    if (!scope.isActive()) return null;
+
     let current = saved;
     if (designDirty || sampleDirty) {
       const result = await save();
+      if (!scope.isActive()) return null;
       if (!result) return null;
       current = result;
     }
@@ -560,6 +619,7 @@ function Workarea({
       metadata.coverAssetId !== current.coverAssetId;
     if (hasMetadataChanges) {
       const result = await saveMetadata(current);
+      if (!scope.isActive()) return null;
       if (!result) return null;
       current = result;
     }
@@ -602,7 +662,14 @@ function Workarea({
   return (
     <EditorScene.Provider value={localPreview.scene}>
       <Assets.Provider value={assets}>
-        <div>
+        {/* Logical fallback focus target when the library trigger is gone. */}
+        <div
+          ref={workspaceRef}
+          tabIndex={-1}
+          role="group"
+          aria-label="Vùng soạn mẫu"
+          style={{ outline: 'none' }}
+        >
           <details>
             <summary>Thông tin mẫu</summary>
             <fieldset disabled={busy || saving || publicationBusy}>
@@ -655,7 +722,11 @@ function Workarea({
                   ? 'Đang dùng ảnh bìa riêng'
                   : 'Đang dùng thumbnail đã xuất bản'}
               </p>
-              <button type="button" onClick={() => choose('cover')}>
+              <button
+                className={mediaTrigger.trigger}
+                type="button"
+                onClick={(event) => choose('cover', event.currentTarget)}
+              >
                 Chọn ảnh bìa
               </button>
               <button
@@ -782,6 +853,8 @@ function Workarea({
                       saving || busy || publicationBusy || sampleLoading
                     }
                     onClick={() => {
+                      const scope = lifetime.capture();
+                      if (!scope.isActive()) return;
                       if (sampleLoadingRef.current) return;
                       sampleLoadingRef.current = true;
                       setSampleLoading(true);
@@ -794,8 +867,10 @@ function Workarea({
                             limit: '100',
                             cursor: sampleCursor,
                           }),
+                        { scope },
                       )
                         .then((page) => {
+                          if (!scope.isActive()) return;
                           setSampleAssets((current) => [
                             ...new globalThis.Map(
                               [...current, ...page.items].map((asset) => [
@@ -806,8 +881,12 @@ function Workarea({
                           ]);
                           setSampleCursor(page.nextCursor);
                         })
-                        .catch(() => setError('Không thể tải thêm ảnh mẫu.'))
+                        .catch(() => {
+                          if (scope.isActive())
+                            setError('Không thể tải thêm ảnh mẫu.');
+                        })
                         .finally(() => {
+                          if (!scope.isActive()) return;
                           sampleLoadingRef.current = false;
                           setSampleLoading(false);
                         });
@@ -831,6 +910,7 @@ function Workarea({
               {saving ? 'Đang lưu…' : status || (dirty ? 'Chưa lưu' : 'Đã lưu')}
             </span>
             <PublicationControls
+              lifetime={lifetime}
               template={saved}
               dirty={dirty}
               externalBusy={busy || saving}
@@ -871,13 +951,28 @@ function Workarea({
                   >
                     Thêm hình dạng
                   </button>
-                  <button onClick={() => void choose('Image')}>
+                  <button
+                    className={mediaTrigger.trigger}
+                    onClick={(event) => choose('Image', event.currentTarget)}
+                  >
                     Thêm hình ảnh
                   </button>
-                  <button onClick={() => void choose('Decoration')}>
+                  <button
+                    className={mediaTrigger.trigger}
+                    onClick={(event) =>
+                      choose('Decoration', event.currentTarget)
+                    }
+                  >
                     Thêm trang trí
                   </button>
-                  <button onClick={() => choose('background')}>Chọn nền</button>
+                  <button
+                    className={mediaTrigger.trigger}
+                    onClick={(event) =>
+                      choose('background', event.currentTarget)
+                    }
+                  >
+                    Chọn nền
+                  </button>
                   {(
                     [
                       'Calendar',
@@ -1018,7 +1113,7 @@ function Workarea({
                     index={document.nodes.ROOT.nodes.indexOf(selected)}
                     count={document.nodes.ROOT.nodes.length}
                     onCommand={execute}
-                    onReplace={() => void choose('replace')}
+                    onReplace={(trigger) => choose('replace', trigger)}
                     disabled={busy || saving || publicationBusy}
                   />
                 )}
@@ -1030,6 +1125,8 @@ function Workarea({
               choice={choice}
               onSelect={selectedAsset}
               onClose={() => setChoice(null)}
+              returnFocusRef={libraryTriggerRef}
+              fallbackFocusRef={workspaceRef}
             />
           )}
         </div>
@@ -1037,7 +1134,7 @@ function Workarea({
     </EditorScene.Provider>
   );
 }
-export default function TemplateEditor({
+function OwnedTemplateEditor({
   initial,
   onSaved,
 }: {
@@ -1057,5 +1154,23 @@ export default function TemplateEditor({
     >
       <Workarea initial={initial} onSaved={onSaved} />
     </Editor>
+  );
+}
+
+export default function TemplateEditor(props: {
+  initial: SupportedTemplateDetail;
+  onSaved: (value: SupportedTemplateDetail) => void;
+}) {
+  const owner = usePrivateOwner(props.initial.id, 'ADMIN');
+  if (props.initial.draftDocument.schemaVersion !== 1)
+    return <SectionEditor {...props} />;
+  return owner ? (
+    <OwnedTemplateEditor
+      key={owner}
+      initial={props.initial as TemplateDetail}
+      onSaved={props.onSaved}
+    />
+  ) : (
+    <p role="alert">Khu vực này chỉ dành cho Admin.</p>
   );
 }

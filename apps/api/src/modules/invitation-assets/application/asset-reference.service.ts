@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { BuilderProblemException } from '../../../common/errors/public-problem.exception';
 import type { AuthenticatedPrincipal } from '../../identity-access/authorization/principal';
 import type {
-  TemplateDesign,
+  SupportedTemplateDesign,
   WeddingData,
   Background,
   ElementNode,
@@ -37,11 +37,25 @@ export function weddingAssetIds(data: WeddingData): string[] {
     ),
   ].sort();
 }
-export function designAssetIds(design: TemplateDesign): string[] {
+export function designAssetIds(design: SupportedTemplateDesign): string[] {
   const ids = new Set<string>();
   const background = (value: Background | undefined) => {
     if (value?.kind === 'asset') ids.add(value.assetId);
   };
+  if (design.schemaVersion === 2) {
+    background(design.background);
+    for (const section of Object.values(design.sections))
+      background(section.background);
+    for (const node of Object.values(design.nodes)) {
+      background(node.appearance.background);
+      if ('assetId' in node.content && node.content.assetId)
+        ids.add(node.content.assetId);
+      for (const binding of node.bindings)
+        if (binding.target === 'assetId' && binding.fallback)
+          ids.add(binding.fallback);
+    }
+    return [...ids].sort();
+  }
   background(design.nodes.ROOT.props.canvas.background);
   for (const id of design.nodes.ROOT.nodes) {
     const node = design.nodes[id] as ElementNode;
@@ -200,7 +214,7 @@ export class AssetReferenceService {
   replaceTemplateDraft(
     manager: EntityManager,
     id: string,
-    document: TemplateDesign,
+    document: SupportedTemplateDesign,
     sample: WeddingData,
     actor: AuthenticatedPrincipal,
   ): Promise<void> {

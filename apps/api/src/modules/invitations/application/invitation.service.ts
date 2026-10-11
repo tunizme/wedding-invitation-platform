@@ -1,3 +1,4 @@
+import { validateSupportedTemplateDesign } from '../../invitation-builder/domain/document.validator';
 import { randomUUID } from 'node:crypto';
 import {
   ForbiddenException,
@@ -29,17 +30,22 @@ type DetailRow = Invitation & {
   template_name: string;
   document: TemplateDesignRevision['document'];
 };
-const detail = (row: DetailRow) => ({
-  ...invitationSummary(row),
-  ownerId: row.owner_user_id,
-  createdBy: row.created_by,
-  templateId: row.template_id,
-  designRevisionId: row.design_revision_id,
-  draftWeddingData: row.draft_wedding_data,
-  templateName: row.template_name,
-  document: row.document,
-  formFields: formFieldsForDesign(row.document),
-});
+const detail = (row: DetailRow) => {
+  const checked = validateSupportedTemplateDesign(row.document);
+  if (!checked.valid)
+    throw new BuilderProblemException(422, checked.code, checked.issues);
+  return {
+    ...invitationSummary(row),
+    ownerId: row.owner_user_id,
+    createdBy: row.created_by,
+    templateId: row.template_id,
+    designRevisionId: row.design_revision_id,
+    draftWeddingData: row.draft_wedding_data,
+    templateName: row.template_name,
+    document: row.document,
+    formFields: formFieldsForDesign(row.document),
+  };
+};
 
 @Injectable()
 export class InvitationService {
