@@ -16,21 +16,37 @@ function crc16(input: string): string {
   return crc.toString(16).toUpperCase().padStart(4, '0');
 }
 
-export function createBankQrPayload(bank: Pick<Bank, 'bin' | 'account' | 'recipientName' | 'message'>): string {
+export function createBankQrPayload(
+  bank: Pick<Bank, 'bin' | 'account' | 'recipientName' | 'message'>,
+): string {
   const { bin, account, recipientName, message = '' } = bank;
-  if (!bin || !BINS.has(bin) || !account || !/^\d{6,19}$/.test(account) ||
-      !recipientName || [...recipientName].length < 5 || [...recipientName].length > 50 ||
-      !/^[A-Za-z0-9 ]{0,25}$/.test(message))
+  if (
+    !bin ||
+    !BINS.has(bin) ||
+    !account ||
+    !/^\d{6,19}$/.test(account) ||
+    !recipientName ||
+    [...recipientName].length < 5 ||
+    [...recipientName].length > 50 ||
+    !/^[A-Za-z0-9 ]{0,25}$/.test(message)
+  )
     throw new Error('QR_BANK_DATA_INVALID');
-  const accountFields = tlv('00', bin) + tlv('01', account) + tlv('02', 'QRIBFTTA');
+  const accountFields =
+    tlv('00', bin) + tlv('01', account) + tlv('02', 'QRIBFTTA');
   // VietQR's reviewed consumer-account profile counts the data bytes in this
   // nested value. The containing merchant account counts the full encoded TLV.
   const consumerAccount = `01${String(bin.length + account.length + 8).padStart(2, '0')}${accountFields}`;
   const merchant = tlv('00', 'A000000727') + consumerAccount;
   const merchantAccount = tlv('38', merchant);
   const additional = message ? tlv('62', tlv('08', message)) : '';
-  const body = tlv('00', '01') + tlv('01', '11') + merchantAccount +
-    tlv('53', '704') + tlv('58', 'VN') + additional + '6304';
+  const body =
+    tlv('00', '01') +
+    tlv('01', '11') +
+    merchantAccount +
+    tlv('53', '704') +
+    tlv('58', 'VN') +
+    additional +
+    '6304';
   return body + crc16(body);
 }
 

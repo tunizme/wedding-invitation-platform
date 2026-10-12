@@ -102,10 +102,14 @@ export class AssetsReadController {
     @Query() query: Record<string, unknown>,
   ) {
     closedObject(query, ['limit', 'cursor', 'q', 'kind']);
-    const limit = listLimit(query), cursor = newestCursor(queryString(query, 'cursor'));
-    const q = queryString(query, 'q')?.trim(), kind = queryString(query, 'kind');
-    if ((q !== undefined && (!q || [...q].length > 120)) ||
-        (kind !== undefined && kind !== 'IMAGE'))
+    const limit = listLimit(query),
+      cursor = newestCursor(queryString(query, 'cursor'));
+    const q = queryString(query, 'q')?.trim(),
+      kind = queryString(query, 'kind');
+    if (
+      (q !== undefined && (!q || [...q].length > 120)) ||
+      (kind !== undefined && kind !== 'IMAGE')
+    )
       throw new UnprocessableEntityException();
     const rows: (Asset & { cursor_created_at: string })[] = await this.db.query(
       `SELECT *,to_char(created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_created_at
@@ -114,11 +118,24 @@ export class AssetsReadController {
       AND ($3::text IS NULL OR kind=$3)
       AND ($4::timestamptz IS NULL OR (created_at,id)<($4::timestamptz,$5::uuid))
       ORDER BY created_at DESC,id DESC LIMIT $6`,
-      [request.principal.userId, q ?? null, kind ?? null, cursor?.createdAt ?? null, cursor?.id ?? null, limit + 1],
+      [
+        request.principal.userId,
+        q ?? null,
+        kind ?? null,
+        cursor?.createdAt ?? null,
+        cursor?.id ?? null,
+        limit + 1,
+      ],
     );
-    const page = rows.slice(0, limit), last = page.at(-1);
-    return { items: page.map((asset) => assetSummary(asset)), nextCursor:
-      rows.length > limit && last ? encodeNewestCursor(last.cursor_created_at, last.id) : null };
+    const page = rows.slice(0, limit),
+      last = page.at(-1);
+    return {
+      items: page.map((asset) => assetSummary(asset)),
+      nextCursor:
+        rows.length > limit && last
+          ? encodeNewestCursor(last.cursor_created_at, last.id)
+          : null,
+    };
   }
 
   @Get('assets/:id/content')

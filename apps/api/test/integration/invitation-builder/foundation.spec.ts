@@ -611,8 +611,11 @@ describe.sequential(
         /object_key|owner_user_id|uploaded_by|s3|secret/i,
       );
       const content = '/api/v1/assets/' + templateAsset.id + '/content';
-    await request(server).get(content).expect(401);
-    await request(server).get('/api/v1/assets/invalid-id/content').set(admin.headers).expect(400);
+      await request(server).get(content).expect(401);
+      await request(server)
+        .get('/api/v1/assets/invalid-id/content')
+        .set(admin.headers)
+        .expect(400);
       await request(server).get(content).set(owner.headers).expect(404);
       const response = await request(server)
         .get(content)

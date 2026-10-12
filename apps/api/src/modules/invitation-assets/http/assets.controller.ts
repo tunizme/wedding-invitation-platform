@@ -26,7 +26,8 @@ type MultipartFile = { buffer: Buffer; mimetype: string; size: number };
 export class AssetsController {
   constructor(
     @Inject(UploadService) private readonly uploads: UploadService,
-    @Inject(AssetReferenceService) private readonly assets: AssetReferenceService,
+    @Inject(AssetReferenceService)
+    private readonly assets: AssetReferenceService,
   ) {}
 
   @Post('admin/template-assets')
@@ -79,7 +80,8 @@ export class AssetsController {
     @Param('id') rawId: string,
     @Req() request: AuthenticatedRequest & Request,
   ) {
-    const id = resourceId(rawId), abort = new AbortController();
+    const id = resourceId(rawId),
+      abort = new AbortController();
     const onAborted = () => abort.abort();
     request.once('aborted', onAborted);
     try {
