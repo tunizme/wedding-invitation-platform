@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -346,10 +347,18 @@ test('child failure and abort stop owned process groups', async () => {
   assert.equal(processes.children.size, 0);
 });
 
-test('handled SIGTERM enters cleanup immediately without exhausting the work budget', async () => {
-  const artifactsRoot = await mkdtemp(join(tmpdir(), 'builder-signal-test-'));
-  const runner = new URL('../builder-validate.mjs', import.meta.url).href;
-  const source = `
+// Windows has no deliverable SIGTERM: process.kill(pid, 'SIGTERM') terminates
+// the process without running handlers, so this behavior is POSIX-only.
+test(
+  'handled SIGTERM enters cleanup immediately without exhausting the work budget',
+  {
+    skip:
+      process.platform === 'win32' && 'SIGTERM handlers cannot run on Windows',
+  },
+  async () => {
+    const artifactsRoot = await mkdtemp(join(tmpdir(), 'builder-signal-test-'));
+    const runner = new URL('../builder-validate.mjs', import.meta.url).href;
+    const source = `
     import assert from 'node:assert/strict';
     import {withOwnedResources} from ${JSON.stringify(runner)};
     const queries=[];
@@ -361,14 +370,38 @@ test('handled SIGTERM enters cleanup immediately without exhausting the work bud
     }),/interrupted/);
     assert.ok(queries.some(query=>query.startsWith('DROP SCHEMA')));
   `;
+    try {
+      const processes = new Processes();
+      await processes.run(
+        process.execPath,
+        ['--input-type=module', '-e', source],
+        { deadline: Date.now() + 2000, stdio: 'pipe' },
+      );
+    } finally {
+      await rm(artifactsRoot, { recursive: true, force: true });
+    }
+  },
+);
+
+
+test('idle database connection errors enter bounded cleanup without exposing server details', async () => {
+  const artifactsRoot = await mkdtemp(join(tmpdir(), 'builder-idle-error-'));
+  const db = Object.assign(new EventEmitter(), database());
+  let resource;
   try {
-    const processes = new Processes();
-    await processes.run(
-      process.execPath,
-      ['--input-type=module', '-e', source],
-      { deadline: Date.now() + 2000, stdio: 'pipe' },
-    );
-  } finally {
-    await rm(artifactsRoot, { recursive: true, force: true });
-  }
+    await assert.rejects(withOwnedResources({
+      env: environment(), budgetMs: 1000, cleanupReserveMs: 200,
+      artifactsRoot, databaseFactory: () => db, storageFactory: storage,
+      report: () => {},
+      run: async (context) => {
+        resource = context;
+        db.emit('error', new Error('private-server-sentinel'));
+        await new Promise(resolve => setTimeout(resolve, 10));
+      },
+    }), error => !error.message.includes('private-server-sentinel'));
+    const cleanup = JSON.parse(await readFile(join(resource.artifacts, 'cleanup.json'), 'utf8'));
+    assert.equal(cleanup.status, 'PASS');
+    assert.ok(db.queries.includes(`DROP SCHEMA "${resource.schema}" CASCADE`));
+    assert.ok(!JSON.stringify(cleanup).includes('private-server-sentinel'));
+  } finally { await rm(artifactsRoot, { recursive: true, force: true }); }
 });

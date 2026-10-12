@@ -23,6 +23,9 @@ test('mobile guest persists once after lost response; owner controls immediately
     user: { email: string; password: string },
   ) {
     await target.goto(builderOrigin + '/login');
+    await expect(
+      target.getByRole('button', { name: 'Đăng nhập', exact: true }),
+    ).toBeEnabled();
     await target.getByLabel('Email', { exact: true }).fill(user.email);
     await target.getByLabel('Mật khẩu', { exact: true }).fill(user.password);
     await target

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import mediaTrigger from '../assets/media-trigger.module.css';
+import { useRef, useState } from 'react';
 import type {
   Binding,
   ComponentName,
@@ -189,6 +190,9 @@ export function BindingPanel({
   disabled: boolean;
 }) {
   const [pickFallback, setPickFallback] = useState(false);
+  // Explicit trigger/fallback targets: WebKit does not focus clicked buttons.
+  const fallbackTriggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLFieldSetElement>(null);
   const kind = node.type.resolvedName,
     current = node.props.bindings[0],
     options = sources(kind);
@@ -244,6 +248,8 @@ export function BindingPanel({
   }
   return (
     <fieldset
+      ref={panelRef}
+      tabIndex={-1}
       aria-label="Liên kết dữ liệu"
       disabled={disabled || node.custom.locked}
     >
@@ -283,7 +289,12 @@ export function BindingPanel({
       )}
       {current && (
         <>
-          <button type="button" onClick={addFallback}>
+          <button
+            className={mediaTrigger.trigger}
+            type="button"
+            ref={fallbackTriggerRef}
+            onClick={addFallback}
+          >
             {current.fallback === undefined
               ? 'Thêm giá trị dự phòng'
               : image
@@ -321,6 +332,8 @@ export function BindingPanel({
           {pickFallback && (
             <AssetLibrary
               choice="Image"
+              returnFocusRef={fallbackTriggerRef}
+              fallbackFocusRef={panelRef}
               onClose={() => setPickFallback(false)}
               onSelect={(asset) => {
                 update({ ...current, fallback: asset.id } as Binding);

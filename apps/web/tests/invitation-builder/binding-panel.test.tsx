@@ -1,5 +1,25 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+const { builderRequest } = vi.hoisted(() => ({ builderRequest: vi.fn() }));
+vi.mock('../../src/features/invitation-builder/api/client', () => ({
+  builderRequest,
+  uploadBuilderAsset: vi.fn(),
+  BuilderApiError: class BuilderApiError extends Error {},
+}));
+vi.mock(
+  '../../src/features/invitation-builder/assets/use-asset-preview',
+  () => ({
+    useAssetPreview: () => ({}),
+  }),
+);
+import { sessionStore } from '../../src/features/identity-access/session/store';
+import { privateSession } from '../identity-access/private-session-fixture';
 import { BindingPanel } from '../../src/features/invitation-builder/editor/binding-panel';
 import {
   primitiveNode,
@@ -7,7 +27,20 @@ import {
 } from '../../src/features/invitation-builder/editor/defaults';
 
 describe('author binding controls', () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    sessionStore.clear();
+  });
+  beforeEach(() => {
+    const session = privateSession();
+    sessionStore.clear();
+    sessionStore.set({ ...session, user: { ...session.user, role: 'ADMIN' } });
+    builderRequest.mockReset();
+    builderRequest.mockResolvedValue({
+      items: [{ id: 'img-1', name: 'Ảnh 1', width: 10, height: 10 }],
+      nextCursor: null,
+    });
+  });
   it('binds an image to a customer photo and can return to static content', () => {
     const onCommand = vi.fn();
     const node = primitiveNode('Image');
@@ -137,5 +170,81 @@ describe('author binding controls', () => {
       screen.getByRole('button', { name: 'Xóa giá trị dự phòng' }),
     );
     expect(onCommand.mock.lastCall![0].value[0]).not.toHaveProperty('fallback');
+  });
+  describe('fallback image library (second entry owner)', () => {
+    const bound = () => {
+      const node = primitiveNode('Image');
+      node.props.bindings = [{ target: 'assetId', source: 'couple.photo' }];
+      return node;
+    };
+
+    it('selects an allowed Admin image as the fallback and returns focus to its trigger', async () => {
+      const onCommand = vi.fn();
+      render(
+        <BindingPanel
+          id="image"
+          node={bound()}
+          onCommand={onCommand}
+          disabled={false}
+        />,
+      );
+      const trigger = screen.getByRole('button', {
+        name: 'Thêm giá trị dự phòng',
+      });
+      fireEvent.click(trigger);
+      expect(
+        await screen.findByRole('dialog', { name: 'Thư viện ảnh' }),
+      ).toBeInTheDocument();
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Chọn Ảnh 1' }),
+      );
+      expect(onCommand).toHaveBeenLastCalledWith({
+        type: 'binding',
+        id: 'image',
+        value: [
+          { target: 'assetId', source: 'couple.photo', fallback: 'img-1' },
+        ],
+      });
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      expect(trigger).toHaveFocus();
+    });
+
+    it('closes without changing the binding and restores the trigger focus', async () => {
+      const onCommand = vi.fn();
+      render(
+        <BindingPanel
+          id="image"
+          node={bound()}
+          onCommand={onCommand}
+          disabled={false}
+        />,
+      );
+      const trigger = screen.getByRole('button', {
+        name: 'Thêm giá trị dự phòng',
+      });
+      fireEvent.click(trigger);
+      await screen.findByRole('dialog', { name: 'Thư viện ảnh' });
+      fireEvent.click(screen.getByRole('button', { name: 'Đóng thư viện' }));
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(onCommand).not.toHaveBeenCalled();
+      expect(trigger).toHaveFocus();
+    });
+
+    it('falls back to the binding panel when the trigger disappears', async () => {
+      const node = bound();
+      const props = { id: 'image', onCommand: vi.fn(), disabled: false };
+      const { rerender } = render(<BindingPanel {...props} node={node} />);
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Thêm giá trị dự phòng' }),
+      );
+      await screen.findByRole('dialog', { name: 'Thư viện ảnh' });
+      // The binding is removed elsewhere, so the trigger (and library) unmount.
+      node.props.bindings = [];
+      rerender(<BindingPanel {...props} node={node} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(
+        screen.getByRole('group', { name: 'Liên kết dữ liệu' }),
+      ).toHaveFocus();
+    });
   });
 });

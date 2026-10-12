@@ -1,7 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Button } from '../../../ui/platform/button';
+import { Field } from '../../../ui/platform/field';
+import { InlineAlert } from '../../../ui/platform/feedback';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from 'react';
+
+const noSubscription = () => () => {};
 import { ApiError, iamRequest } from '../api/client';
 
 const invalid =
@@ -48,6 +59,11 @@ export function EmailRequestForm({
   reset?: boolean;
   initialError?: string;
 }) {
+  const ready = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
   const [email, setEmail] = useState('');
   const [error, setError] = useState(initialError);
   const [pending, setPending] = useState(false);
@@ -55,7 +71,7 @@ export function EmailRequestForm({
   const submitting = useRef(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current) return;
+    if (!ready || submitting.current) return;
     submitting.current = true;
     setPending(true);
     setError('');
@@ -85,10 +101,10 @@ export function EmailRequestForm({
     );
   return (
     <form onSubmit={submit} style={{ display: 'grid', gap: '1rem' }}>
-      {error && <p role="alert">{error}</p>}
-      <label htmlFor="recovery-email">Email</label>
-      <input
+      {error && <InlineAlert tone="error">{error}</InlineAlert>}
+      <Field
         id="recovery-email"
+        label="Email"
         type="email"
         autoComplete="email"
         required
@@ -97,13 +113,13 @@ export function EmailRequestForm({
         onChange={(e) => setEmail(e.target.value)}
         disabled={pending}
       />
-      <button type="submit" disabled={pending}>
+      <Button type="submit" busy={pending} disabled={!ready}>
         {pending
           ? 'Đang gửi…'
           : reset
             ? 'Gửi email khôi phục'
             : 'Gửi lại email xác minh'}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -142,14 +158,15 @@ export function VerifyEmailForm() {
   if (!hasProof || error)
     return <EmailRequestForm initialError={error || invalid} />;
   return (
-    <button type="button" disabled={pending} onClick={confirm}>
+    <Button type="button" busy={pending} onClick={confirm}>
       {pending ? 'Đang xác nhận…' : 'Xác nhận email'}
-    </button>
+    </Button>
   );
 }
 export function ResetPasswordForm() {
   const { proofRef, ready, hasProof } = useFragmentProof();
   const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
@@ -158,7 +175,7 @@ export function ResetPasswordForm() {
     event.preventDefault();
     if (submitting.current || !proofRef.current) return;
     if ([...password].length < 8 || [...password].length > 128) {
-      setError('Mật khẩu cần từ 8 đến 128 ký tự.');
+      setPasswordError('Mật khẩu cần từ 8 đến 128 ký tự.');
       return;
     }
     submitting.current = true;
@@ -193,30 +210,31 @@ export function ResetPasswordForm() {
   if (!hasProof)
     return (
       <>
-        <p role="alert">{invalid}</p>
+        <InlineAlert tone="error">{invalid}</InlineAlert>
         <Link href="/forgot-password">Yêu cầu liên kết mới</Link>
       </>
     );
   return (
     <form onSubmit={submit} style={{ display: 'grid', gap: '1rem' }}>
-      <label htmlFor="reset-password">Mật khẩu mới</label>
-      <input
+      <Field
         id="reset-password"
+        error={passwordError}
+        label="Mật khẩu mới"
+        helper="Từ 8 đến 128 ký tự. Khoảng trắng và chữ hoa được giữ nguyên."
         type="password"
         autoComplete="new-password"
         required
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(e) => {
+          setPassword(e.target.value);
+          setPasswordError('');
+        }}
         disabled={pending}
-        aria-describedby="reset-password-help"
       />
-      <small id="reset-password-help">
-        Từ 8 đến 128 ký tự. Khoảng trắng và chữ hoa được giữ nguyên.
-      </small>
-      {error && <p role="alert">{error}</p>}
-      <button type="submit" disabled={pending}>
+      {error && <InlineAlert tone="error">{error}</InlineAlert>}
+      <Button type="submit" busy={pending}>
         {pending ? 'Đang đổi mật khẩu…' : 'Đặt lại mật khẩu'}
-      </button>
+      </Button>
       <Link href="/forgot-password">Yêu cầu liên kết mới</Link>
     </form>
   );

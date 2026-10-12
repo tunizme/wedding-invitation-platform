@@ -6,6 +6,7 @@ import {
   bootstrapSession,
   logoutAll,
   logoutCurrent,
+  startPeerSync,
 } from './refresh-coordinator';
 import {
   confirmDiscardChanges,
@@ -13,10 +14,25 @@ import {
 } from './navigation-guard';
 import { onSelectorStorageClose, selectorStore } from './auth-selector';
 import { sessionStore } from './store';
+import { Button } from '../../../ui/platform/button';
+import chrome from '../../../ui/platform/session-chrome.module.css';
 
-export function SessionProvider({ children }: { children: ReactNode }) {
+export function SessionProvider({
+  children,
+  showChrome = true,
+}: {
+  children: ReactNode;
+  showChrome?: boolean;
+}) {
   const pathname = usePathname();
-  useEffect(() => installNavigationGuard(), []);
+  useEffect(() => {
+    const stopGuard = installNavigationGuard();
+    const stopPeers = startPeerSync();
+    return () => {
+      stopPeers();
+      stopGuard();
+    };
+  }, []);
   const session = useSyncExternalStore(
     sessionStore.subscribe,
     sessionStore.get,
@@ -51,7 +67,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // strand the next protected page with the previous credential.
     if (
       pathname?.startsWith('/i/') ||
-      pathname === '/internal/invitation-renderer'
+      pathname === '/internal/invitation-renderer' ||
+      // The result page owns intent-scoped admission. Generic bootstrap here
+      // could rotate B while a stale OAuth A result is being displayed.
+      pathname === '/oauth-result'
     )
       return;
     if (!sessionStore.get()) void bootstrapSession().catch(() => undefined);
@@ -59,25 +78,27 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {session ? (
-        <nav aria-label="Phiên đăng nhập">
-          <span>{session.user.email}</span>{' '}
-          <button
+      {session && showChrome ? (
+        <nav aria-label="Phiên đăng nhập" className={chrome.nav}>
+          <span className={chrome.account}>{session.user.email}</span>
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => {
               if (confirmDiscardChanges()) void logoutCurrent();
             }}
           >
             Đăng xuất
-          </button>{' '}
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               if (confirmDiscardChanges()) void logoutAll();
             }}
           >
             Đăng xuất mọi thiết bị
-          </button>
+          </Button>
         </nav>
       ) : null}
       {children}

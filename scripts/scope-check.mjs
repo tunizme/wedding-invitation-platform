@@ -11,11 +11,17 @@ export const isScopePath = (path) => allowedPaths.test(path);
 export const hasForbiddenScope = (content) => forbidden.test(content);
 
 export function scopeViolations(paths) {
-  return paths
-    .filter(isScopePath)
-    .filter((path) =>
-      hasForbiddenScope(readFileSync(`${rootDirectory}/${path}`, 'utf8')),
-    );
+  return paths.filter(isScopePath).filter((path) => {
+    try {
+      return hasForbiddenScope(
+        readFileSync(`${rootDirectory}/${path}`, 'utf8'),
+      );
+    } catch (error) {
+      // Uncommitted route moves leave deleted files in the Git index.
+      if (error.code === 'ENOENT') return false;
+      throw error;
+    }
+  });
 }
 
 export function trackedScopeFiles() {

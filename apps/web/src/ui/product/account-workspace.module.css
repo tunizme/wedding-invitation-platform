@@ -1,0 +1,108 @@
+.workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  width: min(100%, var(--container-page));
+  box-sizing: border-box;
+  margin: auto;
+  padding: 32px;
+  gap: 32px;
+  align-items: start;
+}
+.sidebar {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background);
+  padding: 16px;
+  min-width: 0;
+}
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 8px 24px;
+  overflow-wrap: anywhere;
+}
+.identity > strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.identity > span:last-child {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.avatar {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-beige);
+  color: var(--color-primary);
+}
+.sidebar nav {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+}
+.sidebar nav a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+}
+.sidebar nav a[aria-current='page'],
+.sidebar nav a:hover {
+  background: var(--color-background-soft);
+  color: var(--color-primary);
+}
+.sidebar nav a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.sidebar nav svg {
+  flex-shrink: 0;
+}
+.content {
+  min-width: 0;
+}
+.content > main {
+  padding: 0;
+  min-height: auto;
+}
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 200px minmax(0, 1fr);
+    padding: 24px;
+    gap: 24px;
+  }
+}
+@media (max-width: 767.98px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 20px 16px 40px;
+    gap: 24px;
+  }
+  .sidebar {
+    padding: 8px;
+  }
+  .identity {
+    display: none;
+  }
+  .sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 0;
+    padding: 0;
+  }
+  .sidebar nav a {
+    padding: 8px;
+    font-size: 12px;
+    gap: 8px;
+  }
+}

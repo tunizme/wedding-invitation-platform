@@ -46,7 +46,8 @@ export function PropertiesPanel({
   index: number;
   count: number;
   onCommand: (command: EditorCommand) => void;
-  onReplace: () => void;
+  /** Receives the button so the library can return focus to it explicitly. */
+  onReplace: (trigger: HTMLElement | null) => void;
   disabled: boolean;
 }) {
   const [error, setError] = useState('');
@@ -552,7 +553,7 @@ export function PropertiesPanel({
               disabled={node.props.bindings.some(
                 (binding) => binding.target === 'assetId',
               )}
-              onClick={onReplace}
+              onClick={(event) => onReplace(event.currentTarget)}
             >
               Thay ảnh
             </button>

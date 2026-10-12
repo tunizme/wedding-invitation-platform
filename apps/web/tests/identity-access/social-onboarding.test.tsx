@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,7 +12,7 @@ import {
   ApiError,
   iamRequest,
 } from '../../src/features/identity-access/api/client';
-import SocialOnboardingPage from '../../src/app/(auth)/social-onboarding/page';
+import SocialOnboardingPage from '../../src/app/(product)/(auth)/social-onboarding/page';
 import { sessionStore } from '../../src/features/identity-access/session/store';
 import {
   CONTEXT_ID,
@@ -73,6 +74,56 @@ beforeEach(async () => {
 afterEach(() => cleanup());
 
 describe('social onboarding UI', () => {
+  it('announces loading while the onboarding state is pending', () => {
+    vi.mocked(iamRequest).mockImplementation(() => new Promise(() => {}));
+    render(<SocialOnboardingPage />);
+    expect(screen.getByRole('status')).toHaveTextContent('Đang tải');
+  });
+  it('never reports a stale confirmation as the newer account success', async () => {
+    window.history.replaceState(null, '', '/social-onboarding#token=proof-A');
+    let finish!: (value: AccessSession) => void;
+    vi.mocked(iamRequest)
+      .mockResolvedValueOnce({ ...state, status: 'PENDING_VERIFICATION' })
+      .mockResolvedValueOnce(reserved)
+      .mockImplementationOnce(
+        () =>
+          new Promise<AccessSession>((done) => {
+            finish = done;
+          }),
+      );
+    render(<SocialOnboardingPage />);
+    fireEvent.click(await screen.findByRole('button', { name: /hoàn tất/i }));
+    await waitFor(() => expect(finish).toBeDefined());
+    const b = {
+      ...session,
+      user: { ...session.user, id: 'account-B', email: 'b@example.test' },
+    };
+    act(() => sessionStore.set(b));
+    await act(async () => finish(session));
+    expect(sessionStore.get()?.user.id).toBe('account-B');
+    expect(screen.queryByText(/Đã đăng nhập với/)).toBeNull();
+  });
+  it('discards a delayed onboarding state after a newer account is admitted', async () => {
+    let finish!: (value: unknown) => void;
+    vi.mocked(iamRequest).mockImplementation(
+      () =>
+        new Promise((done) => {
+          finish = done;
+        }),
+    );
+    render(<SocialOnboardingPage />);
+    const finishA = finish;
+    const b = { ...session, user: { ...session.user, id: 'account-B' } };
+    act(() => sessionStore.set(b));
+    await act(async () =>
+      finishA({ ...state, emailCandidate: 'private-A@example.test' }),
+    );
+    expect(sessionStore.get()?.user.id).toBe('account-B');
+    expect(screen.queryByDisplayValue('private-A@example.test')).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /gửi email xác minh/i }),
+    ).toBeNull();
+  });
   it('collects email, requests verification and supports explicit resend', async () => {
     vi.mocked(iamRequest)
       .mockResolvedValueOnce(state)
@@ -113,6 +164,10 @@ describe('social onboarding UI', () => {
     render(<SocialOnboardingPage />);
     fireEvent.click(await screen.findByRole('button', { name: /hoàn tất/i }));
     await screen.findByText(/social@example\.test/i);
+    expect(screen.getByRole('status')).toHaveTextContent('Đã đăng nhập với');
+    expect(
+      screen.getByRole('link', { name: 'Đi đến tài khoản' }),
+    ).toHaveAttribute('href', '/account');
     expect(window.location.hash).toBe('');
     expect(iamRequest).toHaveBeenCalledWith(
       `/auth/contexts/${CONTEXT_ID}/intents`,

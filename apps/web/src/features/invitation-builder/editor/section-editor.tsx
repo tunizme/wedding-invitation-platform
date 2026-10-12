@@ -44,6 +44,10 @@ import { SampleDataPanel, sampleWeddingData } from './sample-data-panel';
 import { PublicationControls } from './publication-controls';
 import type { TemplateLifecycle } from '../api/operations';
 import styles from './section-editor.module.css';
+import workspace from './authoring-workspace.module.css';
+import { EditorHeading } from './editor-heading';
+import { PreviewExit } from './preview-exit';
+import { Undo2, Redo2, Save, Eye } from 'lucide-react';
 function OwnedSectionEditor({
   initial,
   onSaved,
@@ -62,6 +66,10 @@ function OwnedSectionEditor({
   const [sample, setSample] = useState(initial.draftSampleData);
   const sampleRef = useRef(sample);
   const [selectedSample, setSelectedSample] = useState<'A' | 'B'>('A');
+  const [taskPanel, setTaskPanel] = useState<
+    'canvas' | 'components' | 'properties'
+  >('canvas');
+  const [previewOnly, setPreviewOnly] = useState(false);
   const [width, setWidth] = useState<390 | 900>(390);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
@@ -314,15 +322,17 @@ function OwnedSectionEditor({
   const node = document.nodes[selected],
     section = document.sections[selected];
   return (
-    <section className={styles.editor} aria-label="Trình thiết kế sections">
-      <h2>Thiết kế responsive</h2>
-      <p>
-        Sắp xếp nội dung theo sections; kiểm tra mobile và desktop trước khi
-        xuất bản.
-      </p>
+    <section
+      className={`${styles.editor} ${workspace.workspace}`}
+      data-task-panel={taskPanel}
+      data-preview={previewOnly}
+      aria-label="Trình thiết kế sections"
+    >
+      {previewOnly && <PreviewExit onClose={() => setPreviewOnly(false)} />}
+      <EditorHeading title={saved.name} dirty={dirty} responsive />
       <div
         data-section-controls
-        className={`${styles.toolbar} ${styles.controls}`}
+        className={`${workspace.toolbar} ${styles.controls}`}
       >
         <button
           type="button"
@@ -333,7 +343,7 @@ function OwnedSectionEditor({
             setHistory(next);
           }}
         >
-          Hoàn tác
+          <Undo2 size={18} aria-hidden="true" /> Hoàn tác
         </button>
         <button
           type="button"
@@ -344,10 +354,25 @@ function OwnedSectionEditor({
             setHistory(next);
           }}
         >
-          Làm lại
+          <Redo2 size={18} aria-hidden="true" /> Làm lại
         </button>
-        <button type="button" disabled={busy} onClick={() => void save()}>
-          Lưu thiết kế
+        <button
+          className={workspace.saveButton}
+          type="button"
+          disabled={busy}
+          onClick={() => void save()}
+        >
+          <Save size={17} aria-hidden="true" /> Lưu thiết kế
+        </button>
+        <button
+          className={workspace.previewButton}
+          data-preview-trigger
+          type="button"
+          aria-pressed={previewOnly}
+          onClick={() => setPreviewOnly((value) => !value)}
+        >
+          <Eye size={17} aria-hidden="true" />{' '}
+          {previewOnly ? 'Quay lại chỉnh sửa' : 'Chỉ xem thiệp'}
         </button>
         <label>
           Chiều rộng xem trước
@@ -363,17 +388,88 @@ function OwnedSectionEditor({
       {status && <p role="status">{status}</p>}
       {error && <p role="alert">{error}</p>}
       <div
-        data-section-controls
-        className={`${styles.panels} ${styles.controls}`}
+        className={`${workspace.taskTabs} ${styles.controls}`}
+        aria-label="Khu vực thiết kế"
       >
-        <SectionPanel
-          document={document}
-          selected={selected}
-          onSelect={setSelected}
-          onCommand={command}
-          disabled={busy}
-        />
-        <div>
+        {(
+          [
+            ['canvas', 'Thiệp'],
+            ['components', 'Các phần'],
+            ['properties', 'Thuộc tính'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={taskPanel === value}
+            onClick={() => setTaskPanel(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <div
+        className={`${workspace.layout} ${previewOnly ? workspace.previewLayout : ''}`}
+      >
+        <aside
+          hidden={previewOnly}
+          className={`${workspace.components} ${styles.controls}`}
+          data-section-controls
+          aria-label="Các phần của thiệp"
+        >
+          <h2>Bố cục thiệp</h2>
+          <p className={workspace.helper}>
+            Sắp xếp từng phần để kể câu chuyện của bạn.
+          </p>
+          <SectionPanel
+            document={document}
+            selected={selected}
+            onSelect={(id) => {
+              setSelected(id);
+              setTaskPanel('properties');
+            }}
+            onCommand={command}
+            disabled={busy}
+          />
+        </aside>
+        <div className={workspace.canvas}>
+          <div className={workspace.canvasLabel}>
+            <span>{previewOnly ? 'XEM TRƯỚC' : 'THIẾT KẾ RESPONSIVE'}</span>
+            <span>{width}px</span>
+          </div>
+          <div
+            className={styles.preview}
+            style={{ width, maxWidth: '100%' }}
+            data-testid="admin-responsive-preview"
+          >
+            <ScenePreview
+              scene={resolution.scene}
+              context={{
+                mode: 'preview',
+                asOf: new Date().toISOString(),
+                assetUrls,
+              }}
+              bindingIssues={resolution.issues}
+            >
+              <InvitationRenderer
+                scene={resolution.scene}
+                context={{
+                  mode: 'preview',
+                  asOf: new Date().toISOString(),
+                  assetUrls,
+                }}
+              />
+            </ScenePreview>
+          </div>
+        </div>
+        <aside
+          hidden={previewOnly}
+          className={`${workspace.properties} ${styles.controls}`}
+          data-section-controls
+          aria-label="Thuộc tính phần"
+        >
+          <h2>Thuộc tính</h2>
+
           {(section ||
             node?.type === 'Image' ||
             node?.type === 'Decoration') && (
@@ -422,109 +518,91 @@ function OwnedSectionEditor({
               }}
             />
           )}
-        </div>
+        </aside>
       </div>
-      <fieldset
-        data-section-controls
-        className={styles.controls}
-        disabled={busy}
-      >
-        <SampleDataPanel
-          selected={selectedSample}
-          data={sample}
-          assets={assets}
-          onSelect={(value) => {
-            setSelectedSample(value);
-            changeSample(sampleWeddingData(value));
-          }}
-          onChange={changeSample}
-        />
-      </fieldset>
-      <fieldset
-        data-section-controls
-        className={styles.controls}
-        disabled={busy}
-      >
-        <legend>Tái author mẫu canvas cũ</legend>
-        <p>
-          Chọn nội dung và đặt vào section đang chọn. Kiểm tra bố cục mới trước
-          khi xuất bản.
-        </p>
-        <label>
-          Mẫu cũ
-          <select
-            value={sourceId}
-            onChange={(e) => {
-              sourceGeneration.current++;
-              sourceRequest.current?.dispose();
-              sourceRequest.current = null;
-              setSourceId(e.target.value);
-              setSource(null);
-              setSourceLeaf('');
-            }}
-          >
-            <option value="">Chọn mẫu</option>
-            {sourceOptions
-              .filter((option) => option.id !== initial.id)
-              .map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          disabled={!sourceId}
-          onClick={() => void loadSource()}
+      <details className={styles.disclosure}>
+        <summary>Dữ liệu mẫu</summary>
+        <fieldset
+          data-section-controls
+          className={styles.controls}
+          disabled={busy}
         >
-          Tải mẫu cũ
-        </button>
-        {source && (
-          <>
-            <label>
-              Nội dung từ mẫu cũ
-              <select
-                value={sourceLeaf}
-                onChange={(e) => setSourceLeaf(e.target.value)}
-              >
-                {source.nodes.ROOT.nodes.map((id) => (
-                  <option key={id} value={id}>
-                    {(source.nodes[id] as ElementNode).custom.layerName}
+          <SampleDataPanel
+            selected={selectedSample}
+            data={sample}
+            assets={assets}
+            onSelect={(value) => {
+              setSelectedSample(value);
+              changeSample(sampleWeddingData(value));
+            }}
+            onChange={changeSample}
+          />
+        </fieldset>
+      </details>
+      <details className={styles.disclosure}>
+        <summary>Nhập nội dung từ mẫu cũ</summary>
+        <fieldset
+          data-section-controls
+          className={styles.controls}
+          disabled={busy}
+        >
+          <legend>Tái author mẫu canvas cũ</legend>
+          <p>
+            Chọn nội dung và đặt vào section đang chọn. Kiểm tra bố cục mới
+            trước khi xuất bản.
+          </p>
+          <label>
+            Mẫu cũ
+            <select
+              value={sourceId}
+              onChange={(e) => {
+                sourceGeneration.current++;
+                sourceRequest.current?.dispose();
+                sourceRequest.current = null;
+                setSourceId(e.target.value);
+                setSource(null);
+                setSourceLeaf('');
+              }}
+            >
+              <option value="">Chọn mẫu</option>
+              {sourceOptions
+                .filter((option) => option.id !== initial.id)
+                .map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
                   </option>
                 ))}
-              </select>
-            </label>
-            <button type="button" disabled={!sourceLeaf} onClick={copyLegacy}>
-              Đưa nội dung vào section
-            </button>
-          </>
-        )}
-      </fieldset>
-      <div
-        className={styles.preview}
-        style={{ width, maxWidth: '100%' }}
-        data-testid="admin-responsive-preview"
-      >
-        <ScenePreview
-          scene={resolution.scene}
-          context={{
-            mode: 'preview',
-            asOf: new Date().toISOString(),
-            assetUrls,
-          }}
-          bindingIssues={resolution.issues}
-        >
-          <InvitationRenderer
-            scene={resolution.scene}
-            context={{
-              mode: 'preview',
-              asOf: new Date().toISOString(),
-              assetUrls,
-            }}
-          />
-        </ScenePreview>
-      </div>
+            </select>
+          </label>
+          <button
+            type="button"
+            disabled={!sourceId}
+            onClick={() => void loadSource()}
+          >
+            Tải mẫu cũ
+          </button>
+          {source && (
+            <>
+              <label>
+                Nội dung từ mẫu cũ
+                <select
+                  value={sourceLeaf}
+                  onChange={(e) => setSourceLeaf(e.target.value)}
+                >
+                  {source.nodes.ROOT.nodes.map((id) => (
+                    <option key={id} value={id}>
+                      {(source.nodes[id] as ElementNode).custom.layerName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="button" disabled={!sourceLeaf} onClick={copyLegacy}>
+                Đưa nội dung vào section
+              </button>
+            </>
+          )}
+        </fieldset>
+      </details>
       {assetChoice && (
         <AssetLibrary
           choice={assetChoice}

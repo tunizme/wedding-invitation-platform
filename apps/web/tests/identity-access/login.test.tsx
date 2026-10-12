@@ -1,4 +1,6 @@
+import { renderToString } from 'react-dom/server';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,7 +13,7 @@ import {
   ApiError,
   iamRequest,
 } from '../../src/features/identity-access/api/client';
-import LoginPage from '../../src/app/(auth)/login/page';
+import LoginPage from '../../src/app/(product)/(auth)/login/page';
 import { sessionStore } from '../../src/features/identity-access/session/store';
 import {
   installSelector,
@@ -68,6 +70,24 @@ function submit(password = '  Exact Password 🔒  ') {
   fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }));
 }
 
+it('keeps native login submission disabled until hydration while preserving field autofill', () => {
+  const html = renderToString(<LoginPage />);
+  const document = new DOMParser().parseFromString(html, 'text/html');
+  const submit = document.querySelector('button[type="submit"]');
+  expect(submit?.hasAttribute('disabled')).toBe(true);
+  expect(
+    document.querySelector('input[type="email"]')?.getAttribute('autocomplete'),
+  ).toBe('email');
+  expect(
+    document
+      .querySelector('input[type="password"]')
+      ?.getAttribute('autocomplete'),
+  ).toBe('current-password');
+  expect(iamRequest).not.toHaveBeenCalled();
+  render(<LoginPage />);
+  expect(screen.getByRole('button', { name: /^Đăng nhập$/ })).toBeEnabled();
+});
+
 beforeEach(() => {
   vi.mocked(iamRequest).mockReset();
   sessionStore.clear();
@@ -81,6 +101,52 @@ afterEach(() => {
 });
 
 describe('LOCAL login UI and memory-only session', () => {
+  it('offers a reachable account action only after confirmed current-account login', async () => {
+    let complete!: (value: AccessSession) => void;
+    login(() => new Promise((resolve) => (complete = resolve)));
+    render(<LoginPage />);
+    submit();
+    await waitFor(() => expect(loginCalls()).toBe(1));
+    expect(
+      screen.queryByRole('link', { name: 'Quản lý tài khoản' }),
+    ).toBeNull();
+    await act(async () => complete(session));
+    await screen.findByRole('heading', { name: 'Đăng nhập thành công' });
+    expect(
+      screen.getByRole('link', { name: 'Quản lý tài khoản' }),
+    ).toHaveAttribute('href', '/account');
+    act(() =>
+      sessionStore.set({
+        ...session,
+        user: { ...session.user, id: 'account-B', email: 'b@example.test' },
+      }),
+    );
+    expect(
+      screen.queryByRole('link', { name: 'Quản lý tài khoản' }),
+    ).toBeNull();
+    expect(sessionStore.get()?.user.id).toBe('account-B');
+  });
+  it('does not show an old login error after a newer account is admitted', async () => {
+    let fail!: (reason: Error) => void;
+    login(
+      () =>
+        new Promise((_, reject) => {
+          fail = reject;
+        }),
+    );
+    render(<LoginPage />);
+    submit();
+    await waitFor(() => expect(loginCalls()).toBe(1));
+    const b = {
+      ...session,
+      user: { ...session.user, id: 'account-B', email: 'b@example.test' },
+    };
+    act(() => sessionStore.set(b));
+    await act(async () => fail(new ApiError(401)));
+    expect(sessionStore.get()?.user.id).toBe('account-B');
+    expect(screen.queryByText(/email hoặc mật khẩu không đúng/i)).toBeNull();
+    expect(screen.queryByText(/đăng nhập thành công/i)).toBeNull();
+  });
   it('preserves the password, requests cookie credentials and stores the session only in memory', async () => {
     const storage = vi.spyOn(Storage.prototype, 'setItem');
     login(() => Promise.resolve(session));

@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -91,6 +92,7 @@ describe('Admin Customer management UI', () => {
     await waitFor(() =>
       expect(authenticatedRequest).toHaveBeenCalledWith(
         '/admin/customers?limit=20&cursor=next',
+        { scope: expect.objectContaining({ resource: 'AdminCustomerList' }) },
       ),
     );
     fireEvent.change(screen.getByLabelText('Tìm kiếm'), {
@@ -103,6 +105,7 @@ describe('Admin Customer management UI', () => {
     await waitFor(() =>
       expect(authenticatedRequest).toHaveBeenCalledWith(
         '/admin/customers?limit=20&q=alice&status=LOCKED',
+        { scope: expect.objectContaining({ resource: 'AdminCustomerList' }) },
       ),
     );
     expect(
@@ -127,7 +130,12 @@ describe('Admin Customer management UI', () => {
     await waitFor(() =>
       expect(authenticatedRequest).toHaveBeenCalledWith(
         `/admin/customers/${profile.id}/lock`,
-        { method: 'POST' },
+        {
+          method: 'POST',
+          scope: expect.objectContaining({
+            resource: expect.stringContaining('AdminCustomerDetail'),
+          }),
+        },
       ),
     );
     expect(
@@ -135,6 +143,61 @@ describe('Admin Customer management UI', () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mở khóa Customer' }));
     await waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(2));
+  });
+
+  it('does not keep old results visible after a failed load for a new filter by the same Admin', async () => {
+    sessionStore.set(session('ADMIN'));
+    vi.mocked(authenticatedRequest)
+      .mockResolvedValueOnce({
+        items: [detail],
+        page: { hasMore: false, nextCursor: null },
+      })
+      .mockRejectedValueOnce(new Error('offline'));
+    render(<AdminCustomerList />);
+    await screen.findByText('customer@example.test');
+    fireEvent.change(screen.getByLabelText('Tìm kiếm'), {
+      target: { value: 'other' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Tìm' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Không thể tải/);
+    expect(screen.queryByText('customer@example.test')).toBeNull();
+  });
+
+  it('ignores a lock completion of Admin A after Admin B is admitted', async () => {
+    sessionStore.set(session('ADMIN'));
+    let resolveLock!: (value: undefined) => void;
+    vi.mocked(authenticatedRequest).mockResolvedValueOnce(detail);
+    vi.mocked(authenticatedRequest).mockImplementationOnce(
+      () => new Promise((done) => (resolveLock = done)),
+    );
+    // B's own detail load.
+    vi.mocked(authenticatedRequest).mockResolvedValue({
+      ...detail,
+      email: 'admin-b-view@example.test',
+    });
+    render(<AdminCustomerDetail customerId={profile.id} />);
+    await screen.findByText('customer@example.test');
+    fireEvent.click(screen.getByRole('button', { name: 'Khóa Customer' }));
+    await waitFor(() => expect(authenticatedRequest).toHaveBeenCalledTimes(2));
+    act(() =>
+      sessionStore.set({
+        ...session('ADMIN'),
+        user: { ...session('ADMIN').user, id: 'admin-b' },
+      }),
+    );
+    await act(async () => resolveLock(undefined));
+    expect(
+      await screen.findByText('admin-b-view@example.test'),
+    ).toBeInTheDocument();
+    // A's follow-up detail reload after the lock never ran.
+    const detailReads = vi
+      .mocked(authenticatedRequest)
+      .mock.calls.filter(
+        ([path, options]) =>
+          path === `/admin/customers/${profile.id}` &&
+          (options as { scope?: { resource: string } }).scope !== undefined,
+      );
+    expect(detailReads).toHaveLength(2);
   });
 
   it('shows an actionable error state', async () => {

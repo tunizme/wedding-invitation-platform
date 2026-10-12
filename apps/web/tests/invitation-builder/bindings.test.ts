@@ -213,3 +213,49 @@ describe('blank compound binding corpus', () => {
       expect(entry.data).toEqual(before);
     });
 });
+
+describe('Customer data order versus template layers (005 US4)', () => {
+  it('follows timeline data order without reordering template layers or mutating the pinned design', () => {
+    const document = read<TemplateDesign>('all-elements.json');
+    const data = read<WeddingData>('sample-a.json');
+    const entries = data.timeline ?? [];
+    expect(entries.length).toBeGreaterThan(1);
+    const before = structuredClone(document);
+    const layers = (
+      scene: import('../../src/features/invitation-builder/document/types').ResolvedScene,
+    ) => scene.elements.map((element) => element.id);
+    const timeline = (
+      scene: import('../../src/features/invitation-builder/document/types').ResolvedScene,
+    ) => scene.elements.find((element) => element.type === 'Timeline');
+
+    const forward = resolveDesign(document, data, preview);
+    const reversed = resolveDesign(
+      document,
+      { ...data, timeline: [...entries].reverse() },
+      preview,
+    );
+    // Layers keep the authored z-order whatever the Customer's data order is.
+    expect(layers(reversed.scene)).toEqual(layers(forward.scene));
+    expect(layers(forward.scene)).toEqual(
+      document.nodes.ROOT.nodes.filter((id) =>
+        forward.scene.elements.some((e) => e.id === id),
+      ),
+    );
+    // The widget itself shows entries in the order the Customer supplied them.
+    const titles = (
+      scene: import('../../src/features/invitation-builder/document/types').ResolvedScene,
+    ) => {
+      const widget = timeline(scene);
+      return widget?.type === 'Timeline'
+        ? (widget.content.entries ?? []).map(
+            (entry: { title: string }) => entry.title,
+          )
+        : [];
+    };
+    expect(titles(forward.scene)).toEqual(entries.map((entry) => entry.title));
+    expect(titles(reversed.scene)).toEqual(
+      [...entries].reverse().map((entry) => entry.title),
+    );
+    expect(document).toEqual(before);
+  });
+});

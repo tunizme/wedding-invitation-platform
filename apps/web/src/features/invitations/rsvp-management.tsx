@@ -6,12 +6,20 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
+import {
+  usePrivateOwner,
+  useOperationLifetime,
+} from '../identity-access/session/operation-scope';
+import { Button } from '../../ui/platform/button';
+import { InlineAlert, LocalStatus } from '../../ui/platform/feedback';
+import styles from './rsvp-management.module.css';
 import { sessionStore } from '../identity-access/session/store';
 import { getInvitation } from './api';
 import { listRsvps, setRsvpState } from './rsvp-owner-api';
 import { BuilderApiError } from '../invitation-builder/api/client';
 import type { RsvpItem } from './rsvp-api';
 export function RsvpManagement({ id }: { id: string }) {
+  const owner = usePrivateOwner(id, 'CUSTOMER');
   const session = useSyncExternalStore(
     sessionStore.subscribe,
     sessionStore.get,
@@ -24,9 +32,10 @@ export function RsvpManagement({ id }: { id: string }) {
   // instance, including its async admission guard and outstanding generations.
   return (
     <OwnedRsvpManagement
-      key={`${session.user.id}:${id}`}
+      key={owner}
       id={id}
       customerId={session.user.id}
+      epoch={sessionStore.identityEpoch()}
     />
   );
 }
@@ -34,18 +43,23 @@ export function RsvpManagement({ id }: { id: string }) {
 function OwnedRsvpManagement({
   id,
   customerId,
+  epoch,
 }: {
   id: string;
   customerId: string;
+  epoch: number;
 }) {
+  const lifetime = useOperationLifetime(`RsvpManagement:${id}`);
   const authorized = useCallback(() => {
     const user = sessionStore.get()?.user;
     return (
+      lifetime.isActive() &&
+      sessionStore.identityEpoch() === epoch &&
       user?.id === customerId &&
       user.role === 'CUSTOMER' &&
       user.status === 'ACTIVE'
     );
-  }, [customerId]);
+  }, [customerId, epoch, lifetime]);
   const [items, setItems] = useState<RsvpItem[]>([]),
     [cursor, setCursor] = useState<string | null>(null),
     [control, setControl] = useState<{
@@ -62,12 +76,13 @@ function OwnedRsvpManagement({
     if (operation.current || !authorized()) return;
     operation.current = true;
     const current = ++generation.current;
+    const scope = lifetime.capture();
     setBusy(true);
     setError('');
     try {
       const [detail, page] = await Promise.all([
-        getInvitation(id),
-        listRsvps(id),
+        getInvitation(id, { scope }),
+        listRsvps(id, undefined, { scope }),
       ]);
       if (current !== generation.current || !authorized()) return;
       setControl({
@@ -84,10 +99,11 @@ function OwnedRsvpManagement({
           cause instanceof Error ? cause.message : 'Không thể tải phản hồi.',
         );
     } finally {
+      scope.dispose();
       operation.current = false;
       if (current === generation.current && authorized()) setBusy(false);
     }
-  }, [id, authorized]);
+  }, [id, authorized, lifetime]);
   const invalidate = useCallback(() => {
     generation.current++;
   }, []);
@@ -106,11 +122,13 @@ function OwnedRsvpManagement({
     setBusy(true);
     setError('');
     const current = generation.current;
+    const scope = lifetime.capture();
     try {
       const result = await setRsvpState(
         id,
         control.controlVersion,
         !control.rsvpOpen,
+        { scope },
       );
       if (current === generation.current && authorized()) setControl(result);
     } catch (cause) {
@@ -131,6 +149,7 @@ function OwnedRsvpManagement({
           );
       }
     } finally {
+      scope.dispose();
       operation.current = false;
       if (current === generation.current && authorized()) setBusy(false);
     }
@@ -141,8 +160,9 @@ function OwnedRsvpManagement({
     setBusy(true);
     setError('');
     const current = generation.current;
+    const scope = lifetime.capture();
     try {
-      const page = await listRsvps(id, cursor);
+      const page = await listRsvps(id, cursor, { scope });
       if (current === generation.current && authorized()) {
         setItems((previous) => {
           const seen = new Set(previous.map((item) => item.id));
@@ -159,47 +179,77 @@ function OwnedRsvpManagement({
           cause instanceof Error ? cause.message : 'Không thể tải phản hồi.',
         );
     } finally {
+      scope.dispose();
       operation.current = false;
       if (current === generation.current && authorized()) setBusy(false);
     }
   }
   return (
-    <section aria-label="Quản lý RSVP">
+    <section aria-label="Quản lý RSVP" className={styles.workspace}>
       {control && (
-        <>
+        <div className={styles.control}>
+          <div>
+            <h2>Lời hẹn từ những người thương</h2>
+            <p className={styles.description}>
+              Khách mời xác nhận tham dự từ đường dẫn thiệp công khai.
+            </p>
+          </div>
           <p role="status">
             Nhận RSVP: {control.rsvpOpen ? 'Đang mở' : 'Đã đóng'}
           </p>
-          <button disabled={busy || stale} onClick={() => void toggle()}>
+          <Button
+            variant="secondary"
+            disabled={busy || stale}
+            onClick={() => void toggle()}
+          >
             {control.rsvpOpen ? 'Đóng nhận RSVP' : 'Mở nhận RSVP'}
-          </button>
-        </>
+          </Button>
+        </div>
       )}
-      <button disabled={busy} onClick={() => void load()}>
+      <Button variant="secondary" disabled={busy} onClick={() => void load()}>
         Tải lại phản hồi
-      </button>
-      {busy && <p role="status">Đang tải…</p>}
-      {error && <p role="alert">{error}</p>}
+      </Button>
+      {busy && <LocalStatus tone="neutral">Đang tải…</LocalStatus>}
+      {error && <InlineAlert tone="error">{error}</InlineAlert>}
       {loaded && items.length === 0 && <p>Chưa có phản hồi.</p>}
-      <ol>
-        {items.map((item) => (
-          <li key={item.id}>
-            <strong>{item.name}</strong> ·{' '}
-            {item.attendance === 'ATTENDING' ? 'Có tham dự' : 'Không tham dự'} ·{' '}
-            {item.partySize} người
-            <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-              {item.message}
-            </p>
-            <time dateTime={item.createdAt}>
-              {new Date(item.createdAt).toLocaleString('vi-VN')}
-            </time>
-          </li>
-        ))}
-      </ol>
+      <div className={styles.responses}>
+        <div className={styles.tableHeading} aria-hidden="true">
+          <span>Khách mời</span>
+          <span>Tham dự</span>
+          <span>Số người</span>
+          <span>Lời nhắn</span>
+          <span>Thời gian</span>
+        </div>
+        <ol>
+          {items.map((item) => (
+            <li key={item.id}>
+              <strong>{item.name}</strong>
+              <span
+                className={
+                  item.attendance === 'ATTENDING'
+                    ? styles.attending
+                    : styles.declined
+                }
+              >
+                {item.attendance === 'ATTENDING'
+                  ? 'Có tham dự'
+                  : 'Không tham dự'}
+              </span>
+              <span>{item.partySize} người</span>
+              <p className={styles.message}>
+                {item.message || 'Chưa có lời nhắn'}
+              </p>
+              <time dateTime={item.createdAt}>
+                {new Date(item.createdAt).toLocaleString('vi-VN')}
+              </time>
+            </li>
+          ))}
+        </ol>
+      </div>
       {cursor && (
-        <button disabled={busy} onClick={() => void more()}>
+        <Button variant="secondary" disabled={busy} onClick={() => void more()}>
           Phản hồi tiếp
-        </button>
+        </Button>
       )}
     </section>
   );

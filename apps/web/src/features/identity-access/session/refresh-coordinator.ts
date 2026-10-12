@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  combinedDeadline,
+  createOperationScope,
+  withSignal,
+  type OperationScope,
+} from './operation-scope';
 import { ApiError, iamRequest, type AccessSession } from '../api/client';
 import {
   acquireRefreshLease,
@@ -35,10 +41,8 @@ type SessionMessage =
   | { type: 'session'; session: AccessSession; admission: Admission }
   | { type: 'logout' };
 
-const channel =
-  typeof window === 'undefined' || typeof BroadcastChannel === 'undefined'
-    ? undefined
-    : new BroadcastChannel('wedding-auth-session');
+let channel: BroadcastChannel | undefined;
+let peerSyncOwners = 0;
 
 const peerWaiters = new Set<() => void>();
 
@@ -98,6 +102,9 @@ export async function adoptIfCurrent(
               revision: admission.contextRevision,
               pendingIntent: null,
               recoveryReason: null,
+              // The lease belongs to the previous session. Its late release
+              // is attempt-scoped and cannot clear a new B renewal lease.
+              refreshLease: null,
             }
           : undefined,
         result: true,
@@ -153,10 +160,34 @@ export async function acceptPeerSession(message: SessionMessage) {
   peerWaiters.clear();
 }
 
-channel?.addEventListener('message', (event: MessageEvent<SessionMessage>) => {
+const receivePeer = (event: MessageEvent<SessionMessage>) => {
   if (event.data?.type === 'session' || event.data?.type === 'logout')
     void acceptPeerSession(event.data);
-});
+};
+
+/** Product providers own peer listeners; importing this module has no browser effects. */
+export function startPeerSync(): () => void {
+  peerSyncOwners++;
+  if (
+    peerSyncOwners === 1 &&
+    typeof window !== 'undefined' &&
+    typeof BroadcastChannel !== 'undefined'
+  ) {
+    channel = new BroadcastChannel('wedding-auth-session');
+    channel.addEventListener('message', receivePeer);
+  }
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (--peerSyncOwners > 0) return;
+    channel?.removeEventListener('message', receivePeer);
+    channel?.close();
+    channel = undefined;
+    for (const wake of peerWaiters) wake();
+    peerWaiters.clear();
+  };
+}
 
 function publish(message: SessionMessage) {
   channel?.postMessage(message);
@@ -218,10 +249,13 @@ async function inspectAdmission(store: SelectorStore, timeoutMs?: number) {
 async function refreshOnce(
   store: SelectorStore,
   scope?: RefreshScope,
+  active: () => boolean = () => true,
 ): Promise<AccessSession | null> {
+  if (!active()) return null;
   const originVersion = sessionStore.version();
   const original = sessionStore.get();
   const record = await inspectAdmission(store);
+  if (!active()) return null;
   if (
     scope &&
     (record.contextId !== scope.contextId ||
@@ -244,6 +278,18 @@ async function refreshOnce(
     // recovery reason so the global notice can explain why bootstrap was denied.
     else if (!current && !sessionStore.admission()) sessionStore.clear(reason);
   };
+  const endSuperseded = async () => {
+    const selected = await inspectAdmission(store);
+    // The pending login still owns the selected A context until B is admitted.
+    // A superseded renewal must not change that login's local version fence.
+    if (
+      selected.contextId === auth.contextId &&
+      selected.sessionTag === auth.sessionTag &&
+      selected.pendingIntent?.kind === 'LOCAL_LOGIN'
+    )
+      return;
+    endOriginal('SUPERSEDED');
+  };
   let refreshDispatched = false;
   try {
     const { csrfToken } = await iamRequest<{ csrfToken: string }>(
@@ -253,6 +299,7 @@ async function refreshOnce(
         auth,
       },
     );
+    if (!active()) return null;
     refreshDispatched = true;
     const session = await iamRequest<AccessSession>('/auth/refresh', {
       method: 'POST',
@@ -261,6 +308,9 @@ async function refreshOnce(
       auth,
       expectProtocol: true,
     });
+    // Let the cookie-writing response settle, then discard its UI admission if
+    // the product provider was removed while the request was in flight.
+    if (!active()) return null;
     const admission: Admission = {
       contextId: record.contextId,
       sessionTag: session.sessionTag ?? '',
@@ -276,8 +326,7 @@ async function refreshOnce(
         scope?.attemptId,
       ))
     ) {
-      // A newer transition is known locally: never admit this result.
-      endOriginal('SUPERSEDED');
+      await endSuperseded();
       return null;
     }
     if (
@@ -293,11 +342,13 @@ async function refreshOnce(
     publish({ type: 'session', session, admission });
     return session;
   } catch (error) {
+    if (!active()) return null;
     // An error belongs to the original snapshot too: it cannot retire B.
     const stillCurrent = await store
       .transact((selected) => ({
         result:
           selected?.state === 'SELECTED' &&
+          selected.attemptId === record.attemptId &&
           (!scope || selected.attemptId === scope.attemptId) &&
           selected.contextId === expected.contextId &&
           selected.sessionTag === expected.sessionTag &&
@@ -306,7 +357,7 @@ async function refreshOnce(
       .catch(() => false);
     if (!stillCurrent) return null;
     if (error instanceof ApiError && error.code === 'SUPERSEDED') {
-      endOriginal('SUPERSEDED');
+      await endSuperseded();
       return null;
     }
     const reason =
@@ -321,7 +372,8 @@ async function refreshOnce(
                 error.knowledge === 'NOT_DISPATCHED')
             ? 'NOT_DISPATCHED'
             : operationFailureReason(error);
-    if (await requireRecovery(store, reason, expected)) endOriginal(reason);
+    if (await requireRecovery(store, reason, expected, record.attemptId))
+      endOriginal(reason);
     return null;
   }
 }
@@ -331,15 +383,23 @@ let refreshFlight: Promise<AccessSession | null> | undefined;
 async function coordinatedRefresh(
   scope?: RefreshScope,
 ): Promise<AccessSession | null> {
+  // A refresh started under a mounted provider is dropped only while NO provider
+  // is mounted. Comparing generations instead would also cancel the refresh when
+  // React StrictMode (next dev) unmounts and remounts the provider at once, and
+  // the remounted provider would then share that cancelled flight and never
+  // refresh at all.
+  const ownedByProvider = peerSyncOwners > 0;
+  const active = () => !ownedByProvider || peerSyncOwners > 0;
   const originVersion = sessionStore.version();
   let store: SelectorStore;
   try {
     store = await selectorStore();
   } catch {
-    if (sessionStore.version() === originVersion)
+    if (active() && sessionStore.version() === originVersion)
       sessionStore.clear('STORAGE_UNAVAILABLE');
     return null;
   }
+  if (!active()) return null;
   const attemptId = crypto.randomUUID();
   // A lease left by a closed/crashed tab expires after LEASE_MS; a refresh it
   // still had in flight can at worst trigger 003 reuse revocation (no grace).
@@ -348,6 +408,7 @@ async function coordinatedRefresh(
   let superseded = false;
   try {
     while (
+      active() &&
       !(await acquireRefreshLease(
         store,
         attemptId,
@@ -355,19 +416,21 @@ async function coordinatedRefresh(
         Math.max(0, deadline - Date.now()),
         (record) => {
           queued ??= record;
+          const owner = scope ?? queued;
           superseded =
-            !!scope &&
-            (record.contextId !== scope.contextId ||
-              record.attemptId !== scope.attemptId ||
-              record.sessionTag !== scope.sessionTag);
+            record.contextId !== owner.contextId ||
+            record.attemptId !== owner.attemptId ||
+            record.sessionTag !== owner.sessionTag;
         },
       ))
     ) {
+      if (!active()) return null;
       // An old result page never waits on B's lease or publishes B's queue failure.
-      if (superseded) return null;
+      if (superseded && scope) return null;
       if (Date.now() >= deadline)
         throw new ApiError(0, 'QUEUE_TIMEOUT', 'NOT_DISPATCHED');
       await waitForPeer(Math.min(1_000, deadline - Date.now()));
+      if (!active()) return null;
       if (Date.now() >= deadline)
         throw new ApiError(0, 'QUEUE_TIMEOUT', 'NOT_DISPATCHED');
       const cached = sessionStore.get();
@@ -377,7 +440,12 @@ async function coordinatedRefresh(
         store,
         Math.max(0, deadline - Date.now()),
       );
-      if (cached && admission && !scope) {
+      if (
+        cached &&
+        admission &&
+        !scope &&
+        sessionStore.version() > originVersion
+      ) {
         if (
           !endAdmissionReason(selected, admission) &&
           sessionStore.get() === cached &&
@@ -385,6 +453,7 @@ async function coordinatedRefresh(
         )
           return cached;
       }
+      if (superseded) return null;
       if (
         selected.state !== 'SELECTED' ||
         selected.pendingIntent?.kind === 'LOGOUT'
@@ -394,6 +463,7 @@ async function coordinatedRefresh(
         throw new ApiError(0, 'QUEUE_TIMEOUT', 'NOT_DISPATCHED');
     }
   } catch (error) {
+    if (!active()) return null;
     if (error instanceof ApiError && error.code === 'QUEUE_TIMEOUT') {
       await store
         .transact((record) => {
@@ -438,7 +508,36 @@ async function coordinatedRefresh(
   if (typeof window !== 'undefined')
     window.addEventListener('pagehide', release);
   try {
-    return await refreshOnce(store, scope);
+    if (active() && superseded && !scope) {
+      const cached = sessionStore.get();
+      const admission = sessionStore.admission();
+      const selected = await inspectAdmission(store);
+      // A peer may already have admitted B while the lease transaction was
+      // pending. Return that validated admission without renewing it for A.
+      return cached &&
+        admission &&
+        !endAdmissionReason(selected, admission) &&
+        sessionStore.get() === cached &&
+        admission.contextRevision >= selected.revision
+        ? cached
+        : null;
+    }
+    // Acquiring a newly released lease can race with a different login's
+    // admission. A queued renewal must never dispatch for that newer owner.
+    return active() && !superseded
+      ? await refreshOnce(
+          store,
+          scope ??
+            (queued?.contextId && queued.sessionTag && queued.attemptId
+              ? {
+                  contextId: queued.contextId,
+                  attemptId: queued.attemptId,
+                  sessionTag: queued.sessionTag,
+                }
+              : undefined),
+          active,
+        )
+      : null;
   } finally {
     if (typeof window !== 'undefined')
       window.removeEventListener('pagehide', release);
@@ -461,37 +560,76 @@ export function bootstrapSession(
 
 export async function authenticatedRequest<T>(
   path: string,
-  options: RequestOptions = {},
+  options: RequestOptions & { scope?: OperationScope } = {},
 ): Promise<T> {
   const current = sessionStore.get();
-  const belongsToOrigin = (next: AccessSession | null) =>
-    !current ||
-    (next?.user.id === current.user.id &&
-      (!current.sessionTag || next.sessionTag === current.sessionTag));
+  const ownScope = options.scope ?? createOperationScope(path);
+  const deadline = combinedDeadline(options.signal);
+  const signal = AbortSignal.any([deadline.signal, ownScope.signal]);
+  const { scope: _scope, ...transport } = options;
+  void _scope;
+  // Cookie-writing requests (e.g. password change) must still be delivered after
+  // the owner ends: aborting the fetch would drop the response and its
+  // Set-Cookie, which 006's cookie ledger needs acknowledged. The caller is still
+  // rejected immediately through `signal`; only the 15s deadline bounds the fetch.
+  const fetchSignal = transport.cookieAuth ? deadline.signal : signal;
+  // Once a request left the browser, a superseded owner can no longer claim
+  // NOT_DISPATCHED: the server may have committed, so the truthful knowledge is
+  // UNCERTAIN (006: no replay, no claimed outcome).
+  let dispatched = false;
+  const check = () => {
+    if (!ownScope.isActive())
+      throw new ApiError(
+        409,
+        'SUPERSEDED',
+        dispatched ? 'UNCERTAIN' : 'NOT_DISPATCHED',
+      );
+  };
   try {
-    return await iamRequest<T>(path, {
-      ...options,
-      accessToken: current?.accessToken,
-    });
+    check();
+    try {
+      const value = await withSignal(() => {
+        dispatched = true;
+        return iamRequest<T>(path, {
+          ...transport,
+          signal: fetchSignal,
+          accessToken: current?.accessToken,
+        });
+      }, signal);
+      check();
+      return value;
+    } catch (error) {
+      check();
+      if (
+        !(error instanceof ApiError) ||
+        error.status !== 401 ||
+        path === '/auth/refresh' ||
+        path === '/auth/csrf' ||
+        !current
+      )
+        throw error;
+    }
+    check();
+    const refreshed = await withSignal(() => bootstrapSession(), signal);
+    check();
+    if (!refreshed) throw new ApiError(401);
+    const value = await withSignal(() => {
+      dispatched = true;
+      return iamRequest<T>(path, {
+        ...transport,
+        signal: fetchSignal,
+        accessToken: refreshed.accessToken,
+      });
+    }, signal);
+    check();
+    return value;
   } catch (error) {
-    if (
-      !(error instanceof ApiError) ||
-      error.status !== 401 ||
-      path === '/auth/refresh' ||
-      path === '/auth/csrf'
-    )
-      throw error;
+    check();
+    throw error;
+  } finally {
+    deadline.dispose();
+    if (!options.scope) ownScope.dispose();
   }
-  // A late 401 cannot replay a request (especially password mutation) under B.
-  if (!belongsToOrigin(sessionStore.get()))
-    throw new ApiError(409, 'SUPERSEDED');
-  const refreshed = await bootstrapSession();
-  if (!refreshed) throw new ApiError(401);
-  if (!belongsToOrigin(refreshed)) throw new ApiError(409, 'SUPERSEDED');
-  return iamRequest<T>(path, {
-    ...options,
-    accessToken: refreshed.accessToken,
-  });
 }
 
 /**

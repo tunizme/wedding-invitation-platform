@@ -96,6 +96,7 @@ it('uses mobile host max390 with no Customer device/design controls and sends on
   render(<CustomerInvitationForm id={detail.id} />);
   await screen.findByLabelText('Tên cô dâu');
   expect(screen.queryByLabelText('Thiết bị')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Xem trước' }));
   expect(screen.getByTestId('customer-preview-host')).toHaveStyle({
     width: '390px',
     maxWidth: '100%',
@@ -104,6 +105,7 @@ it('uses mobile host max390 with no Customer device/design controls and sends on
     'data-policy',
     'mobile',
   );
+  fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa' }));
   fireEvent.change(screen.getByLabelText('Tên cô dâu'), {
     target: { value: 'Mai mới' },
   });

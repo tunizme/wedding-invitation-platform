@@ -1,9 +1,11 @@
 .editor {
-  display: grid;
-  gap: var(--space-6, 24px);
-  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  box-sizing: border-box;
   margin-inline: auto;
-  padding: var(--space-4, 16px);
+  padding: 0;
   color: var(--color-text, #29251f);
 }
 .controls {
@@ -44,7 +46,7 @@
   min-height: 44px;
   padding: 8px;
   border: 1px solid var(--color-control-border, #66584a);
-  border-radius: 6px;
+  border-radius: 8px;
   font: inherit;
   color: inherit;
   background: white;
@@ -62,7 +64,7 @@
   color: inherit;
   background: var(--color-background, #fdfbf7);
   border: 1px solid var(--color-control-border, #66584a);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 }
 .controls button:disabled {
@@ -93,4 +95,19 @@
   .editor * {
     scroll-behavior: auto;
   }
+}
+
+.disclosure {
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+  border-radius: 0;
+  padding: 10px 24px;
+  max-height: 240px;
+  overflow: auto;
+  background: var(--color-background);
+}
+.disclosure > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
 }

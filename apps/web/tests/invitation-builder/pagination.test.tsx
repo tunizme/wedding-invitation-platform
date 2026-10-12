@@ -12,12 +12,18 @@ const mocks = vi.hoisted(() => ({
   invitations: vi.fn(),
   request: vi.fn(),
   push: vi.fn(),
-  session: { user: { role: 'CUSTOMER' } },
+  session: {
+    user: { id: 'fixture-customer', role: 'CUSTOMER', status: 'ACTIVE' },
+  },
 }));
 vi.mock('next/dynamic', () => ({ default: () => () => null }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock('../../src/features/identity-access/session/store', () => ({
-  sessionStore: { subscribe: () => () => {}, get: () => mocks.session },
+  sessionStore: {
+    identityEpoch: () => 1,
+    subscribe: () => () => {},
+    get: () => mocks.session,
+  },
 }));
 vi.mock('../../src/features/invitations/api', () => ({
   listTemplateChoices: mocks.templates,
@@ -58,13 +64,22 @@ describe('customer list pagination', () => {
     await screen.findByText('Mẫu A');
     fireEvent.click(screen.getByRole('button', { name: 'Tải thêm mẫu' }));
     await screen.findByText('Mẫu B');
-    expect(mocks.templates).toHaveBeenNthCalledWith(2, 'cursor=next-page');
+    expect(mocks.templates).toHaveBeenNthCalledWith(
+      2,
+      'cursor=next-page',
+      expect.objectContaining({
+        scope: expect.objectContaining({ resource: 'CustomerTemplatePicker' }),
+      }),
+    );
     expect(screen.getByText('Mẫu A')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Danh mục'), {
       target: { value: 'Spring' },
     });
     await waitFor(() =>
-      expect(mocks.templates).toHaveBeenLastCalledWith('category=Spring'),
+      expect(mocks.templates).toHaveBeenLastCalledWith(
+        'category=Spring',
+        expect.objectContaining({ scope: expect.anything() }),
+      ),
     );
     expect(screen.queryByRole('button', { name: 'Tải thêm mẫu' })).toBeNull();
   });
@@ -82,8 +97,11 @@ describe('customer list pagination', () => {
     fireEvent.click(
       await screen.findByRole('button', { name: 'Tải thêm thiệp' }),
     );
-    await screen.findByText(/PUBLISHED/);
-    expect(mocks.invitations).toHaveBeenLastCalledWith('cursor=cursor');
+    await screen.findByText('Đã xuất bản');
+    expect(mocks.invitations).toHaveBeenLastCalledWith(
+      'cursor=cursor',
+      expect.objectContaining({ scope: expect.anything() }),
+    );
     expect(
       screen.getAllByRole('link', { name: 'Chỉnh thông tin thiệp' }),
     ).toHaveLength(2);
@@ -140,7 +158,6 @@ describe('admin template query ownership', () => {
   });
   it('refreshes the current filter when duplicate completes after a search', async () => {
     const mutation = deferred<unknown>();
-    vi.spyOn(window, 'prompt').mockReturnValue('Copy');
     mocks.request
       .mockResolvedValueOnce(listPage('Winter'))
       .mockReturnValueOnce(mutation.promise)
@@ -149,6 +166,10 @@ describe('admin template query ownership', () => {
     fireEvent.click(
       await screen.findByRole('button', { name: 'Nhân bản Winter' }),
     );
+    fireEvent.change(screen.getByLabelText('Tên bản sao'), {
+      target: { value: 'Copy' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Nhân bản mẫu' }));
     search('Spring');
     await screen.findByRole('link', { name: 'Spring' });
     mutation.resolve({});
@@ -160,7 +181,6 @@ describe('admin template query ownership', () => {
   });
   it('ignores a duplicate refresh that resolves after a newer filter', async () => {
     const refresh = deferred<ReturnType<typeof listPage>>();
-    vi.spyOn(window, 'prompt').mockReturnValue('Copy');
     mocks.request
       .mockResolvedValueOnce(listPage('Winter'))
       .mockResolvedValueOnce({})
@@ -170,6 +190,10 @@ describe('admin template query ownership', () => {
     fireEvent.click(
       await screen.findByRole('button', { name: 'Nhân bản Winter' }),
     );
+    fireEvent.change(screen.getByLabelText('Tên bản sao'), {
+      target: { value: 'Copy' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Nhân bản mẫu' }));
     await waitFor(() => expect(mocks.request).toHaveBeenCalledTimes(3));
     search('Spring');
     await screen.findByRole('link', { name: 'Spring' });

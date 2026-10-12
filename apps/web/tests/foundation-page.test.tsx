@@ -1,17 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
-import FoundationPage from '../src/app/page';
+import { describe, expect, it } from 'vitest';
+import FoundationPage from '../src/app/(product)/page';
 
-describe('foundation page', () => {
-  beforeEach(() => {
-    process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:3001/api/v1';
-  });
-
-  it('renders without contacting the backend', () => {
+describe('005 US5 product home', () => {
+  it('presents the approved introduction without backend configuration or mock catalog', () => {
     render(<FoundationPage />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Lời mời nhỏ. Ngày thật lớn.',
+    );
     expect(
-      screen.getByRole('heading', { name: 'Wedding Invitation Platform' }),
-    ).toBeVisible();
-    expect(screen.getByText(/ready for MVP feature development/)).toBeVisible();
+      screen.getByRole('link', { name: /Khám phá mẫu cưới/ }),
+    ).toHaveAttribute('href', '/login');
+    expect(screen.queryByText(/REST API base/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Hình ảnh minh họa/)).toBeVisible();
   });
 });

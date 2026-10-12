@@ -7,20 +7,14 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { sessionStore } from '../../src/features/identity-access/session/store';
+import { privateSession } from '../identity-access/private-session-fixture';
 const api = vi.hoisted(() => ({
   state: vi.fn(),
   submit: vi.fn(),
   get: vi.fn(),
   list: vi.fn(),
   control: vi.fn(),
-  session: {
-    user: { id: 'owner-A', role: 'CUSTOMER', status: 'ACTIVE' },
-    accessToken: 'token-A',
-  } as {
-    user: { id: string; role: string; status: string };
-    accessToken: string;
-  } | null,
-  listeners: new Set<() => void>(),
 }));
 vi.mock('../../src/features/invitations/rsvp-api', async (original) => ({
   ...(await original<
@@ -35,17 +29,6 @@ vi.mock('../../src/features/invitations/api', () => ({
 vi.mock('../../src/features/invitations/rsvp-owner-api', () => ({
   listRsvps: api.list,
   setRsvpState: api.control,
-}));
-vi.mock('../../src/features/identity-access/session/store', () => ({
-  sessionStore: {
-    subscribe: (listener: () => void) => {
-      api.listeners.add(listener);
-      return () => {
-        api.listeners.delete(listener);
-      };
-    },
-    get: () => api.session,
-  },
 }));
 import { RsvpManagement } from '../../src/features/invitations/rsvp-management';
 import { PublicRsvpError } from '../../src/features/invitations/rsvp-api';
@@ -63,10 +46,9 @@ afterEach(() => {
 });
 beforeEach(() => {
   vi.resetAllMocks();
-  api.session = {
-    user: { id: 'owner-A', role: 'CUSTOMER', status: 'ACTIVE' },
-    accessToken: 'token-A',
-  };
+  sessionStore.clear();
+  const session = privateSession();
+  sessionStore.set({ ...session, user: { ...session.user, id: 'owner-A' } });
   api.state.mockResolvedValue({ open: true, available: true });
 });
 async function fill() {
@@ -165,7 +147,7 @@ describe('public RSVP persistence UX', () => {
 
 describe('RSVP owner list/control', () => {
   beforeEach(() => {
-    api.session!.user.role = 'CUSTOMER';
+    changeSession('owner-A');
     api.get.mockResolvedValue({ rsvpOpen: true, controlVersion: 1 });
     api.list.mockResolvedValue({ items: [], nextCursor: null });
   });
@@ -186,7 +168,9 @@ describe('RSVP owner list/control', () => {
     api.control.mockResolvedValue({ rsvpOpen: true, controlVersion: 3 });
     fireEvent.click(screen.getByRole('button', { name: 'Mở nhận RSVP' }));
     await screen.findByRole('button', { name: 'Đóng nhận RSVP' });
-    expect(api.control).toHaveBeenLastCalledWith('invitation', 2, true);
+    expect(api.control).toHaveBeenLastCalledWith('invitation', 2, true, {
+      scope: expect.objectContaining({ resource: 'RsvpManagement:invitation' }),
+    });
   });
   it('renders newest pages and inert messages and does not request data for an admin', async () => {
     const item = {
@@ -208,9 +192,11 @@ describe('RSVP owner list/control', () => {
     expect(document.querySelector('script')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Phản hồi tiếp' }));
     await screen.findByText('Khách khác');
-    expect(api.list).toHaveBeenLastCalledWith('invitation', 'cursor');
+    expect(api.list).toHaveBeenLastCalledWith('invitation', 'cursor', {
+      scope: expect.objectContaining({ resource: 'RsvpManagement:invitation' }),
+    });
     view.unmount();
-    api.session!.user.role = 'ADMIN';
+    changeSession('admin', 'ADMIN');
     api.list.mockClear();
     api.get.mockClear();
     render(<RsvpManagement id="invitation" />);
@@ -276,14 +262,19 @@ function deferred<T>() {
 }
 function changeSession(
   id: string | null,
-  role = 'CUSTOMER',
+  role: 'CUSTOMER' | 'ADMIN' = 'CUSTOMER',
   token = 'new-token',
 ) {
   act(() => {
-    api.session = id
-      ? { user: { id, role, status: 'ACTIVE' }, accessToken: token }
-      : null;
-    for (const listener of api.listeners) listener();
+    if (!id) sessionStore.clear();
+    else {
+      const session = privateSession();
+      sessionStore.set({
+        ...session,
+        accessToken: token,
+        user: { ...session.user, id, role },
+      });
+    }
   });
 }
 const privateItem = {
@@ -296,6 +287,46 @@ const privateItem = {
 };
 const privatePage = { items: [privateItem], nextCursor: 'cursor-A' };
 describe('RSVP principal and resource isolation', () => {
+  it('disposes the mounted resource scope while a transport is still pending', async () => {
+    api.get.mockImplementation(() => new Promise(() => {}));
+    api.list.mockImplementation(() => new Promise(() => {}));
+    const view = render(<RsvpManagement id="invitation-A" />);
+    await waitFor(() => expect(api.list).toHaveBeenCalledOnce());
+    const scope = api.list.mock.calls[0][2].scope;
+    expect(scope.isActive()).toBe(true);
+    expect(api.get.mock.calls[0][1].scope).toBe(scope);
+    view.unmount();
+    expect(scope.signal.aborted).toBe(true);
+    expect(scope.isActive()).toBe(false);
+  });
+  it('replaces the request scope when the invitation resource changes', async () => {
+    api.get.mockImplementation(() => new Promise(() => {}));
+    api.list.mockImplementation(() => new Promise(() => {}));
+    const view = render(<RsvpManagement id="invitation-A" />);
+    await waitFor(() => expect(api.list).toHaveBeenCalledOnce());
+    const old = api.list.mock.calls[0][2].scope;
+    view.rerender(<RsvpManagement id="invitation-B" />);
+    await waitFor(() => expect(api.list).toHaveBeenCalledTimes(2));
+    expect(old.signal.aborted).toBe(true);
+    const current = api.list.mock.calls[1][2].scope;
+    expect(current.resource).toBe('RsvpManagement:invitation-B');
+    expect(current.isActive()).toBe(true);
+  });
+  it('rejects the first A completion after A → B → A using the real identity epoch', async () => {
+    const old = deferred<typeof privatePage>();
+    api.list
+      .mockReturnValueOnce(old.promise)
+      .mockResolvedValue({ items: [], nextCursor: null });
+    render(<RsvpManagement id="invitation-A" />);
+    await waitFor(() => expect(api.list).toHaveBeenCalledOnce());
+    const epoch = sessionStore.identityEpoch();
+    changeSession('owner-B');
+    changeSession('owner-A');
+    expect(sessionStore.identityEpoch()).toBeGreaterThan(epoch);
+    await screen.findByText('Chưa có phản hồi.');
+    await act(async () => old.resolve(privatePage));
+    expect(screen.queryByText(privateItem.message)).toBeNull();
+  });
   beforeEach(() => {
     api.get.mockResolvedValue({ rsvpOpen: true, controlVersion: 1 });
     api.list.mockResolvedValue(privatePage);
@@ -426,7 +457,7 @@ describe('RSVP errors belong to individual fields', () => {
     ['Số người (gồm bạn)', '1.5', sizeError],
     ['Lời nhắn', '😀'.repeat(1001), messageError],
   ])(
-    'associates a validation error only with %s',
+    'associates a validation error only with %s (case %#)',
     async (label, value, error) => {
       render(<PublicRsvp {...props} />);
       await fill();

@@ -1,0 +1,74 @@
+.page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: var(--space-8) var(--space-4) var(--space-16);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+  font-family: var(--font-platform-sans), Arial, sans-serif;
+  line-height: 1.6;
+}
+
+.page :is(button, input, select, textarea, a):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.page a {
+  color: var(--color-primary);
+  text-underline-offset: 0.15em;
+}
+
+.page a:hover {
+  color: var(--color-primary-hover);
+}
+
+.reading {
+  width: min(100%, var(--container-reading));
+  margin-inline: auto;
+}
+.editorial {
+  width: min(100%, var(--container-editorial));
+  margin-inline: auto;
+}
+.wide {
+  width: min(100%, var(--container-page));
+  margin-inline: auto;
+}
+
+.heading {
+  margin: 0 0 var(--space-4);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.lead {
+  margin: 0 0 var(--space-8);
+  color: var(--color-text-muted);
+}
+
+.editorialHeading {
+  font-family: var(--font-platform-editorial), Georgia, serif;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-inline: var(--space-6);
+  }
+}
+
+@media (min-width: 1280px) {
+  .page {
+    padding-inline: var(--space-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page :is(button, input, select, textarea, a) {
+    transition-duration: 0.01ms;
+  }
+}

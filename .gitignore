@@ -4,6 +4,7 @@ dist/
 build/
 .next/
 .next-auth-transition-*/
+.next-manual-*/
 .tsconfig-auth-transition-*.json
 coverage/
 *.log

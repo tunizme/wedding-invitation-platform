@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -8,7 +9,10 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { sessionStore } from '../../src/features/identity-access/session/store';
+import { privateSession } from '../identity-access/private-session-fixture';
 import type { TemplateDetail } from '../../src/features/invitation-builder/api/client';
+import type { OperationScope } from '../../src/features/identity-access/session/operation-scope';
 const mocks = vi.hoisted(() => ({
   enqueue: vi.fn(),
   unpublish: vi.fn(),
@@ -52,6 +56,9 @@ const template = {
 } as TemplateDetail;
 afterEach(cleanup);
 beforeEach(() => {
+  sessionStore.clear();
+  const session = privateSession();
+  sessionStore.set({ ...session, user: { ...session.user, role: 'ADMIN' } });
   vi.clearAllMocks();
   mocks.enqueue.mockResolvedValue({
     status: 'SUCCEEDED',
@@ -195,6 +202,7 @@ describe('publication admission and owned workflow', () => {
         'template',
         dirty ? 3 : 2,
         expect.any(String),
+        expect.objectContaining({ scope: expect.any(Object) }),
       );
       expect(publish).toBeEnabled();
       fireEvent.click(unpublish);
@@ -242,13 +250,202 @@ describe('publication admission and owned workflow', () => {
       'template',
       4,
       expect.any(String),
+      expect.objectContaining({ scope: expect.any(Object) }),
     );
     view.rerender(<PublicationControls {...props} externalBusy={false} />);
     expect(screen.getByRole('button', { name: 'Xuất bản' })).toBeEnabled();
   });
 });
 
+describe('publication owner disposal (005 US1)', () => {
+  it('cancels the polling timer on unmount before any next request', async () => {
+    vi.useFakeTimers();
+    try {
+      mocks.enqueue.mockResolvedValue({ id: 'operation-A', status: 'PENDING' });
+      const view = render(
+        <PublicationControls
+          template={template}
+          dirty={false}
+          saveBeforePublish={vi.fn()}
+          onChanged={vi.fn()}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Xuất bản' }));
+      await act(async () => {});
+      view.unmount();
+      await act(async () => vi.advanceTimersByTimeAsync(1000));
+      expect(mocks.poll).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  function switchOwner() {
+    const current = sessionStore.get()!;
+    act(() =>
+      sessionStore.set({
+        ...current,
+        user: { ...current.user, id: 'admin-B' },
+      }),
+    );
+  }
+  it('passes the captured scope to enqueue and stops polling after owner disposal', async () => {
+    let finish!: (value: unknown) => void;
+    mocks.enqueue.mockImplementation(
+      () =>
+        new Promise((done) => {
+          finish = done;
+        }),
+    );
+    const changed = vi.fn();
+    render(
+      <PublicationControls
+        template={template}
+        dirty={false}
+        saveBeforePublish={vi.fn()}
+        onChanged={changed}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Xuất bản' }));
+    const scope = mocks.enqueue.mock.calls[0][3]?.scope as OperationScope;
+    expect(scope).toBeDefined();
+    switchOwner();
+    await act(async () => finish({ id: 'operation-A', status: 'PENDING' }));
+    expect(scope.signal.aborted).toBe(true);
+    expect(mocks.poll).not.toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
+  });
+  it('does not enqueue after a save completes on an unmounted editor', async () => {
+    let finish!: (value: TemplateDetail) => void;
+    const save = vi.fn(
+      () =>
+        new Promise<TemplateDetail>((done) => {
+          finish = done;
+        }),
+    );
+    const view = render(
+      <PublicationControls
+        template={template}
+        dirty
+        saveBeforePublish={save}
+        onChanged={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Xuất bản' }));
+    view.unmount();
+    await act(async () => finish(template));
+    expect(mocks.enqueue).not.toHaveBeenCalled();
+  });
+  it('fences retry feedback and busy callbacks when owner changes during reload', async () => {
+    let finish!: () => void;
+    const changed = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('unavailable'))
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((done) => {
+            finish = done;
+          }),
+      );
+    const busy = vi.fn();
+    render(
+      <PublicationControls
+        template={template}
+        dirty={false}
+        saveBeforePublish={vi.fn()}
+        onChanged={changed}
+        onBusy={busy}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Xuất bản' }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Thử tải lại thông tin' }),
+    );
+    await waitFor(() => expect(changed).toHaveBeenCalledTimes(2));
+    busy.mockClear();
+    switchOwner();
+    await act(async () => finish());
+    expect(screen.queryByText('Đã tải lại thông tin xuất bản.')).toBeNull();
+    expect(busy).not.toHaveBeenCalled();
+  });
+  it('disposes an unpublish request before its onChanged continuation', async () => {
+    let finish!: (value: TemplateDetail) => void;
+    mocks.unpublish.mockImplementation(
+      () =>
+        new Promise<TemplateDetail>((done) => {
+          finish = done;
+        }),
+    );
+    const changed = vi.fn();
+    const view = render(
+      <PublicationControls
+        template={template}
+        dirty={false}
+        saveBeforePublish={vi.fn()}
+        onChanged={changed}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Gỡ xuất bản' }));
+    const scope = mocks.unpublish.mock.calls[0][2]?.scope as OperationScope;
+    expect(scope).toBeDefined();
+    view.unmount();
+    await act(async () => finish(template));
+    expect(scope.signal.aborted).toBe(true);
+    expect(changed).not.toHaveBeenCalled();
+  });
+});
+
 describe('template publication refresh versus external edits', () => {
+  it('disposes editor asset and save scopes on owner switch while renewal retains edits', async () => {
+    const document = JSON.parse(
+      readFileSync(
+        resolve(
+          __dirname,
+          '../../../../specs/004-invitation-builder/contracts/fixtures/blank.json',
+        ),
+        'utf8',
+      ),
+    );
+    const initial = {
+      ...template,
+      name: 'Template A',
+      category: 'Wedding',
+      tags: [],
+      sortOrder: 0,
+      coverAssetId: null,
+      draftDocument: document,
+      draftSampleData: { schemaVersion: 1 },
+    } as TemplateDetail;
+    let finish!: (value: TemplateDetail) => void;
+    mocks.request.mockImplementation(
+      (path: string, options?: { method?: string }) => {
+        if (options?.method === 'PATCH')
+          return new Promise<TemplateDetail>((done) => {
+            finish = done;
+          });
+        return Promise.resolve({ items: [], nextCursor: null });
+      },
+    );
+    const saved = vi.fn();
+    render(<TemplateEditor initial={initial} onSaved={saved} />);
+    fireEvent.change(await screen.findByLabelText('Chiều cao thiệp'), {
+      target: { value: '1800' },
+    });
+    fireEvent.blur(screen.getByLabelText('Chiều cao thiệp'));
+    const a = sessionStore.get()!;
+    act(() => sessionStore.set({ ...a, accessToken: 'renewed' }));
+    expect(screen.getByLabelText('Chiều cao thiệp')).toHaveValue(1800);
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu bản nháp' }));
+    const request = mocks.request.mock.calls.find(
+      ([, options]) => options?.method === 'PATCH',
+    );
+    const scope = request?.[1]?.scope as OperationScope;
+    expect(scope).toBeDefined();
+    act(() => sessionStore.set({ ...a, user: { ...a.user, id: 'admin-B' } }));
+    await act(async () => finish({ ...initial, editVersion: 3 }));
+    expect(scope.signal.aborted).toBe(true);
+    expect(saved).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Chiều cao thiệp')).toHaveValue(1600);
+  });
   for (const retry of [false, true])
     for (const dirty of [false, true])
       it(`preserves the write baseline with retry=${retry} and save-before-publish=${dirty}`, async () => {
@@ -289,6 +486,8 @@ describe('template publication refresh versus external edits', () => {
           },
           publishedRevisionId: 'revision',
         };
+        if (remote.draftDocument.schemaVersion !== 1)
+          throw new Error('Expected legacy fixture');
         remote.draftDocument.nodes.ROOT.props.canvas.height = 2200;
         let failRead = retry;
         const patches: { expectedVersion: number }[] = [];

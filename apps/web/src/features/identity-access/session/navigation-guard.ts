@@ -1,4 +1,5 @@
 'use client';
+import { sessionStore } from './store';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 
 const dirtySources = new Set<() => boolean>();
@@ -117,7 +118,9 @@ export function useDirtyNavigationGuard(dirty: boolean): void {
   }, [dirty]);
   useEffect(() => {
     const dispose = installNavigationGuard();
-    const source = () => currentDirty.current;
+    const epoch = sessionStore.identityEpoch();
+    const source = () =>
+      sessionStore.identityEpoch() === epoch && currentDirty.current;
     dirtySources.add(source);
     return () => {
       dirtySources.delete(source);

@@ -31,7 +31,9 @@ export function applyCommand(
   if (command.type === 'height')
     document.nodes.ROOT.props.canvas.height = command.value;
   else if (command.type === 'canvas-background')
-    document.nodes.ROOT.props.canvas.background = structuredClone(command.value);
+    document.nodes.ROOT.props.canvas.background = structuredClone(
+      command.value,
+    );
   else if (command.type === 'add') {
     selectedId = crypto.randomUUID();
     document.nodes[selectedId] = structuredClone(command.node);

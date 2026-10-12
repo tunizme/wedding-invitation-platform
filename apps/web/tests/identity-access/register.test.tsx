@@ -1,3 +1,4 @@
+import { renderToString } from 'react-dom/server';
 import {
   cleanup,
   fireEvent,
@@ -31,6 +32,17 @@ const fill = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Đăng ký' }));
 };
 describe('registration form', () => {
+  it('associates local password errors and clears them after editing', async () => {
+    render(<RegisterForm />);
+    const password = screen.getByLabelText('Mật khẩu');
+    fireEvent.change(password, { target: { value: 'short' } });
+    fireEvent.submit(password.closest('form')!);
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAccessibleDescription(/8 đến 128/);
+    expect(iamRequest).not.toHaveBeenCalled();
+    fireEvent.change(password, { target: { value: 'Valid password' } });
+    expect(password).not.toHaveAttribute('aria-invalid', 'true');
+  });
   it('preserves password and shows generic verification instructions', async () => {
     vi.mocked(iamRequest).mockResolvedValue({ message: 'accepted' });
     render(<RegisterForm />);
@@ -63,4 +75,20 @@ describe('registration form', () => {
     );
     expect(screen.getByRole('button')).toBeEnabled();
   });
+});
+
+it('keeps native registration submission disabled until hydration while preserving autofill', () => {
+  const html = renderToString(<RegisterForm />);
+  const document = new DOMParser().parseFromString(html, 'text/html');
+  expect(
+    document.querySelector('button[type="submit"]')?.hasAttribute('disabled'),
+  ).toBe(true);
+  expect(
+    document.querySelector('input[type="email"]')?.getAttribute('autocomplete'),
+  ).toBe('email');
+  expect(
+    document
+      .querySelector('input[type="password"]')
+      ?.getAttribute('autocomplete'),
+  ).toBe('new-password');
 });

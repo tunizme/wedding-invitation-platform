@@ -14,16 +14,23 @@ test('publishes through the trusted renderer and keeps the template editable aft
     publicationAdmin: { email: string; password: string };
   };
   await page.goto(builderOrigin + '/login');
+  await expect(
+    page.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await page
     .getByLabel('Email', { exact: true })
     .fill(accounts.publicationAdmin.email);
   await page
     .getByLabel('Mật khẩu', { exact: true })
     .fill(accounts.publicationAdmin.password);
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.getByLabel('Mật khẩu', { exact: true }).press('Enter');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(accounts.publicationAdmin.email);
+    page.getByRole('heading', { name: 'Đăng nhập thành công', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
+  await expect(page.locator('#product-account-disclosure')).toContainText(
+    accounts.publicationAdmin.email,
+  );
 
   await page.goto(builderOrigin + '/admin/templates/new');
   const name = 'Publication ' + randomUUID();
@@ -111,9 +118,16 @@ test('publishes through the trusted renderer and keeps the template editable aft
   await expect(
     page.getByRole('button', { name: 'Nhân bản ' + name, exact: true }),
   ).toBeVisible();
-  page.once('dialog', (dialog) => dialog.accept(copyName));
   await page
     .getByRole('button', { name: 'Nhân bản ' + name, exact: true })
+    .click();
+  const copyDialog = page.getByRole('dialog', {
+    name: 'Nhân bản ' + name,
+    exact: true,
+  });
+  await copyDialog.getByLabel('Tên bản sao').fill(copyName);
+  await copyDialog
+    .getByRole('button', { name: 'Nhân bản mẫu', exact: true })
     .click();
   await expect(
     page.getByRole('link', { name: copyName, exact: true }),
@@ -203,9 +217,18 @@ test('publishes through the trusted renderer and keeps the template editable aft
       const duplicateButton = page
         .getByRole('button', { name: /^Nhân bản / })
         .first();
-      page.once('dialog', (dialog) => dialog.accept(name + ' delayed copy'));
       await duplicateButton.click();
+      const pendingCopy = page.getByRole('dialog');
+      await pendingCopy.getByLabel('Tên bản sao').fill(name + ' delayed copy');
+      await pendingCopy
+        .getByRole('button', { name: 'Nhân bản mẫu', exact: true })
+        .click();
       await expect.poll(() => committed).toBe(true);
+      // Close the native dialog before editing its inert background. The real
+      // duplicate receipt remains held; closing does not dispatch another POST.
+      await pendingCopy
+        .getByRole('button', { name: 'Đóng', exact: true })
+        .click();
       await page.getByLabel('Tìm mẫu', { exact: true }).fill(copyName);
       await page.getByRole('button', { name: 'Tìm kiếm', exact: true }).click();
       await expect(
@@ -242,14 +265,21 @@ test('keeps template CAS baseline when another tab edits before publication refr
     readFileSync(process.env.BUILDER_TEST_BROWSER_SEED!, 'utf8'),
   ) as { casAdmin: { email: string; password: string } };
   await page.goto(builderOrigin + '/login');
+  await expect(
+    page.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await page.getByLabel('Email', { exact: true }).fill(seed.casAdmin.email);
   await page
     .getByLabel('Mật khẩu', { exact: true })
     .fill(seed.casAdmin.password);
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.getByLabel('Mật khẩu', { exact: true }).press('Enter');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.casAdmin.email);
+    page.getByRole('heading', { name: 'Đăng nhập thành công', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
+  await expect(page.locator('#product-account-disclosure')).toContainText(
+    seed.casAdmin.email,
+  );
   for (const retry of [false, true])
     for (const dirty of [false, true]) {
       await page.goto(builderOrigin + '/admin/templates/new');

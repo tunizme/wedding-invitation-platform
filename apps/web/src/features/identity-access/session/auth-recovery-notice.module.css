@@ -1,0 +1,30 @@
+.notice {
+  box-sizing: border-box;
+  width: min(40rem, calc(100% - 2 * var(--space-4)));
+  margin: var(--space-4) auto;
+  padding: var(--space-4);
+  font-family: var(--font-platform-sans), Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.notice p {
+  margin: 0 0 var(--space-3);
+}
+.notice p:last-child {
+  margin-bottom: 0;
+}
+.notice a {
+  color: var(--color-primary);
+  text-underline-offset: 0.15em;
+}
+.notice:focus,
+.notice a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .notice a {
+    transition-duration: 0.01ms;
+  }
+}

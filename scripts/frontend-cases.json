@@ -1,0 +1,676 @@
+{
+  "apps/web/tests/identity-access/session.test.tsx": [
+    "bumps the identity epoch on account, role, status, null and admitted context/tag changes",
+    "keeps the identity epoch for same-owner token and profile renewal",
+    "does not retry A payload as B when the account changes during the 401 refresh wait",
+    "does not reuse the rejected cached credential while another tab holds the renewal lease",
+    "leaves OAuth result renewal to its originating intent instead of bootstrapping the selected peer session"
+  ],
+  "apps/web/tests/identity-access/request-scope.test.ts": [
+    "keeps same-owner renewal but permanently invalidates A to B to A",
+    "runs cleanup exactly once and cancels pending work on disposal",
+    "rejects the caller at once but still delivers a cookie-writing request after the owner ends"
+  ],
+  "apps/web/tests/identity-access/private-lifetimes.test.tsx": [
+    "removes A private list before failed B load with same role",
+    "does not admit old A after rapid A to B to A",
+    "keeps edited profile and passwords during same-owner renewal"
+  ],
+  "apps/web/tests/identity-access/profile.test.tsx": [
+    "ignores a stale profile PATCH of A after B is admitted",
+    "does not clear B when a late password completion of A arrives",
+    "preserves generic400 recovery and only explains an explicit social-only rejection",
+    "treats a parsed server rejection as COMPLETED, not as a password change"
+  ],
+  "apps/web/tests/identity-access/login.test.tsx": [
+    "does not show an old login error after a newer account is admitted",
+    "keeps native login submission disabled until hydration while preserving field autofill",
+    {
+      "name": "offers a reachable account action only after confirmed current-account login",
+      "story": "US3"
+    }
+  ],
+  "apps/web/tests/identity-access/social-onboarding.test.tsx": [
+    "discards a delayed onboarding state after a newer account is admitted",
+    "never reports a stale confirmation as the newer account success",
+    "announces loading while the onboarding state is pending",
+    "reads proof from the fragment, clears it and stores successful session in memory"
+  ],
+  "apps/web/tests/identity-access/admin.test.tsx": [
+    "ignores a lock completion of Admin A after Admin B is admitted"
+  ],
+  "apps/web/tests/invitation-builder/client.test.ts": [
+    "does not retry A payload as B when the account changes during a stale-401 refresh",
+    "enforces the 15s deadline even when the caller never aborts",
+    "does not retry a resource after its scope is disposed during renewal",
+    "bounds stalled successful JSON parsing on caller cancellation",
+    "bounds stalled successful JSON parsing on scope cancellation",
+    "bounds stalled successful JSON parsing on deadline cancellation"
+  ],
+  "apps/web/tests/invitation-builder/customer-form.test.tsx": [
+    "passes a captured owner scope to every invitation request so owner disposal can cancel it",
+    {
+      "name": "offers a Customer only data fields: no Admin library, style, layout, binding, section or crop controls",
+      "story": "US4"
+    },
+    {
+      "name": "retains one set of dirty fields and accordion state across edit and preview tabs",
+      "story": "US7"
+    },
+    {
+      "story": "US7",
+      "name": "reports a failed clipboard share without changing or republishing the saved invitation"
+    },
+    {
+      "story": "US7",
+      "name": "recovers an uncertain publication with the original key and version while retaining newer local edits"
+    },
+    {
+      "story": "US7",
+      "name": "recovers a known pending operation with GET only after polling fails"
+    },
+    {
+      "story": "US7",
+      "name": "keeps the editor usable when its asset library fails and retries the library without losing edits"
+    },
+    {
+      "story": "US7",
+      "name": "binds an uploaded customer image using the captured owner scope and retains other draft data"
+    }
+  ],
+  "apps/web/tests/invitation-builder/customer-form-owner.test.tsx": [
+    "cancels a private load of A when B is admitted and never renders A data",
+    "stops the save → publish → poll chain of A after B is admitted",
+    "drops the dirty registration of A so B is never asked to discard it"
+  ],
+  "apps/web/tests/invitation-builder/publication-controls.test.tsx": [
+    "cancels the polling timer on unmount before any next request",
+    "passes the captured scope to enqueue and stops polling after owner disposal",
+    "does not enqueue after a save completes on an unmounted editor",
+    "fences retry feedback and busy callbacks when owner changes during reload",
+    "disposes an unpublish request before its onChanged continuation",
+    "disposes editor asset and save scopes on owner switch while renewal retains edits"
+  ],
+  "apps/web/tests/invitation-builder/template-owner.test.tsx": [
+    "does not reload B after a duplicate requested by A completes",
+    "disposes A list request and never restores its records after B load fails",
+    "does not navigate after A create completes in B and keeps fields on renewal",
+    "disposes detail requests when the template resource changes",
+    {
+      "name": "opens a popup without creating or navigating, then creates exactly the selected revision",
+      "story": "US6"
+    },
+    {
+      "name": "cancels a pending revision on close and ignores its late result",
+      "story": "US6"
+    },
+    {
+      "name": "never admits a pending create after the account changes",
+      "story": "US6"
+    },
+    {
+      "name": "requires reloading an unavailable revision rather than creating from it",
+      "story": "US6"
+    },
+    {
+      "name": "opens demo only on user action with inert RSVP and adaptive renderer",
+      "story": "US6"
+    },
+    {
+      "story": "US6",
+      "name": "blocks replay of an uncertain create even after closing and reopening the popup"
+    },
+    {
+      "story": "US6",
+      "name": "aborts pending protected assets on close without admitting late object URLs"
+    }
+  ],
+  "apps/web/tests/invitation-builder/asset-preview.test.tsx": [
+    "fetches bytes through the API and revokes blob URLs when the asset selection changes",
+    "revokes owned URLs on an account switch and rejects late A bytes after A → B → A",
+    "does not create a URL for preview bytes delivered after unmount"
+  ],
+  "apps/web/tests/invitation-builder/asset-library-owner.test.tsx": [
+    "rejects late search results when the next query fails",
+    "disposes an upload when owner changes and never selects the old asset",
+    "fences more and upload completions when library choice changes"
+  ],
+  "apps/web/tests/invitation-builder/rsvp.test.tsx": [
+    "rejects the first A completion after A → B → A using the real identity epoch",
+    "retains authorized data across token renewal for the same Customer",
+    "disposes the mounted resource scope while a transport is still pending",
+    "replaces the request scope when the invitation resource changes"
+  ],
+  "apps/web/tests/frontend-foundation/surface-boundaries.test.tsx": [
+    "keeps root free of session chrome and effects",
+    "mounts session UI only in the product route group",
+    "owns and releases one peer channel for overlapping product providers"
+  ],
+  "apps/web/e2e/frontend-foundation/surface-isolation.spec.ts": [
+    "public invitation loads directly without product session effects",
+    "product to public to product preserves account and navigation",
+    "isolated capture has no account chrome or auth requests with an active product session",
+    "anonymous and authenticated visitors see the same published authored version",
+    "client navigation releases product peer listeners and pending refresh admission",
+    "unavailable public invitation remains outside product chrome"
+  ],
+  "apps/web/e2e/frontend-foundation/packaged-fonts.spec.ts": [
+    "standalone serves all 16 pinned font files with exact bytes and MIME",
+    "Vietnamese and Latin faces load at each weight and style on public invitation",
+    "blocked font does not replace the published scene",
+    "missing image fails actual capture readiness while the prior public version remains available",
+    {
+      "story": "US3",
+      "name": "a nonexistent face cannot satisfy the font readiness assertion"
+    },
+    {
+      "story": "US3",
+      "name": "standalone loads four platform sans weights and the editorial face locally"
+    }
+  ],
+  "apps/web/tests/frontend-foundation/platform-controls.test.tsx": [
+    "forwards a native button ref and disables interaction while busy",
+    "associates a visible label, helper and error with a native field",
+    "exposes persistent critical feedback and readable status text",
+    "keeps control variants distinct and forwards a native select ref"
+  ],
+  "apps/web/e2e/frontend-foundation/account-journeys.spec.ts": [
+    "account route /login remains readable at 360px",
+    "account route /register remains readable at 360px",
+    "account route /verify-email remains readable at 360px",
+    "account route /forgot-password remains readable at 360px",
+    "account route /reset-password remains readable at 360px",
+    "account route /social-onboarding remains readable at 360px",
+    "account route /oauth-result remains readable at 360px",
+    "account route /account remains readable at 360px",
+    "account route /admin/customers remains readable at 360px",
+    "account route /login remains readable at 375px",
+    "account route /register remains readable at 375px",
+    "account route /verify-email remains readable at 375px",
+    "account route /forgot-password remains readable at 375px",
+    "account route /reset-password remains readable at 375px",
+    "account route /social-onboarding remains readable at 375px",
+    "account route /oauth-result remains readable at 375px",
+    "account route /account remains readable at 375px",
+    "account route /admin/customers remains readable at 375px",
+    "account route /login remains readable at 390px",
+    "account route /register remains readable at 390px",
+    "account route /verify-email remains readable at 390px",
+    "account route /forgot-password remains readable at 390px",
+    "account route /reset-password remains readable at 390px",
+    "account route /social-onboarding remains readable at 390px",
+    "account route /oauth-result remains readable at 390px",
+    "account route /account remains readable at 390px",
+    "account route /admin/customers remains readable at 390px",
+    "account route /login remains readable at 430px",
+    "account route /register remains readable at 430px",
+    "account route /verify-email remains readable at 430px",
+    "account route /forgot-password remains readable at 430px",
+    "account route /reset-password remains readable at 430px",
+    "account route /social-onboarding remains readable at 430px",
+    "account route /oauth-result remains readable at 430px",
+    "account route /account remains readable at 430px",
+    "account route /admin/customers remains readable at 430px",
+    "account route /login remains readable at 768px",
+    "account route /register remains readable at 768px",
+    "account route /verify-email remains readable at 768px",
+    "account route /forgot-password remains readable at 768px",
+    "account route /reset-password remains readable at 768px",
+    "account route /social-onboarding remains readable at 768px",
+    "account route /oauth-result remains readable at 768px",
+    "account route /account remains readable at 768px",
+    "account route /admin/customers remains readable at 768px",
+    "account route /login remains readable at 1440px",
+    "account route /register remains readable at 1440px",
+    "account route /verify-email remains readable at 1440px",
+    "account route /forgot-password remains readable at 1440px",
+    "account route /reset-password remains readable at 1440px",
+    "account route /social-onboarding remains readable at 1440px",
+    "account route /oauth-result remains readable at 1440px",
+    "account route /account remains readable at 1440px",
+    "account route /admin/customers remains readable at 1440px",
+    "account controls keep keyboard and reduced-motion access",
+    "authenticated chrome inherits approved tokens and local sans font",
+    "registration verification recovery and reset retain meaningful persistent milestones",
+    "profile update and confirmed LOCAL password change preserve safe editable fields",
+    "social onboarding and OAuth result complete under their existing server intents",
+    "Admin search pagination and cancelled then confirmed lock actions keep authorization",
+    "keyboard account recovery remains readable at 360px and actual 200 percent text",
+    "keyboard account recovery remains readable at 375px and actual 200 percent text",
+    "keyboard account recovery remains readable at 390px and actual 200 percent text",
+    "keyboard account recovery remains readable at 430px and actual 200 percent text",
+    "keyboard account recovery remains readable at 768px and actual 200 percent text",
+    "keyboard account recovery remains readable at 1440px and actual 200 percent text",
+    "admin customer list and detail preserve authorized navigation",
+    "global session recovery uses approved controls and remains keyboard accessible at 200 percent text"
+  ],
+  "apps/web/e2e/frontend-foundation/template-style-isolation.spec.ts": [
+    "platform typography does not change published scene geometry or palette",
+    "authenticated Admin canvas and preview retain the pinned authored scene",
+    "Customer data entry exposes no Admin authoring controls and keeps the pinned document"
+  ],
+  "apps/web/tests/identity-access/verification.test.tsx": [
+    "extracts and removes the verification fragment before submitting proof in the POST body",
+    "does not submit verification twice under StrictMode effect replay",
+    "shows an invalid/expired verification error and offers resend",
+    "keeps reset proof only in memory after clearing the fragment, preserves password and requires login after success",
+    "prevents duplicate reset submissions and does not auto-retry failed proof consumption",
+    "shows a safe network error without exposing proof or password",
+    "associates local reset password errors without fabricating server field details",
+    {
+      "name": "keeps native recovery submission disabled until hydration without blocking autofill",
+      "story": "US3"
+    }
+  ],
+  "apps/web/tests/identity-access/register.test.tsx": [
+    "preserves password and shows generic verification instructions",
+    "prevents duplicate submission while pending and shows safe errors",
+    "associates local password errors and clears them after editing",
+    {
+      "name": "keeps native registration submission disabled until hydration while preserving autofill",
+      "story": "US3"
+    }
+  ],
+  "apps/web/tests/identity-access/auth-recovery.test.tsx": [
+    "explains STORAGE_UNAVAILABLE with an accessible next action",
+    "explains STORAGE_RESET with an accessible next action",
+    "explains CREDENTIAL_MISSING with an accessible next action",
+    "explains CAPACITY_EXHAUSTED with an accessible next action",
+    "explains CONTEXT_UNAVAILABLE with an accessible next action",
+    "announces delayed recovery without stealing focus from an active account field"
+  ],
+  "apps/web/e2e/frontend-foundation/principal-isolation.spec.ts": [
+    "Customer unsaved invitation draft survives peer credential renewal without reload",
+    "late invitation resource completion cannot navigate or overwrite the next resource",
+    "queued renewal is cancelled before dispatch when its Customer owner changes",
+    "queued renewal expires before dispatch and explicit login recovers",
+    "Customer save completion cannot publish under a newer owner",
+    "Admin draft survives same-owner renewal and is discarded on owner switch",
+    "private invitations discard prior owner on same-role",
+    "private invitations discard prior owner on different-role",
+    "private invitations discard prior owner on logout-login",
+    "private invitations discard prior owner on A-B-A",
+    "late private success cannot restore A after B load fails",
+    "late private failure cannot restore A after B load fails",
+    "late private pagination cannot restore A after B load fails",
+    "same-owner renewal preserves profile drafts and password inputs without reload",
+    "identity switch removes invitation draft and its dirty-navigation registration",
+    "Admin stale lock completion cannot reload records for a newer Admin",
+    "late refresh response preserves B through real reload and renewal",
+    "late logout response preserves B through real reload and renewal",
+    "late login response preserves B through real reload and renewal",
+    "late password response preserves B through real reload and renewal",
+    "queued renewal without Web Locks remains bounded when its owner tab closes",
+    "late OAuth callback cannot admit its account after a newer LOCAL intent",
+    "late onboarding confirmation cannot replace a newer LOCAL admission",
+    "two tabs renew the same account without Web Locks or a deadlock",
+    "dispatched login timeout exposes uncertainty without mutation replay"
+  ],
+  "apps/web/tests/invitation-builder/font-readiness.test.ts": [
+    "loads both regular and bold italic including Latin and Vietnamese samples",
+    "rejects a missing italic face even though the regular face loads"
+  ],
+  "apps/web/e2e/frontend-foundation/keyboard-journeys.spec.ts": [
+    "keyboard registration verification and login at 360px with enlarged Vietnamese feedback",
+    "keyboard password recovery and reset at 360px with local errors",
+    "keyboard profile recovery and password change at 360px",
+    "keyboard authorized Admin pagination search and lock confirmation at 360px",
+    "keyboard social onboarding milestone and next action at 360px",
+    "keyboard verified OAuth result next action at 360px",
+    "keyboard registration verification and login at 375px with enlarged Vietnamese feedback",
+    "keyboard password recovery and reset at 375px with local errors",
+    "keyboard profile recovery and password change at 375px",
+    "keyboard authorized Admin pagination search and lock confirmation at 375px",
+    "keyboard social onboarding milestone and next action at 375px",
+    "keyboard verified OAuth result next action at 375px",
+    "keyboard registration verification and login at 390px with enlarged Vietnamese feedback",
+    "keyboard password recovery and reset at 390px with local errors",
+    "keyboard profile recovery and password change at 390px",
+    "keyboard authorized Admin pagination search and lock confirmation at 390px",
+    "keyboard social onboarding milestone and next action at 390px",
+    "keyboard verified OAuth result next action at 390px",
+    "keyboard registration verification and login at 430px with enlarged Vietnamese feedback",
+    "keyboard password recovery and reset at 430px with local errors",
+    "keyboard profile recovery and password change at 430px",
+    "keyboard authorized Admin pagination search and lock confirmation at 430px",
+    "keyboard social onboarding milestone and next action at 430px",
+    "keyboard verified OAuth result next action at 430px",
+    "keyboard registration verification and login at 768px with enlarged Vietnamese feedback",
+    "keyboard password recovery and reset at 768px with local errors",
+    "keyboard profile recovery and password change at 768px",
+    "keyboard authorized Admin pagination search and lock confirmation at 768px",
+    "keyboard social onboarding milestone and next action at 768px",
+    "keyboard verified OAuth result next action at 768px",
+    "keyboard registration verification and login at 1440px with enlarged Vietnamese feedback",
+    "keyboard password recovery and reset at 1440px with local errors",
+    "keyboard profile recovery and password change at 1440px",
+    "keyboard authorized Admin pagination search and lock confirmation at 1440px",
+    "keyboard social onboarding milestone and next action at 1440px",
+    "keyboard verified OAuth result next action at 1440px"
+  ],
+  "apps/web/tests/frontend-foundation/modal-surface.test.tsx": [
+    {
+      "name": "opens once through showModal and takes its accessible name from the heading",
+      "story": "US4"
+    },
+    {
+      "name": "focuses the heading by default and the requested control when one is given",
+      "story": "US4"
+    },
+    {
+      "name": "closes idempotently across Close, Escape and the native close event",
+      "story": "US4"
+    },
+    {
+      "name": "routes Escape (cancel) through the same close and prevents the native default",
+      "story": "US4"
+    },
+    {
+      "name": "returns focus to a surviving trigger when it unmounts",
+      "story": "US4"
+    },
+    {
+      "name": "falls back to the logical workspace when the trigger no longer exists",
+      "story": "US4"
+    },
+    {
+      "name": "falls back to the workspace when the trigger is still mounted but cannot take focus",
+      "story": "US4"
+    },
+    {
+      "name": "cleans up on unmount: closes the dialog and stops notifying the parent",
+      "story": "US4"
+    },
+    {
+      "name": "survives StrictMode double mounting without a spurious close",
+      "story": "US4"
+    },
+    "ignores the queued native close from a StrictMode cleanup after reopening"
+  ],
+  "apps/web/tests/invitation-builder/assets.test.tsx": [
+    {
+      "name": "opens as a named modal dialog with the search field focused",
+      "story": "US4"
+    },
+    {
+      "name": "returns focus to the explicit trigger even when the browser never focused it",
+      "story": "US4"
+    },
+    {
+      "name": "recovers from a failed search by running another query",
+      "story": "US4"
+    },
+    {
+      "name": "keeps loaded assets when a later page fails and lets the Admin retry",
+      "story": "US4"
+    },
+    {
+      "name": "shows an upload failure, keeps the dialog open and allows a retry that selects the asset",
+      "story": "US4"
+    }
+  ],
+  "apps/web/tests/invitation-builder/binding-panel.test.tsx": [
+    {
+      "name": "selects an allowed Admin image as the fallback and returns focus to its trigger",
+      "story": "US4"
+    },
+    {
+      "name": "closes without changing the binding and restores the trigger focus",
+      "story": "US4"
+    },
+    {
+      "name": "falls back to the binding panel when the trigger disappears",
+      "story": "US4"
+    }
+  ],
+  "apps/web/tests/invitation-builder/bindings.test.ts": [
+    {
+      "name": "follows timeline data order without reordering template layers or mutating the pinned design",
+      "story": "US4"
+    }
+  ],
+  "apps/web/e2e/frontend-foundation/media-library.spec.ts": [
+    {
+      "name": "media library opens as a native modal from every entry and returns focus on Close and Escape",
+      "story": "US4"
+    },
+    {
+      "name": "media library keeps Tab inside the dialog and blocks background interaction",
+      "story": "US4"
+    },
+    {
+      "name": "media library select applies the asset, closes once and restores focus or the workspace fallback",
+      "story": "US4"
+    },
+    {
+      "name": "media library falls back to the workspace when the trigger is no longer focusable",
+      "story": "US4"
+    },
+    {
+      "name": "media library is a right Drawer from 768px and a full-screen Sheet below it at 360px",
+      "story": "US4"
+    },
+    {
+      "name": "media library is a right Drawer from 768px and a full-screen Sheet below it at 375px",
+      "story": "US4"
+    },
+    {
+      "name": "media library is a right Drawer from 768px and a full-screen Sheet below it at 390px",
+      "story": "US4"
+    },
+    {
+      "name": "media library is a right Drawer from 768px and a full-screen Sheet below it at 430px",
+      "story": "US4"
+    },
+    {
+      "name": "media library is a right Drawer from 768px and a full-screen Sheet below it at 768px",
+      "story": "US4"
+    },
+    {
+      "name": "media library is a right Drawer from 768px and a full-screen Sheet below it at 1440px",
+      "story": "US4"
+    },
+    {
+      "name": "media library completes open search select close by keyboard at 200% text with reduced motion",
+      "story": "US4"
+    },
+    {
+      "name": "media library sends authorized query filter mine and cursor requests and recovers from errors",
+      "story": "US4"
+    },
+    {
+      "name": "media library upload failure keeps the dialog open and a retry selects the asset",
+      "story": "US4"
+    },
+    {
+      "name": "media library suppresses a stale query response and an old owner selection",
+      "story": "US4"
+    },
+    {
+      "name": "Customer editor exposes no Admin library or authoring controls and saves only WeddingData",
+      "story": "US4"
+    }
+  ],
+  "apps/web/e2e/frontend-foundation/product-experience.spec.ts": [
+    {
+      "name": "US6 catalog popup keyboard and rectangle at 360px",
+      "story": "US6"
+    },
+    {
+      "name": "US6 catalog popup keyboard and rectangle at 375px",
+      "story": "US6"
+    },
+    {
+      "name": "US6 catalog popup keyboard and rectangle at 390px",
+      "story": "US6"
+    },
+    {
+      "name": "US6 catalog popup keyboard and rectangle at 430px",
+      "story": "US6"
+    },
+    {
+      "name": "US6 catalog popup keyboard and rectangle at 768px",
+      "story": "US6"
+    },
+    {
+      "name": "US6 catalog popup keyboard and rectangle at 1440px",
+      "story": "US6"
+    },
+    {
+      "name": "US6 creates an invitation pinned to the revision confirmed in the popup",
+      "story": "US6"
+    },
+    {
+      "name": "US6 demo opening and 900px adaptive preview never submits RSVP",
+      "story": "US6"
+    },
+    {
+      "name": "US6 canonical demo resolves a real current published revision and rejects missing revisions",
+      "story": "US6"
+    },
+    {
+      "name": "US6 stale popup revision cannot return after a peer owner switch",
+      "story": "US6"
+    },
+    {
+      "name": "US6 account workspace displays loaded-page statistics and persists the real profile",
+      "story": "US6"
+    }
+  ],
+  "apps/web/tests/frontend-foundation/product-shell.test.tsx": [
+    {
+      "name": "shows branding and plain contact text with no session-only actions anonymously",
+      "story": ["US5", "US10"]
+    },
+    {
+      "name": "routes discovery through current role authorization",
+      "story": ["US5", "US10"]
+    },
+    {
+      "name": "supports Escape focus return, outside click and dirty logout confirmation",
+      "story": ["US5", "US10"]
+    },
+    {
+      "name": "drops disclosure on owner change and reflects profile updates without retaining old identity",
+      "story": ["US5", "US10"]
+    }
+  ],
+  "apps/web/tests/invitation-builder/admin-template-pages.test.tsx": [
+    {
+      "name": "validates trimmed metadata and describes both supported schemas without sending whitespace",
+      "story": "US9"
+    },
+    {
+      "name": "retains metadata on a known failure and submits one trimmed responsive draft on retry",
+      "story": "US9"
+    },
+    {
+      "name": "admits only one pending create and blocks replay after an uncertain transport result",
+      "story": "US9"
+    },
+    {
+      "name": "aborts pending creation on an owner change and never navigates to the former owner draft",
+      "story": "US9"
+    },
+    {
+      "name": "keeps the copy name on failure and retries the pinned version through one native form",
+      "story": "US9"
+    },
+    {
+      "name": "does not permit another copy after an uncertain result even when the dialog closes",
+      "story": "US9"
+    }
+  ],
+  "apps/web/tests/foundation-page.test.tsx": [
+    {
+      "name": "presents the approved introduction without backend configuration or mock catalog",
+      "story": "US5"
+    }
+  ],
+  "apps/web/tests/invitation-builder/pagination.test.tsx": [
+    "loads further template pages and resets pagination with catalog filters",
+    "loads additional owned invitations using the returned cursor",
+    "invalidates the previous cursor while a filter loads and admits only one next-page request",
+    "refreshes the current filter when duplicate completes after a search",
+    "ignores a duplicate refresh that resolves after a newer filter",
+    "ignores obsolete refresh errors and retries the same filter after a current GET error"
+  ],
+  "apps/web/e2e/frontend-foundation/product-editor.spec.ts": [
+    {
+      "name": "US7 editor accordion draft retention and aligned fields at 360px",
+      "story": "US7"
+    },
+    {
+      "name": "US7 editor accordion draft retention and aligned fields at 375px",
+      "story": "US7"
+    },
+    {
+      "name": "US7 editor accordion draft retention and aligned fields at 390px",
+      "story": "US7"
+    },
+    {
+      "name": "US7 editor accordion draft retention and aligned fields at 430px",
+      "story": "US7"
+    },
+    {
+      "name": "US7 editor accordion draft retention and aligned fields at 768px",
+      "story": "US7"
+    },
+    {
+      "name": "US7 editor accordion draft retention and aligned fields at 1440px",
+      "story": "US7"
+    },
+    {
+      "name": "US7 real version conflict preserves dirty edits until reload is confirmed",
+      "story": "US7"
+    },
+    {
+      "name": "US7 delayed save cannot publish after the owner changes",
+      "story": "US7"
+    },
+    {
+      "name": "US7 publishes a real saved draft, opens public snapshot and manages RSVP state",
+      "story": "US7"
+    }
+  ],
+  "apps/web/e2e/frontend-foundation/prototype-parity.spec.ts": [
+    {
+      "name": "US9 guided Admin creation preserves fields on rejection and creates real schema 1 at 390px",
+      "story": "US9"
+    },
+    {
+      "name": "US9 guided Admin creation preserves fields on rejection and creates real schema 2 at 1440px",
+      "story": "US9"
+    },
+    {
+      "name": "US10 mapped Admin list and account surfaces preserve token geometry at 390px",
+      "story": "US10"
+    },
+    {
+      "name": "US10 mapped Admin list and account surfaces preserve token geometry at 1440px",
+      "story": "US10"
+    },
+    {
+      "name": "US9 native duplicate preserves input after a rejection and confirms the real source version",
+      "story": "US9"
+    },
+    {
+      "name": "US8 Customer local date control writes the declared-zone ISO through the actual draft API",
+      "story": "US8"
+    }
+  ],
+  "apps/web/tests/invitation-builder/event-local-time.test.ts": [
+    {
+      "name": "projects an instant and writes the event zone without depending on browser time zone",
+      "story": "US8"
+    },
+    {
+      "name": "rejects DST gaps and repeated times instead of silently choosing an instant",
+      "story": "US8"
+    },
+    {
+      "name": "supports half-hour zones and rejects invalid calendar values or unknown zones",
+      "story": "US8"
+    }
+  ]
+}

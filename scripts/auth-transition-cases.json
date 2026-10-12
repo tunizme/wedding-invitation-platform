@@ -58,7 +58,7 @@
   "apps/web/tests/identity-access/auth-transition-session.test.tsx": [
     "page load without a selected context makes no request and admits nothing",
     "storage unavailable ends admission without any request",
-    "logs in: provision \u2192 confirm \u2192 reserve \u2192 execute with headers, then admits",
+    "logs in: provision → confirm → reserve → execute with headers, then admits",
     "refreshes only the selected session with context headers",
     "never admits a response older than the selector revision",
     "CREDENTIAL_MISSING requires explicit recovery and never falls back",
@@ -150,7 +150,17 @@
     "login B atomically replaces its pending fence and preserves B against old refresh A with no prior admission",
     "login B atomically replaces its pending fence and preserves B against old refresh A with held A",
     "atomic local login refuses malformed slot tag without private admission",
-    "atomic local login refuses malformed revision without private admission"
+    "atomic local login refuses malformed revision without private admission",
+    "local login clears the previous session lease without clearing a newer lease on late release",
+    "login B atomically replaces its pending fence and preserves B against old refresh A with held A while refresh settles before admission",
+    "login B atomically replaces its pending fence and preserves B against old refresh A with no prior admission while refresh settles before admission",
+    "login B atomically replaces its pending fence and preserves B against old refresh A with no prior admission after server supersession",
+    "login B atomically replaces its pending fence and preserves B against old refresh A with held A after server supersession",
+    "login B atomically replaces its pending fence and preserves B against old refresh A with held A while refresh settles before admission after server supersession",
+    "login B atomically replaces its pending fence and preserves B against old refresh A with no prior admission while refresh settles before admission after server supersession",
+    "old refresh CREDENTIAL_MISSING cannot retire a newer login before its reservation settles",
+    "old refresh CONTEXT_UNAVAILABLE cannot retire a newer login before its reservation settles",
+    "old refresh UNAVAILABLE cannot retire a newer login before its reservation settles"
   ],
   "apps/web/tests/identity-access/auth-transport.test.ts": [
     "adds auth context headers only when provided",
@@ -283,7 +293,7 @@
     "B2: a refresh of A committed but delivered after login B cannot restore A",
     "B3: a late logout of A does not end session B",
     "B4: a pending password change of A does not clear or replace session B",
-    "B15: overlapping logins in one context \u2014 the server-accepted later intent wins",
+    "B15: overlapping logins in one context — the server-accepted later intent wins",
     "a delayed reservation binding error from A preserves live B and renewal",
     "B2: login B atomically releases its pending fence before old committed refresh A is delivered"
   ],
@@ -320,7 +330,8 @@
     "explains STORAGE_RESET with an accessible next action",
     "explains CREDENTIAL_MISSING with an accessible next action",
     "explains CAPACITY_EXHAUSTED with an accessible next action",
-    "explains CONTEXT_UNAVAILABLE with an accessible next action"
+    "explains CONTEXT_UNAVAILABLE with an accessible next action",
+    "announces delayed recovery without stealing focus from an active account field"
   ],
   "apps/web/tests/auth-transition/us2-uncertain.spec.ts": [
     "B6: a login request dropped before reaching the API is never replayed",

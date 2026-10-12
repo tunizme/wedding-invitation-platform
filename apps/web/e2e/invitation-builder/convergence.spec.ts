@@ -15,16 +15,23 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
     convergenceCustomer: { email: string; password: string };
   };
   await page.goto(builderOrigin + '/login');
+  await expect(
+    page.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await page
     .getByLabel('Email', { exact: true })
     .fill(seed.convergenceAdmin.email);
   await page
     .getByLabel('Mật khẩu', { exact: true })
     .fill(seed.convergenceAdmin.password);
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.getByLabel('Mật khẩu', { exact: true }).press('Enter');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.convergenceAdmin.email);
+    page.getByRole('heading', { name: 'Đăng nhập thành công', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
+  await expect(page.locator('#product-account-disclosure')).toContainText(
+    seed.convergenceAdmin.email,
+  );
   await page.goto(builderOrigin + '/admin/templates/new');
   const name = 'Convergence ' + randomUUID();
   await page.getByLabel('Tên mẫu', { exact: true }).fill(name);
@@ -54,7 +61,7 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
     .getByRole('button', { name: 'Thêm hình ảnh', exact: true })
     .click();
   await page
-    .getByRole('dialog', { name: 'Thư viện tài sản' })
+    .getByRole('dialog', { name: 'Thư viện ảnh' })
     .getByRole('button', { name: /^Chọn / })
     .first()
     .click();
@@ -68,7 +75,7 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
     .getByRole('button', { name: 'Thêm giá trị dự phòng', exact: true })
     .click();
   await page
-    .getByRole('dialog', { name: 'Thư viện tài sản' })
+    .getByRole('dialog', { name: 'Thư viện ảnh' })
     .getByRole('button', { name: /^Chọn / })
     .first()
     .click();
@@ -152,7 +159,7 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
   await page.getByText('Thông tin mẫu', { exact: true }).click();
   await page.getByRole('button', { name: 'Chọn ảnh bìa', exact: true }).click();
   await page
-    .getByRole('dialog', { name: 'Thư viện tài sản' })
+    .getByRole('dialog', { name: 'Thư viện ảnh' })
     .getByRole('button', { name: /^Chọn / })
     .first()
     .click();
@@ -357,6 +364,9 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
 
   const customer = await browser.newPage();
   await customer.goto(builderOrigin + '/login');
+  await expect(
+    customer.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await customer
     .getByLabel('Email', { exact: true })
     .fill(seed.convergenceCustomer.email);
@@ -367,13 +377,22 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
     .getByRole('button', { name: 'Đăng nhập', exact: true })
     .click();
   await expect(
-    customer.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.convergenceCustomer.email);
+    customer.getByRole('heading', {
+      name: 'Đăng nhập thành công',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await customer
+    .getByRole('button', { name: 'Tài khoản', exact: true })
+    .click();
+  await expect(customer.locator('#product-account-disclosure')).toContainText(
+    seed.convergenceCustomer.email,
+  );
   await customer.goto(builderOrigin + '/templates');
   await customer.getByLabel('Tìm mẫu', { exact: true }).fill(name);
   const cover = customer
     .getByRole('button', {
-      name: 'Chọn mẫu ' + name + ' published metadata',
+      name: 'Xem mẫu ' + name + ' published metadata',
       exact: true,
     })
     .locator('..')
@@ -401,9 +420,13 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
     .toBe(true);
   await customer
     .getByRole('button', {
-      name: 'Chọn mẫu ' + name + ' published metadata',
+      name: 'Xem mẫu ' + name + ' published metadata',
       exact: true,
     })
+    .click();
+  await customer
+    .getByRole('dialog', { name: name + ' published metadata', exact: true })
+    .getByRole('button', { name: 'Chọn mẫu này', exact: true })
     .click();
   await customer.getByLabel('Tên cô dâu', { exact: true }).fill('Mai');
   await customer
@@ -427,21 +450,33 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
   ]) {
     const field = customer.getByLabel(label, { exact: true });
     await field.fill('   ');
+    await customer
+      .getByRole('button', { name: 'Xem trước', exact: true })
+      .click();
     await expect(
       customer.getByRole('alert').filter({ hasText: 'Cần bổ sung:' }),
     ).toBeVisible();
     await expect(
       customer.getByRole('alert').filter({ hasText: 'BINDING_TYPE' }),
     ).toHaveCount(0);
+    await customer
+      .getByRole('button', { name: 'Chỉnh sửa', exact: true })
+      .click();
     await field.fill(value);
   }
   await customer.getByRole('button', { name: 'Thêm mốc', exact: true }).click();
   await customer.getByLabel('Tiêu đề', { exact: true }).fill('Lễ cưới');
   await customer.getByLabel('Thời gian mốc', { exact: true }).fill('Buổi sáng');
   await customer.getByLabel('Ngày giờ ISO', { exact: true }).fill('');
+  await customer
+    .getByRole('button', { name: 'Xem trước', exact: true })
+    .click();
   await expect(
     customer.getByRole('alert').filter({ hasText: 'Cần bổ sung:' }),
   ).toBeVisible();
+  await customer
+    .getByRole('button', { name: 'Chỉnh sửa', exact: true })
+    .click();
   await expect(customer.getByLabel('Tên cô dâu', { exact: true })).toHaveValue(
     'Mai',
   );

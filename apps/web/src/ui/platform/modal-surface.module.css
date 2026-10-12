@@ -1,0 +1,136 @@
+/* Native modal: <768px full-screen Sheet, >=768px right Drawer. Tokens come from
+   the product layout (.platformTokens); the surface sets its own typography so
+   nothing is inherited from, or leaks into, the template canvas. */
+.dialog {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-platform-sans), Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  box-shadow: var(--shadow-md);
+}
+
+/* ::backdrop does not inherit custom properties, so the scrim is a literal. */
+.dialog::backdrop {
+  background: rgb(41 37 31 / 0.45);
+}
+
+@media (max-width: 767.98px) {
+  .dialog {
+    inset: 0;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .dialog {
+    inset-block: 0;
+    inset-inline: auto 0;
+    width: min(720px, calc(100vw - 48px));
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.heading:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.close {
+  flex: none;
+}
+
+/* The body scrolls on its own so the header and Close stay reachable. */
+.body {
+  display: grid;
+  flex: 1;
+  gap: var(--space-4);
+  align-content: start;
+  min-height: 0;
+  padding: var(--space-4) var(--space-6) var(--space-8);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog :is(button, input, select, textarea, a):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767.98px) {
+  .header,
+  .body {
+    padding-inline: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog * {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+}
+
+/* Catalog detail is a centered modal; existing library drawers keep their layout. */
+.centered {
+  inset: 0;
+  margin: auto;
+  width: min(1120px, calc(100vw - 64px));
+  height: auto;
+  max-height: calc(100dvh - 64px);
+  border-radius: var(--radius-xl);
+}
+.centered .panel {
+  max-height: calc(100dvh - 64px);
+  height: auto;
+}
+.centered .body {
+  display: block;
+}
+@media (max-width: 767.98px) {
+  .centered {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+  .centered .panel {
+    max-height: calc(100dvh - 24px);
+  }
+}

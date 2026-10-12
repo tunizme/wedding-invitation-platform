@@ -1,6 +1,7 @@
 'use client';
 import {
   builderRequest,
+  BuilderApiError,
   type ListPage,
 } from '../invitation-builder/api/client';
 import type {
@@ -99,3 +100,52 @@ export const unpublishInvitation = (
     method: 'POST',
     body: { expectedVersion },
   });
+
+export type TemplateRevision = {
+  id: string;
+  revisionId: string;
+  document: SupportedTemplateDesign;
+  sampleData: WeddingData;
+  formFields: InvitationDetail['formFields'];
+};
+export const getTemplateRevision = (
+  id: string,
+  revisionId: string,
+  options: ScopedOptions = {},
+) =>
+  builderRequest<TemplateRevision>(
+    `/templates/${encodeURIComponent(id)}/revisions/${encodeURIComponent(revisionId)}`,
+    options,
+  );
+
+/** The catalog has no item endpoint. Walk real cursors with a single bounded deadline. */
+export async function findTemplateChoice(
+  id: string,
+  options: ScopedOptions = {},
+) {
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(15000),
+    ...(options.signal ? [options.signal] : []),
+    ...(options.scope ? [options.scope.signal] : []),
+  ]);
+  let cursor: string | null = null;
+  const seen = new Set<string>();
+  do {
+    options.scope?.assertActive();
+    if (signal.aborted) throw new BuilderApiError(0, 'REQUEST_CANCELLED');
+    const params = new URLSearchParams({ limit: '100' });
+    if (cursor) params.set('cursor', cursor);
+    const page = await listTemplateChoices(params.toString(), {
+      ...options,
+      signal,
+    });
+    options.scope?.assertActive();
+    const choice = page.items.find((item) => item.id === id);
+    if (choice) return choice;
+    cursor = page.nextCursor;
+    if (cursor && seen.has(cursor))
+      throw new BuilderApiError(0, 'CATALOG_CURSOR_INVALID');
+    if (cursor) seen.add(cursor);
+  } while (cursor);
+  throw new BuilderApiError(404, 'TEMPLATE_UNAVAILABLE');
+}

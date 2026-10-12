@@ -526,8 +526,17 @@ export function requireRecovery(
   expected?:
     | { contextId: string; sessionTag: string; revision: number }
     | { attemptId: string; contextId?: string },
+  expectedAttemptId?: string | null,
 ): Promise<boolean> {
   return store.transact((record) => {
+    // Renewal errors belong to the attempt captured before dispatch. An intent
+    // can change before its server revision is known; tag/revision alone is not
+    // enough to protect a newer reservation from the old failure.
+    if (
+      expectedAttemptId !== undefined &&
+      record?.attemptId !== expectedAttemptId
+    )
+      return { result: false };
     if (expected && 'attemptId' in expected) {
       if (
         !record ||

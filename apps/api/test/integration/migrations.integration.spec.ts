@@ -1,17 +1,57 @@
+import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { databaseOptions } from '../../src/infrastructure/database/data-source';
 
 describe.sequential('migration lifecycle', () => {
   let dataSource: DataSource;
+  let control: DataSource;
+  let ownedSchema: string | undefined;
 
   beforeAll(async () => {
-    dataSource = new DataSource(databaseOptions());
+    const options = databaseOptions();
+    // Rollback is intentionally allowed only in disposable IAM schemas. Give
+    // this destructive lifecycle test its own schema, including under builder
+    // checkpoints, so it never rewinds another suite's tables/migration ledger.
+    if (
+      process.env.NODE_ENV !== 'test' ||
+      options.type !== 'postgres' ||
+      typeof options.schema !== 'string' ||
+      !/^(iam|builder)_test_[a-f0-9]{32}$/.test(options.schema)
+    )
+      throw new Error(
+        'Migration lifecycle requires a runner-owned test schema.',
+      );
+    control = new DataSource(options);
+    await control.initialize();
+    const schema = `iam_test_${randomUUID().replaceAll('-', '')}`;
+    await control.query(`CREATE SCHEMA "${schema}"`);
+    ownedSchema = schema;
+    const url = new URL(process.env.DATABASE_URL!);
+    url.searchParams.set('options', `-c search_path=${schema}`);
+    const isolated = databaseOptions(url.toString());
+    if (isolated.type !== 'postgres') throw new Error('PostgreSQL required.');
+    dataSource = new DataSource({
+      ...isolated,
+      schema,
+      extra: { options: `-c search_path=${schema}` },
+    });
     await dataSource.initialize();
   });
 
   afterAll(async () => {
-    if (dataSource?.isInitialized) await dataSource.destroy();
+    try {
+      if (dataSource?.isInitialized) await dataSource.destroy();
+    } finally {
+      if (control?.isInitialized) {
+        try {
+          if (ownedSchema)
+            await control.query(`DROP SCHEMA "${ownedSchema}" CASCADE`);
+        } finally {
+          await control.destroy();
+        }
+      }
+    }
   });
 
   it('applies the baseline and makes repeated runs idempotent', async () => {

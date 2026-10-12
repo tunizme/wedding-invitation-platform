@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hasForbiddenScope, isScopePath } from '../scope-check.mjs';
+import {
+  hasForbiddenScope,
+  isScopePath,
+  scopeViolations,
+} from '../scope-check.mjs';
+
+test('scope scanner tolerates deleted files still present in the Git index', () => {
+  assert.deepEqual(
+    scopeViolations(['apps/web/src/__deleted_scope_fixture__.tsx']),
+    [],
+  );
+});
 
 test('scope scanner only covers source and direct manifests', () => {
   assert.equal(isScopePath('apps/web/src/app/page.tsx'), true);

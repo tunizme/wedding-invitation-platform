@@ -5,7 +5,7 @@ import {
   render,
   screen,
 } from '@testing-library/react';
-import OAuthResultPage from '../../src/app/(auth)/oauth-result/page';
+import OAuthResultPage from '../../src/app/(product)/(auth)/oauth-result/page';
 import { AuthRecoveryNotice } from '../../src/features/identity-access/session/auth-recovery-notice';
 import { ProfileForm } from '../../src/features/identity-access/forms/profile-form';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,6 +17,7 @@ import {
 import {
   SelectorStorageUnavailable,
   acquireRefreshLease,
+  releaseRefreshLease,
   beginProvisioning,
   commitSelected,
   observeServerState,
@@ -565,6 +566,41 @@ describe('006 frontend session flows (US1)', () => {
       }
     });
   }
+
+  it('queued refresh cannot dispatch for B when login releases the old lease before peer admission', async () => {
+    vi.useFakeTimers();
+    try {
+      const store = await installSelectedSelector();
+      const a = protocolSession(base);
+      sessionStore.set(a, {
+        contextId: CONTEXT_ID,
+        sessionTag: TAG,
+        contextRevision: 1,
+      });
+      await acquireRefreshLease(store, 'peer');
+      const flight = bootstrapSession(true);
+      await vi.advanceTimersByTimeAsync(0);
+      // Login B commits selector authority and clears A's lease before its
+      // broadcast reaches this document. There is no cached B to adopt yet.
+      await store.transact((record) => ({
+        next: {
+          ...record!,
+          sessionTag: 'BBBBBBBBBBBBBBBBBBBBBB',
+          revision: 3,
+          refreshLease: null,
+        },
+        result: undefined,
+      }));
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(await flight).toBeNull();
+      expect(iamRequest).not.toHaveBeenCalled();
+      expect(sessionStore.get()).toBeNull();
+      expect((await readSelector(store)).refreshLease).toBeNull();
+    } finally {
+      await vi.advanceTimersByTimeAsync(25000);
+      vi.useRealTimers();
+    }
+  });
 
   it('queued refresh returns a peer session only after selector validation', async () => {
     vi.useFakeTimers();
@@ -1449,72 +1485,109 @@ it('scoped OAuth bootstrap never dispatches refresh for a subsequently selected 
   expect(sessionStore.get()).toBe(b);
 }, 10_000);
 
-for (const held of [false, true]) {
-  it(`login B atomically replaces its pending fence and preserves B against old refresh A with ${held ? 'held A' : 'no prior admission'}`, async () => {
-    const shared = await installSelectedSelector();
-    if (held)
-      sessionStore.set(protocolSession(base), {
-        contextId: CONTEXT_ID,
-        sessionTag: TAG,
-        contextRevision: 1,
-      });
-    let start!: () => void, release!: () => void;
-    const started = new Promise<void>((resolve) => {
-      start = resolve;
-    });
-    const gate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    let transactionAdmittedB = false;
-    const b = protocolSession(base, {
-      sessionTag: 'B'.repeat(22),
-      contextRevision: 2,
-      accessToken: 'access-b',
-    });
-    setSelectorStoreForTests({
-      onClose: (listener) => shared.onClose(listener),
-      transact: async (work) => {
-        let clear = false;
-        const result = await shared.transact((record) => {
-          const outcome = work(record);
-          clear =
-            record?.pendingIntent?.kind === 'LOCAL_LOGIN' &&
-            outcome.next?.pendingIntent === null;
-          if (clear) transactionAdmittedB = sessionStore.get() === b;
-          return outcome;
-        });
-        if (clear) {
-          release();
-          await oldRefresh;
-        }
-        return result;
-      },
-    });
-    mocked().mockImplementation(async (path: string) => {
-      if (path === '/auth/csrf') {
-        start();
-        await gate;
-        return { csrfToken: 'csrf' };
-      }
-      if (path === '/auth/refresh')
-        return protocolSession(base, { contextRevision: 2 });
-      if (path.endsWith('/intents'))
-        return { intentId: INTENT_ID, revision: 2 };
-      if (path === '/auth/login') return b;
-      throw new Error(`Unexpected request ${path}`);
-    });
-    const oldRefresh = bootstrapSession(true);
-    await started;
-    await expect(loginLocal('b@example.test', 'password')).resolves.toBe(b);
-    expect(transactionAdmittedB).toBe(true);
-    expect(sessionStore.get()).toBe(b);
-    expect(await readSelector(shared)).toMatchObject({
-      sessionTag: b.sessionTag,
-      pendingIntent: null,
-      revision: 2,
-    });
+it('local login clears the previous session lease without clearing a newer lease on late release', async () => {
+  const store = await installSelectedSelector();
+  await acquireRefreshLease(store, 'old-session-lease');
+  const b = protocolSession(base, {
+    sessionTag: 'B'.repeat(22),
+    contextRevision: 2,
+    accessToken: 'access-b',
   });
-}
+  mocked().mockImplementation(async (path: string) => {
+    if (path.endsWith('/intents')) return { intentId: INTENT_ID, revision: 2 };
+    if (path === '/auth/login') return b;
+    throw new Error(`Unexpected request ${path}`);
+  });
+  await expect(loginLocal('b@example.test', 'password')).resolves.toBe(b);
+  expect((await readSelector(store))?.refreshLease).toBeNull();
+  await acquireRefreshLease(store, 'new-session-lease');
+  await releaseRefreshLease(store, 'old-session-lease');
+  expect((await readSelector(store))?.refreshLease?.attemptId).toBe(
+    'new-session-lease',
+  );
+});
+
+for (const rejectedRefresh of [false, true])
+  for (const settleBeforeAdmission of [false, true])
+    for (const held of [false, true]) {
+      it(`login B atomically replaces its pending fence and preserves B against old refresh A with ${held ? 'held A' : 'no prior admission'}${settleBeforeAdmission ? ' while refresh settles before admission' : ''}${rejectedRefresh ? ' after server supersession' : ''}`, async () => {
+        const shared = await installSelectedSelector();
+        if (held)
+          sessionStore.set(protocolSession(base), {
+            contextId: CONTEXT_ID,
+            sessionTag: TAG,
+            contextRevision: 1,
+          });
+        let start!: () => void, release!: () => void;
+        const started = new Promise<void>((resolve) => {
+          start = resolve;
+        });
+        const gate = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        let transactionAdmittedB = false;
+        const b = protocolSession(base, {
+          sessionTag: 'B'.repeat(22),
+          contextRevision: 2,
+          accessToken: 'access-b',
+        });
+        setSelectorStoreForTests({
+          onClose: (listener) => shared.onClose(listener),
+          transact: async (work) => {
+            let clear = false;
+            const result = await shared.transact((record) => {
+              const outcome = work(record);
+              clear =
+                record?.pendingIntent?.kind === 'LOCAL_LOGIN' &&
+                outcome.next?.pendingIntent === null;
+              if (clear) {
+                expect(outcome.next?.refreshLease).toBeNull();
+                transactionAdmittedB = sessionStore.get() === b;
+              }
+              return outcome;
+            });
+            if (clear) {
+              release();
+              await oldRefresh;
+            }
+            return result;
+          },
+        });
+        mocked().mockImplementation(async (path: string) => {
+          if (path === '/auth/csrf') {
+            start();
+            await gate;
+            return { csrfToken: 'csrf' };
+          }
+          if (path === '/auth/refresh') {
+            if (rejectedRefresh) throw new ApiError(409, 'SUPERSEDED');
+            return protocolSession(base, { contextRevision: 2 });
+          }
+          if (path.endsWith('/intents'))
+            return { intentId: INTENT_ID, revision: 2 };
+          if (path === '/auth/login') {
+            // The superseded refresh settles while LOCAL_LOGIN still selects A.
+            // It must not withdraw A and invalidate B's admission version.
+            if (settleBeforeAdmission) {
+              release();
+              await oldRefresh;
+            }
+            return b;
+          }
+          throw new Error(`Unexpected request ${path}`);
+        });
+        const oldRefresh = bootstrapSession(true);
+        await started;
+        await expect(loginLocal('b@example.test', 'password')).resolves.toBe(b);
+        expect(transactionAdmittedB).toBe(true);
+        expect(sessionStore.get()).toBe(b);
+        expect(await readSelector(shared)).toMatchObject({
+          sessionTag: b.sessionTag,
+          pendingIntent: null,
+          revision: 2,
+        });
+      });
+    }
 
 for (const malformed of ['slot tag', 'revision'] as const) {
   it(`atomic local login refuses malformed ${malformed} without private admission`, async () => {
@@ -1534,5 +1607,56 @@ for (const malformed of ['slot tag', 'revision'] as const) {
     ).rejects.toMatchObject({ code: 'SUPERSEDED' });
     expect(sessionStore.get()).toBeNull();
     expect(sessionStore.admission()).toBeNull();
+  });
+}
+
+for (const code of [
+  'CREDENTIAL_MISSING',
+  'CONTEXT_UNAVAILABLE',
+  'UNAVAILABLE',
+] as const) {
+  it(`old refresh ${code} cannot retire a newer login before its reservation settles`, async () => {
+    const store = await installSelectedSelector();
+    sessionStore.set(protocolSession(base), {
+      contextId: CONTEXT_ID,
+      sessionTag: TAG,
+      contextRevision: 1,
+    });
+    let started!: () => void, release!: () => void;
+    const begins = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const b = protocolSession(base, {
+      sessionTag: 'B'.repeat(22),
+      contextRevision: 2,
+      accessToken: 'access-b',
+    });
+    mocked().mockImplementation(async (path: string) => {
+      if (path === '/auth/csrf') {
+        started();
+        await gate;
+        throw new ApiError(code === 'UNAVAILABLE' ? 500 : 401, code);
+      }
+      if (path.endsWith('/intents')) {
+        release();
+        await oldRefresh;
+        return { intentId: INTENT_ID, revision: 2 };
+      }
+      if (path === '/auth/login') return b;
+      throw new Error(`Unexpected request ${path}`);
+    });
+    const oldRefresh = bootstrapSession(true);
+    await begins;
+    await expect(loginLocal('b@example.test', 'password')).resolves.toBe(b);
+    expect(sessionStore.get()).toBe(b);
+    expect(await readSelector(store)).toMatchObject({
+      state: 'SELECTED',
+      pendingIntent: null,
+      recoveryReason: null,
+      sessionTag: b.sessionTag,
+    });
   });
 }

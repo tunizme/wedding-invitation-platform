@@ -52,6 +52,7 @@ export async function openLogin(page: Page) {
 }
 
 export async function submitLogin(page: Page, email: string) {
+  await expect(page.getByRole('button', { name: /^Đăng nhập$/ })).toBeEnabled();
   // Controlled inputs: hydration can reset values typed too early, so re-fill
   // until React state holds them.
   await expect(async () => {
@@ -62,7 +63,7 @@ export async function submitLogin(page: Page, email: string) {
       timeout: 500,
     });
   }).toPass({ timeout: 15_000 });
-  await page.getByRole('button', { name: /^Đăng nhập$/ }).click();
+  await page.getByLabel(/^Mật khẩu$/).press('Enter');
 }
 
 export async function loginViaUi(page: Page, email: string) {

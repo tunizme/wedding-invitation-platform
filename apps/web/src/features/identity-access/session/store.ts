@@ -12,6 +12,17 @@ export interface Admission {
 }
 
 let version = 0;
+let identityEpoch = 0;
+const identity = (session: AccessSession | null, owner: Admission | null) =>
+  session
+    ? JSON.stringify([
+        session.user.id,
+        session.user.role,
+        session.user.status,
+        owner?.contextId ?? null,
+        owner?.sessionTag ?? session.sessionTag ?? null,
+      ])
+    : null;
 let current: AccessSession | null = null;
 let admission: Admission | null = null;
 let lastEnd: EndAdmissionReason | null = null;
@@ -25,17 +36,21 @@ function notify() {
 export const sessionStore = {
   get: () => current,
   version: () => version,
+  identityEpoch: () => identityEpoch,
   admission: () => admission,
   /** Reason the last private admission ended, for recovery UI (FR-006). */
   lastEndReason: () => lastEnd,
   set(session: AccessSession, next?: Admission) {
+    if (identity(current, admission) !== identity(session, next ?? admission))
+      identityEpoch++;
     version++;
     current = session;
-    if (next) admission = next;
+    admission = next ?? admission;
     lastEnd = null;
     notify();
   },
   clear(reason: EndAdmissionReason = 'LOGOUT') {
+    if (current !== null || admission !== null) identityEpoch++;
     version++;
     const had = current !== null || admission !== null;
     current = null;

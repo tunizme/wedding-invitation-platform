@@ -1,5 +1,29 @@
 'use client';
 import SectionEditor from './section-editor';
+import workspace from './authoring-workspace.module.css';
+import { EditorHeading } from './editor-heading';
+import { PreviewExit } from './preview-exit';
+import {
+  Undo2,
+  Redo2,
+  Save,
+  Eye,
+  Scan,
+  Type,
+  Image as ImageIcon,
+  Shapes,
+  Layers,
+  Settings2,
+  CalendarDays,
+  Timer,
+  MapPin,
+  Heart,
+  QrCode,
+  ListOrdered,
+  Flower2,
+  Paintbrush,
+  MousePointer2,
+} from 'lucide-react';
 import {
   usePrivateOwner,
   useOperationLifetime,
@@ -228,8 +252,14 @@ function Workarea({
     [status, setStatus] = useState(''),
     [zoom, setZoom] = useState(1),
     [preview, setPreview] = useState(false),
+    [taskPanel, setTaskPanel] = useState<
+      'canvas' | 'components' | 'properties'
+    >('canvas'),
     [selectedSample, setSelectedSample] = useState<'A' | 'B'>('A'),
     [previewWidth, setPreviewWidth] = useState(390);
+  const [libraryTab, setLibraryTab] = useState<
+    'elements' | 'layers' | 'canvas'
+  >('elements');
   const [sampleData, setSampleData] = useState(() =>
     Object.keys(initial.draftSampleData).length > 1
       ? initial.draftSampleData
@@ -665,12 +695,17 @@ function Workarea({
         {/* Logical fallback focus target when the library trigger is gone. */}
         <div
           ref={workspaceRef}
+          className={workspace.workspace}
+          data-task-panel={taskPanel}
+          data-preview={preview}
           tabIndex={-1}
           role="group"
           aria-label="Vùng soạn mẫu"
           style={{ outline: 'none' }}
         >
-          <details>
+          {preview && <PreviewExit onClose={() => setPreview(false)} />}
+          <EditorHeading title={metadata.name || initial.name} dirty={dirty} />
+          <details className={`${workspace.metadata} ${workspace.controls}`}>
             <summary>Thông tin mẫu</summary>
             <fieldset disabled={busy || saving || publicationBusy}>
               <label>
@@ -745,34 +780,33 @@ function Workarea({
             </fieldset>
           </details>
           <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'wrap',
-              padding: 12,
-              background: '#f4edf0',
-            }}
+            className={`${workspace.toolbar} ${workspace.controls}`}
+            aria-label="Thao tác thiết kế"
           >
-            <a href="/admin/templates">Danh sách mẫu</a>
             <button
+              title="Hoàn tác"
               disabled={!canUndo || busy || saving || publicationBusy}
               onClick={() => actions.history.undo()}
             >
-              Hoàn tác
+              <Undo2 size={18} aria-hidden="true" /> Hoàn tác
             </button>
             <button
+              title="Làm lại"
               disabled={!canRedo || busy || saving || publicationBusy}
               onClick={() => actions.history.redo()}
             >
-              Làm lại
+              <Redo2 size={18} aria-hidden="true" /> Làm lại
             </button>
             <button
+              className={workspace.saveButton}
               disabled={busy || saving || publicationBusy}
               onClick={() => void save()}
             >
-              Lưu bản nháp
+              <Save size={17} aria-hidden="true" />{' '}
+              {saving ? 'Đang lưu…' : 'Lưu bản nháp'}
             </button>
             <button
+              className={workspace.reloadButton}
               disabled={busy || saving || publicationBusy}
               onClick={() => void reload()}
             >
@@ -804,15 +838,18 @@ function Workarea({
                 )
               }
             >
-              Vừa màn hình
+              <Scan size={17} aria-hidden="true" /> Vừa màn hình
             </button>
             <button
+              className={workspace.previewButton}
+              data-preview-trigger
               disabled={busy}
               onClick={() => {
                 setPreview((value) => !value);
                 actions.selectNode(undefined);
               }}
             >
+              <Eye size={17} aria-hidden="true" />{' '}
               {preview ? 'Quay lại chỉnh sửa' : 'Xem trước'}
             </button>
             {preview && (
@@ -833,77 +870,80 @@ function Workarea({
                     ))}
                   </select>
                 </label>
-                <SampleDataPanel
-                  assets={sampleAssets}
-                  selected={selectedSample}
-                  data={sampleData}
-                  onSelect={(sample) => {
-                    sampleSets.current[selectedSample] =
-                      structuredClone(sampleData);
-                    setSelectedSample(sample);
-                    setSampleData(
-                      sampleSets.current[sample] ?? sampleWeddingData(sample),
-                    );
-                  }}
-                  onChange={setSampleData}
-                />
-                {sampleCursor && (
+                <details className={workspace.sample} open>
+                  <summary>Dữ liệu xem trước</summary>
+                  <SampleDataPanel
+                    assets={sampleAssets}
+                    selected={selectedSample}
+                    data={sampleData}
+                    onSelect={(sample) => {
+                      sampleSets.current[selectedSample] =
+                        structuredClone(sampleData);
+                      setSelectedSample(sample);
+                      setSampleData(
+                        sampleSets.current[sample] ?? sampleWeddingData(sample),
+                      );
+                    }}
+                    onChange={setSampleData}
+                  />
+                  {sampleCursor && (
+                    <button
+                      disabled={
+                        saving || busy || publicationBusy || sampleLoading
+                      }
+                      onClick={() => {
+                        const scope = lifetime.capture();
+                        if (!scope.isActive()) return;
+                        if (sampleLoadingRef.current) return;
+                        sampleLoadingRef.current = true;
+                        setSampleLoading(true);
+                        void builderRequest<{
+                          items: AssetSummary[];
+                          nextCursor: string | null;
+                        }>(
+                          '/admin/template-assets?' +
+                            new URLSearchParams({
+                              limit: '100',
+                              cursor: sampleCursor,
+                            }),
+                          { scope },
+                        )
+                          .then((page) => {
+                            if (!scope.isActive()) return;
+                            setSampleAssets((current) => [
+                              ...new globalThis.Map(
+                                [...current, ...page.items].map((asset) => [
+                                  asset.id,
+                                  asset,
+                                ]),
+                              ).values(),
+                            ]);
+                            setSampleCursor(page.nextCursor);
+                          })
+                          .catch(() => {
+                            if (scope.isActive())
+                              setError('Không thể tải thêm ảnh mẫu.');
+                          })
+                          .finally(() => {
+                            if (!scope.isActive()) return;
+                            sampleLoadingRef.current = false;
+                            setSampleLoading(false);
+                          });
+                      }}
+                    >
+                      Tải thêm ảnh mẫu
+                    </button>
+                  )}
                   <button
-                    disabled={
-                      saving || busy || publicationBusy || sampleLoading
-                    }
+                    disabled={saving || busy || publicationBusy}
                     onClick={() => {
-                      const scope = lifetime.capture();
-                      if (!scope.isActive()) return;
-                      if (sampleLoadingRef.current) return;
-                      sampleLoadingRef.current = true;
-                      setSampleLoading(true);
-                      void builderRequest<{
-                        items: AssetSummary[];
-                        nextCursor: string | null;
-                      }>(
-                        '/admin/template-assets?' +
-                          new URLSearchParams({
-                            limit: '100',
-                            cursor: sampleCursor,
-                          }),
-                        { scope },
-                      )
-                        .then((page) => {
-                          if (!scope.isActive()) return;
-                          setSampleAssets((current) => [
-                            ...new globalThis.Map(
-                              [...current, ...page.items].map((asset) => [
-                                asset.id,
-                                asset,
-                              ]),
-                            ).values(),
-                          ]);
-                          setSampleCursor(page.nextCursor);
-                        })
-                        .catch(() => {
-                          if (scope.isActive())
-                            setError('Không thể tải thêm ảnh mẫu.');
-                        })
-                        .finally(() => {
-                          if (!scope.isActive()) return;
-                          sampleLoadingRef.current = false;
-                          setSampleLoading(false);
-                        });
+                      setPublicationSample(structuredClone(sampleData));
+                      setStatus('Chưa lưu dữ liệu xuất bản');
                     }}
                   >
-                    Tải thêm ảnh mẫu
+                    Dùng dữ liệu này khi xuất bản
                   </button>
-                )}
-                <button
-                  disabled={saving || busy || publicationBusy}
-                  onClick={() => {
-                    setPublicationSample(structuredClone(sampleData));
-                    setStatus('Chưa lưu dữ liệu xuất bản');
-                  }}
-                >
-                  Dùng dữ liệu này khi xuất bản
-                </button>
+                </details>
               </>
             )}
             <span role="status">
@@ -921,19 +961,76 @@ function Workarea({
             />
           </div>
           {error && <p role="alert">{error}</p>}
+          {!preview && (
+            <div
+              className={`${workspace.taskTabs} ${workspace.controls}`}
+              aria-label="Khu vực thiết kế"
+            >
+              {(
+                [
+                  ['canvas', 'Canvas'],
+                  ['components', 'Thành phần & lớp'],
+                  ['properties', 'Thuộc tính'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={taskPanel === value}
+                  onClick={() => setTaskPanel(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: preview
-                ? '1fr'
-                : '200px minmax(440px,1fr) 280px',
-              gap: 16,
-            }}
+            className={`${workspace.layout} ${preview ? workspace.previewLayout : ''}`}
           >
             {!preview && (
-              <aside>
-                <h2>Thành phần</h2>
+              <aside
+                className={`${workspace.components} ${workspace.controls}`}
+                aria-label="Thành phần và lớp"
+              >
+                <div
+                  className={workspace.libraryTabs}
+                  aria-label="Công cụ thiết kế"
+                >
+                  {(
+                    [
+                      ['elements', 'Thành phần', Shapes],
+                      ['layers', 'Lớp', Layers],
+                      ['canvas', 'Thiết lập', Settings2],
+                    ] as const
+                  ).map(([value, label, Icon]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={libraryTab === value}
+                      onClick={() => setLibraryTab(value)}
+                    >
+                      <Icon size={19} aria-hidden="true" />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+                <h2>
+                  {libraryTab === 'elements'
+                    ? 'Thêm vào thiệp'
+                    : libraryTab === 'layers'
+                      ? 'Các lớp thiết kế'
+                      : 'Thiết lập trang'}
+                </h2>
+                <p className={workspace.helper}>
+                  {libraryTab === 'elements'
+                    ? 'Chọn một thành phần để bắt đầu thiết kế.'
+                    : libraryTab === 'layers'
+                      ? 'Chọn lớp để chỉnh sửa. Kéo để đổi thứ tự.'
+                      : 'Điều chỉnh kích thước và nền của thiệp.'}
+                </p>
                 <fieldset
+                  hidden={libraryTab !== 'elements'}
+                  className={workspace.elementPalette}
                   disabled={busy || saving || publicationBusy}
                   style={{ border: 0, padding: 0 }}
                 >
@@ -942,20 +1039,23 @@ function Workarea({
                       safeExecute({ type: 'add', node: primitiveNode('Text') })
                     }
                   >
-                    Thêm văn bản
+                    <Type size={24} aria-hidden="true" />
+                    <span>Thêm văn bản</span>
                   </button>
                   <button
                     onClick={() =>
                       safeExecute({ type: 'add', node: primitiveNode('Shape') })
                     }
                   >
-                    Thêm hình dạng
+                    <Shapes size={24} aria-hidden="true" />
+                    <span>Thêm hình dạng</span>
                   </button>
                   <button
                     className={mediaTrigger.trigger}
                     onClick={(event) => choose('Image', event.currentTarget)}
                   >
-                    Thêm hình ảnh
+                    <ImageIcon size={24} aria-hidden="true" />
+                    <span>Thêm hình ảnh</span>
                   </button>
                   <button
                     className={mediaTrigger.trigger}
@@ -963,7 +1063,8 @@ function Workarea({
                       choose('Decoration', event.currentTarget)
                     }
                   >
-                    Thêm trang trí
+                    <Flower2 size={24} aria-hidden="true" />
+                    <span>Thêm trang trí</span>
                   </button>
                   <button
                     className={mediaTrigger.trigger}
@@ -971,7 +1072,8 @@ function Workarea({
                       choose('background', event.currentTarget)
                     }
                   >
-                    Chọn nền
+                    <Paintbrush size={24} aria-hidden="true" />
+                    <span>Chọn nền</span>
                   </button>
                   {(
                     [
@@ -989,9 +1091,38 @@ function Workarea({
                         safeExecute({ type: 'add', node: widgetNode(kind) })
                       }
                     >
-                      Thêm {kind}
+                      {(() => {
+                        const Icon = {
+                          Calendar: CalendarDays,
+                          Countdown: Timer,
+                          Map: MapPin,
+                          RSVP: Heart,
+                          QRBank: QrCode,
+                          Timeline: ListOrdered,
+                        }[kind];
+                        return <Icon size={24} aria-hidden="true" />;
+                      })()}
+                      <span>
+                        Thêm{' '}
+                        {
+                          {
+                            Calendar: 'lịch',
+                            Countdown: 'đếm ngược',
+                            Map: 'bản đồ',
+                            RSVP: 'RSVP',
+                            QRBank: 'QR Bank',
+                            Timeline: 'lịch trình',
+                          }[kind]
+                        }
+                      </span>
                     </button>
                   ))}
+                </fieldset>
+                <fieldset
+                  hidden={libraryTab !== 'canvas'}
+                  className={workspace.canvasSettings}
+                  disabled={busy || saving || publicationBusy}
+                >
                   <label>
                     Chiều cao thiệp
                     <input
@@ -1009,26 +1140,33 @@ function Workarea({
                     />
                   </label>
                 </fieldset>
-                <LayersPanel
-                  document={document}
-                  selected={selected}
-                  onSelect={(id) => actions.selectNode(id)}
-                  onCommand={safeExecute}
-                  disabled={busy || saving || publicationBusy}
-                />
+                <div hidden={libraryTab !== 'layers'}>
+                  <LayersPanel
+                    document={document}
+                    selected={selected}
+                    onSelect={(id) => {
+                      actions.selectNode(id);
+                      setTaskPanel('properties');
+                    }}
+                    onCommand={safeExecute}
+                    disabled={busy || saving || publicationBusy}
+                  />
+                </div>
+                {libraryTab === 'elements' && (
+                  <div className={workspace.paletteHint}>
+                    <MousePointer2 size={17} aria-hidden="true" />
+                    <p>
+                      Chọn trực tiếp trên thiệp để chỉnh nội dung và kiểu dáng.
+                    </p>
+                  </div>
+                )}
               </aside>
             )}
-            <div
-              ref={attach}
-              style={{
-                position: 'relative',
-                overflow: 'auto',
-                background: '#e9e6e4',
-                minHeight: 600,
-                maxHeight: '80vh',
-                padding: 24,
-              }}
-            >
+            <div ref={attach} className={workspace.canvas}>
+              <div className={workspace.canvasLabel}>
+                <span>{preview ? 'XEM TRƯỚC' : 'KHÔNG GIAN THIẾT KẾ'}</span>
+                <span>390 × {document.nodes.ROOT.props.canvas.height} px</span>
+              </div>
               <div
                 style={{
                   width: preview ? previewWidth : 390 * activeScale,
@@ -1104,7 +1242,17 @@ function Workarea({
               </div>
             </div>
             {!preview && (
-              <aside>
+              <aside
+                className={`${workspace.properties} ${workspace.controls}`}
+                aria-label="Thuộc tính lớp"
+              >
+                {(!node || node.isCanvas) && <h2>Thuộc tính</h2>}
+                {!node || node.isCanvas ? (
+                  <p className={workspace.helper}>
+                    Chọn một lớp trên thiệp hoặc trong danh sách lớp để chỉnh
+                    nội dung, hình thức và liên kết dữ liệu.
+                  </p>
+                ) : null}
                 {node && !node.isCanvas && (
                   <PropertiesPanel
                     key={selected}

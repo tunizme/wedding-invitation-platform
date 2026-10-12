@@ -6,6 +6,8 @@ Dockerfile*
 .dockerignore
 .next/
 **/.next/
+**/.next-*/
+**/.tsconfig-auth-transition-*.json
 dist/
 **/dist/
 build/

@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
     tsconfigPath: process.env.NEXT_TSCONFIG_PATH ?? 'tsconfig.json',
   },
   output: 'standalone',
+  // Owned keyboard acceptance excludes Next's development-only toolbar.
+  // Compile/runtime errors still surface with the indicator disabled.
+  devIndicators: process.env.FRONTEND_TEST_SEED ? false : undefined,
   async headers() {
     return [
       '/verify-email',

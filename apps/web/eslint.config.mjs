@@ -8,6 +8,7 @@ export default defineConfig([
   globalIgnores([
     '.next/**',
     '.next-auth-transition-*/**',
+    '.next-manual-*/**',
     '.tsconfig-auth-transition-*.json',
     '.artifacts/**',
     'dist/**',

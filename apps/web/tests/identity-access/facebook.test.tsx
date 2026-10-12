@@ -6,10 +6,10 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import LoginPage from '../../src/app/(auth)/login/page';
-import OAuthResultPage from '../../src/app/(auth)/oauth-result/page';
+import LoginPage from '../../src/app/(product)/(auth)/login/page';
+import OAuthResultPage from '../../src/app/(product)/(auth)/oauth-result/page';
 import { sessionStore } from '../../src/features/identity-access/session/store';
-import SocialOnboardingPage from '../../src/app/(auth)/social-onboarding/page';
+import SocialOnboardingPage from '../../src/app/(product)/(auth)/social-onboarding/page';
 import { iamRequest } from '../../src/features/identity-access/api/client';
 import {
   beginIntent,

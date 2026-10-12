@@ -1,6 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { Button } from '../../../ui/platform/button';
+import controls from '../../../ui/platform/controls.module.css';
+import styles from './auth-recovery-notice.module.css';
 import { useEffect, useRef, useState } from 'react';
 import {
   readSelector,
@@ -142,7 +145,16 @@ export function AuthRecoveryNotice() {
   }, []);
 
   useEffect(() => {
-    if (reason) notice.current?.focus();
+    if (!reason) return;
+    const focused = document.activeElement;
+    // Delayed bootstrap recovery must not interrupt typing/submission in a
+    // live account form. The assertive region still announces the explanation.
+    if (
+      !focused ||
+      focused === document.body ||
+      notice.current?.contains(focused)
+    )
+      notice.current?.focus();
   }, [reason]);
 
   const item = reason ? copy[reason] : null;
@@ -153,7 +165,7 @@ export function AuthRecoveryNotice() {
         <div
           role="status"
           aria-live="polite"
-          style={{ maxWidth: '40rem', margin: '1rem auto', padding: '1rem' }}
+          className={`${styles.notice} ${controls.feedback} ${controls.info}`}
         >
           {uncertain && (
             <p>Trạng thái thao tác đăng nhập chưa được xác nhận.</p>
@@ -165,9 +177,13 @@ export function AuthRecoveryNotice() {
                 Không gửi lại thao tác này. Tải lại trang để kiểm tra trạng thái
                 bằng yêu cầu chỉ đọc.
               </p>
-              <button type="button" onClick={() => window.location.reload()}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => window.location.reload()}
+              >
                 Kiểm tra lại trạng thái
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -178,15 +194,7 @@ export function AuthRecoveryNotice() {
           tabIndex={-1}
           role="alert"
           aria-live="assertive"
-          style={{
-            maxWidth: '40rem',
-            margin: '1rem auto',
-            padding: '1rem',
-            border: '1px solid #9a3412',
-            borderRadius: '0.5rem',
-            color: '#431407',
-            background: '#fff7ed',
-          }}
+          className={`${styles.notice} ${controls.feedback} ${controls.errorTone}`}
         >
           <p>{item.message}</p>
           {reason === 'STORAGE_UNAVAILABLE' ||
@@ -196,13 +204,18 @@ export function AuthRecoveryNotice() {
             <Link href="/login">{item.action}</Link>
           )}
           {reason === 'STORAGE_UNAVAILABLE' && (
-            <button type="button" onClick={() => window.location.reload()}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => window.location.reload()}
+            >
               Thử lại
-            </button>
+            </Button>
           )}
           {reason === 'CAPACITY_EXHAUSTED' && (
             <>
-              <button
+              <Button
+                variant="secondary"
                 type="button"
                 aria-expanded={showCapacityInstructions}
                 aria-controls="capacity-recovery-instructions"
@@ -211,7 +224,7 @@ export function AuthRecoveryNotice() {
                 }
               >
                 Cách xóa dữ liệu trang
-              </button>
+              </Button>
               {showCapacityInstructions && (
                 <div id="capacity-recovery-instructions">
                   <p>

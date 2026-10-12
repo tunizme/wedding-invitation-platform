@@ -114,7 +114,7 @@ jobs:
         if: always()
         run: docker compose --profile ci down --volumes --remove-orphans
 
-  responsive-acceptance:
+  frontend-acceptance:
     runs-on: ubuntu-latest
     timeout-minutes: 100
     env:
@@ -150,6 +150,7 @@ jobs:
       - run: pnpm builder:storage:init
       - run: pnpm --filter @wedding/web exec playwright install --with-deps chromium firefox webkit
       - run: node --test --test-isolation=none --test-timeout=30000 apps/api/scripts/validate-iam-contract.cjs
+      - run: pnpm validate:frontend --phase all
       - name: Responsive invitation acceptance
         run: node scripts/responsive-validate.mjs --phase all
         env:
@@ -158,11 +159,17 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: responsive-acceptance-status
+          name: frontend-acceptance-status
           path: |
             .artifacts/responsive/**/report.json
             .artifacts/responsive/**/cleanup.json
             .artifacts/responsive/**/publication-timing.jsonl
+            .artifacts/frontend-foundation/run-*/summary.json
+            .artifacts/frontend-foundation/run-*/unit.json
+            .artifacts/frontend-foundation/run-*/browser.json
+            .artifacts/frontend-foundation/run-*/package.json
+            .artifacts/frontend-foundation/run-*/publication.json
+            .artifacts/frontend-foundation/run-*/owned/*/cleanup.json
       - name: Cleanup owned CI infrastructure
         if: always()
         run: docker compose down --volumes --remove-orphans

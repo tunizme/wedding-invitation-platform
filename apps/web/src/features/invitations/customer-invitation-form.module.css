@@ -1,0 +1,276 @@
+.editor {
+  color: var(--color-text);
+}
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  margin-bottom: 24px;
+}
+.toolbar a {
+  margin-right: auto;
+  color: var(--color-primary);
+}
+.toolbar button,
+.form button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  background: var(--color-background);
+  font: inherit;
+  cursor: pointer;
+}
+.toolbar button:disabled,
+.form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.toolbar > button:last-child {
+  background: var(--color-primary);
+  color: white;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-background-soft);
+  border-radius: var(--radius-sm);
+}
+.tabs button {
+  border-color: transparent;
+  background: transparent;
+}
+.tabs button[aria-pressed='true'] {
+  background: var(--color-background);
+  border-color: var(--color-border);
+}
+.saveState {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.form {
+  width: min(100%, 720px);
+  margin: 24px auto;
+}
+.form[hidden],
+.preview[hidden] {
+  display: none;
+}
+.form > fieldset > legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  margin-bottom: 16px;
+}
+.group > summary {
+  padding: 20px 24px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fields {
+  padding: 4px 24px 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.fields > fieldset {
+  grid-column: 1 / -1;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.fields label {
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.fields legend {
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.fields input,
+.fields select,
+.fields textarea {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 400;
+}
+/* The native date-time editor is taller than a text field's content box; let
+   min-height decide the row height so it aligns with neighbouring inputs. */
+.fields input[type='datetime-local'] {
+  padding-block: 0;
+}
+.fields textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+.preview {
+  width: min(100%, 720px);
+  margin: 24px auto;
+}
+.preview > h2 {
+  text-align: center;
+}
+.preview [data-testid='customer-preview-host'] {
+  margin-inline: auto;
+}
+@media (max-width: 600px) {
+  .fields,
+  .fields > fieldset {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fields {
+    padding: 4px 16px 20px;
+    gap: 20px;
+  }
+  .group > summary {
+    padding: 16px;
+  }
+  .toolbar {
+    position: static;
+    padding: 12px;
+    gap: 8px;
+  }
+  .tabs {
+    order: 3;
+    width: 100%;
+  }
+  .tabs button {
+    flex: 1;
+  }
+  .saveState {
+    width: 100%;
+    order: 4;
+  }
+}
+.fields > .eventTime {
+  grid-column: auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+.eventTime > legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.templateName {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-block: 16px;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.photoChoice {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.photoChoice img {
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+.photoPlaceholder {
+  width: 140px;
+  min-height: 170px;
+  box-sizing: border-box;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: var(--color-text-muted);
+  background: var(--color-background-soft);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+}
+.timeHelp {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.publishSuccess {
+  width: min(100%, 640px);
+  margin: auto;
+  text-align: center;
+  padding: 24px 8px;
+}
+.successEmblem {
+  width: 64px;
+  height: 64px;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-background-soft);
+  color: var(--color-primary);
+}
+.publishSuccess label {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  margin: 24px 0;
+}
+.publishSuccess input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--color-text);
+  font: inherit;
+}
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}

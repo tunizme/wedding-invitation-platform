@@ -8,6 +8,8 @@ import {
   reserveIntent,
 } from '../session/auth-context-flow';
 import { selectorStore } from '../session/auth-selector';
+import { Button } from '../../../ui/platform/button';
+import { InlineAlert } from '../../../ui/platform/feedback';
 
 const noSubscription = () => () => {};
 
@@ -61,22 +63,24 @@ export function SocialLoginButtons() {
 
   return (
     <div aria-label="Đăng nhập mạng xã hội" style={{ marginTop: '1rem' }}>
-      {error ? <p role="alert">{error}</p> : null}
-      <button
+      {error ? <InlineAlert tone="error">{error}</InlineAlert> : null}
+      <Button
         type="button"
+        variant="secondary"
         disabled={!ready || pending}
         onClick={() => void start(google)}
       >
         Tiếp tục với Google
-      </button>
+      </Button>
       {' · '}
-      <button
+      <Button
         type="button"
+        variant="secondary"
         disabled={!ready || pending}
         onClick={() => void start(facebook)}
       >
         Tiếp tục với Facebook
-      </button>
+      </Button>
     </div>
   );
 }

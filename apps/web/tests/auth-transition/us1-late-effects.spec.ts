@@ -94,7 +94,11 @@ test('B1: late provisioning in one tab cannot replace the context selected by an
   await submitLogin(tab2, b);
   await expect(tab2.getByText('Đăng nhập thành công')).toBeVisible();
   await held.release();
-  await expect(tab1.locator('form').getByRole('alert')).toBeVisible();
+  // 005 invalidates A's UI lifetime when B becomes the selected principal.
+  await expect(
+    tab1.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
+  await expect(tab1.locator('form').getByRole('alert')).toHaveCount(0);
   expect(await principalAfterReload(tab1)).toBe(b);
   expect(await principalAfterReload(tab2)).toBe(b);
 });
@@ -232,7 +236,11 @@ test('B15: overlapping logins in one context — the server-accepted later inten
   await submitLogin(tab2, b);
   await expect(tab2.getByText('Đăng nhập thành công')).toBeVisible();
   await held.release();
-  await expect(tab1.locator('form').getByRole('alert')).toBeVisible();
+  // 005 invalidates A's UI lifetime when B becomes the selected principal.
+  await expect(
+    tab1.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
+  await expect(tab1.locator('form').getByRole('alert')).toHaveCount(0);
   expect(await principalAfterReload(tab1)).toBe(b);
 });
 
@@ -281,9 +289,11 @@ test('a delayed reservation binding error from A preserves live B and renewal', 
     tab1.getByRole('navigation', { name: 'Phiên đăng nhập' }).locator('span'),
   ).toHaveText(b);
   await held.release();
-  await expect(tab1.locator('form').getByRole('alert')).toHaveText(
-    /được thay thế/,
-  );
+  // The delayed A error must not become feedback owned by live B.
+  await expect(
+    tab1.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
+  await expect(tab1.locator('form').getByRole('alert')).toHaveCount(0);
   await expect(
     tab1.getByRole('navigation', { name: 'Phiên đăng nhập' }).locator('span'),
   ).toHaveText(b);

@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { useRef, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { builderRequest, uploadBuilderAsset } = vi.hoisted(() => ({
   builderRequest: vi.fn(),
@@ -20,10 +21,15 @@ vi.mock(
   () => ({ useAssetPreview: () => ({}) }),
 );
 import { AssetLibrary } from '../../src/features/invitation-builder/assets/asset-library';
+import { sessionStore } from '../../src/features/identity-access/session/store';
+import { privateSession } from '../identity-access/private-session-fixture';
 
 describe('template asset library', () => {
   afterEach(cleanup);
   beforeEach(() => {
+    sessionStore.clear();
+    const session = privateSession();
+    sessionStore.set({ ...session, user: { ...session.user, role: 'ADMIN' } });
     builderRequest.mockReset();
     uploadBuilderAsset.mockReset();
     builderRequest.mockResolvedValue({ items: [], nextCursor: null });
@@ -89,6 +95,8 @@ describe('template asset library', () => {
         expect.any(File),
         'Ảnh cưới',
         'IMAGE',
+        'template',
+        expect.objectContaining({ scope: expect.any(Object) }),
       ),
     );
     expect(onSelect).toHaveBeenCalledWith(
@@ -96,6 +104,121 @@ describe('template asset library', () => {
     );
     expect(onClose).not.toHaveBeenCalled();
   });
+  it('opens as a named modal dialog with the search field focused', async () => {
+    render(
+      <AssetLibrary choice="Image" onSelect={vi.fn()} onClose={vi.fn()} />,
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'Thư viện ảnh' });
+    expect(dialog).toHaveAttribute('open');
+    expect(screen.getByLabelText('Tìm ảnh')).toHaveFocus();
+  });
+
+  it('returns focus to the explicit trigger even when the browser never focused it', async () => {
+    function Host() {
+      const trigger = useRef<HTMLButtonElement>(null);
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <button ref={trigger} type="button" onClick={() => setOpen(true)}>
+            Thêm hình ảnh
+          </button>
+          {open && (
+            <AssetLibrary
+              choice="Image"
+              returnFocusRef={trigger}
+              onSelect={vi.fn()}
+              onClose={() => setOpen(false)}
+            />
+          )}
+        </>
+      );
+    }
+    render(<Host />);
+    // WebKit does not focus a clicked button: nothing is focused at open time.
+    (document.activeElement as HTMLElement | null)?.blur();
+    fireEvent.click(screen.getByRole('button', { name: 'Thêm hình ảnh' }));
+    await screen.findByRole('dialog', { name: 'Thư viện ảnh' });
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng thư viện' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Thêm hình ảnh' })).toHaveFocus();
+  });
+
+  it('recovers from a failed search by running another query', async () => {
+    builderRequest.mockRejectedValueOnce(new Error('offline'));
+    builderRequest.mockResolvedValue({
+      items: [{ id: 'a', name: 'Ảnh A', width: 10, height: 10 }],
+      nextCursor: null,
+    });
+    render(
+      <AssetLibrary choice="Image" onSelect={vi.fn()} onClose={vi.fn()} />,
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không thể tải thư viện ảnh.',
+    );
+    fireEvent.change(screen.getByLabelText('Tìm ảnh'), {
+      target: { value: 'A' },
+    });
+    await screen.findByRole('button', { name: 'Chọn Ảnh A' });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('keeps loaded assets when a later page fails and lets the Admin retry', async () => {
+    builderRequest
+      .mockResolvedValueOnce({
+        items: [{ id: 'a', name: 'Ảnh A', width: 10, height: 10 }],
+        nextCursor: 'page2',
+      })
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({
+        items: [{ id: 'b', name: 'Ảnh B', width: 10, height: 10 }],
+        nextCursor: null,
+      });
+    render(
+      <AssetLibrary choice="Image" onSelect={vi.fn()} onClose={vi.fn()} />,
+    );
+    await screen.findByRole('button', { name: 'Chọn Ảnh A' });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải thêm ảnh' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không thể tải trang ảnh tiếp theo.',
+    );
+    expect(screen.getByRole('button', { name: 'Chọn Ảnh A' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải thêm ảnh' }));
+    await screen.findByRole('button', { name: 'Chọn Ảnh B' });
+    expect(screen.getByRole('button', { name: 'Chọn Ảnh A' })).toBeVisible();
+  });
+
+  it('shows an upload failure, keeps the dialog open and allows a retry that selects the asset', async () => {
+    uploadBuilderAsset.mockRejectedValueOnce(new Error('too large'));
+    const onSelect = vi.fn();
+    render(
+      <AssetLibrary choice="Image" onSelect={onSelect} onClose={vi.fn()} />,
+    );
+    await screen.findByRole('dialog', { name: 'Thư viện ảnh' });
+    fireEvent.change(screen.getByLabelText('File ảnh tải lên'), {
+      target: {
+        files: [
+          new File([new Uint8Array([1])], 'photo.png', { type: 'image/png' }),
+        ],
+      },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Tải ảnh lên và chọn' }),
+    );
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không thể tải ảnh lên.',
+    );
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeVisible();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Tải ảnh lên và chọn' }),
+    );
+    await waitFor(() =>
+      expect(onSelect).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'a1' }),
+      ),
+    );
+  });
+
   it('loads the next asset page and resets the cursor for My uploads', async () => {
     builderRequest
       .mockResolvedValueOnce({
@@ -116,6 +239,7 @@ describe('template asset library', () => {
     await screen.findByRole('button', { name: 'Chọn Ảnh B' });
     expect(builderRequest).toHaveBeenCalledWith(
       '/admin/template-assets?limit=100&cursor=page2',
+      expect.objectContaining({ scope: expect.any(Object) }),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Chọn Ảnh B' }));
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));

@@ -39,12 +39,19 @@ test.beforeEach(async ({ page, builderOrigin }, testInfo) => {
         : accounts.admin,
   };
   await page.goto(builderOrigin + '/login');
+  await expect(
+    page.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await page.getByLabel('Email', { exact: true }).fill(seed.admin.email);
   await page.getByLabel('Mật khẩu', { exact: true }).fill(seed.admin.password);
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.getByLabel('Mật khẩu', { exact: true }).press('Enter');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.admin.email);
+    page.getByRole('heading', { name: 'Đăng nhập thành công', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
+  await expect(page.locator('#product-account-disclosure')).toContainText(
+    seed.admin.email,
+  );
 });
 
 test('authors primitives with properties, layers, history and durable reload', async ({
@@ -79,15 +86,20 @@ test('authors primitives with properties, layers, history and durable reload', a
   await expect(handle).toBeInViewport();
   const bounds = await handle.boundingBox();
   if (!bounds) throw new Error('Missing resize handle');
-  const x = bounds.x + bounds.width / 2,
-    y = bounds.y + bounds.height / 2;
+  const x = Math.floor(bounds.x + bounds.width / 2),
+    y = Math.floor(bounds.y + bounds.height / 2);
+  // Integer CSS-pixel pointer coordinates are consistent across engines.
+  const dx = Math.floor(
+    (40 * Math.cos(Math.PI / 6) - 20 * Math.sin(Math.PI / 6)) * 0.5,
+  );
+  const dy = Math.floor(
+    (40 * Math.sin(Math.PI / 6) + 20 * Math.cos(Math.PI / 6)) * 0.5,
+  );
+  const expectedWidth =
+    width + (dx * Math.cos(Math.PI / 6) + dy * Math.sin(Math.PI / 6)) / 0.5;
   await page.mouse.move(x, y);
   await page.mouse.down();
-  await page.mouse.move(
-    x + (40 * Math.cos(Math.PI / 6) - 20 * Math.sin(Math.PI / 6)) * 0.5,
-    y + (40 * Math.sin(Math.PI / 6) + 20 * Math.cos(Math.PI / 6)) * 0.5,
-    { steps: 8 },
-  );
+  await page.mouse.move(x + dx, y + dy, { steps: 8 });
   await expect(
     page.getByRole('button', { name: 'Xuất bản', exact: true }),
   ).toBeDisabled();
@@ -95,11 +107,11 @@ test('authors primitives with properties, layers, history and durable reload', a
   await expect(
     page.getByRole('button', { name: 'Xuất bản', exact: true }),
   ).toBeEnabled();
-  await expect.poll(readWidth).toBeCloseTo(width + 40, 0);
+  await expect.poll(readWidth).toBeCloseTo(expectedWidth, 0);
   await page.getByRole('button', { name: 'Hoàn tác', exact: true }).click();
   await expect.poll(readWidth).toBe(width);
   await page.getByRole('button', { name: 'Làm lại', exact: true }).click();
-  await expect.poll(readWidth).toBeCloseTo(width + 40, 0);
+  await expect.poll(readWidth).toBeCloseTo(expectedWidth, 0);
   await page.getByLabel('Zoom', { exact: true }).selectOption('1');
   await page.getByLabel('Nội dung', { exact: true }).focus();
   await page.keyboard.press('Delete');
@@ -320,7 +332,7 @@ test('keeps primitive geometry across editor/preview and blocks dirty traversal 
     await page
       .getByRole('button', { name: 'Thêm hình ảnh', exact: true })
       .click();
-    const library = page.getByRole('dialog', { name: 'Thư viện tài sản' });
+    const library = page.getByRole('dialog', { name: 'Thư viện ảnh' });
     await library.locator('input[type=file]').setInputFiles({
       name: file,
       mimeType: 'image/png',
@@ -405,11 +417,10 @@ test('keeps primitive geometry across editor/preview and blocks dirty traversal 
   await expect(page).toHaveURL(editUrl);
   await expect(page.getByTestId('layer-item')).toHaveCount(3);
   page.once('dialog', (dialog) => dialog.dismiss());
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
   await page.getByRole('button', { name: 'Đăng xuất', exact: true }).click();
   await expect(page.getByTestId('layer-item')).toHaveCount(3);
-  await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toBeVisible();
+  await expect(page.locator('#product-account-disclosure')).toBeVisible();
   await page.getByRole('button', { name: 'Lưu bản nháp', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Đã lưu');
   await page.reload();

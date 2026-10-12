@@ -22,20 +22,31 @@ test('customer keeps a pinned invitation and publishes only current-release asse
   if (!apiBase)
     throw new Error('The builder runner must expose the API origin.');
   await page.goto(builderOrigin + '/login');
+  await expect(
+    page.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await page.getByLabel('Email', { exact: true }).fill(seed.customer.email);
   await page
     .getByLabel('Mật khẩu', { exact: true })
     .fill(seed.customer.password);
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.getByLabel('Mật khẩu', { exact: true }).press('Enter');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.customer.email);
+    page.getByRole('heading', { name: 'Đăng nhập thành công', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
+  await expect(page.locator('#product-account-disclosure')).toContainText(
+    seed.customer.email,
+  );
 
   await page.goto(builderOrigin + '/templates');
   await expect(
-    page.getByRole('button', { name: 'Chọn mẫu Mẫu kiểm thử' }),
+    page.getByRole('button', { name: 'Xem mẫu Mẫu kiểm thử' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Chọn mẫu Mẫu kiểm thử' }).click();
+  await page.getByRole('button', { name: 'Xem mẫu Mẫu kiểm thử' }).click();
+  await page
+    .getByRole('dialog', { name: 'Mẫu kiểm thử', exact: true })
+    .getByRole('button', { name: 'Chọn mẫu này', exact: true })
+    .click();
   await expect(page).toHaveURL(/\/invitations\/[0-9a-f-]+\/edit$/);
   const editUrl = page.url();
   await expect(page.getByText('Mẫu: Mẫu kiểm thử · DRAFT')).toBeVisible();
@@ -49,7 +60,9 @@ test('customer keeps a pinned invitation and publishes only current-release asse
   );
   await page.getByLabel('Tên cô dâu').fill('Mai');
   await page.getByLabel('Ảnh đã tải lên').selectOption(seed.customerPhotos[0]);
+  await page.getByRole('button', { name: 'Xem trước', exact: true }).click();
   await expect(page.getByTestId('public-workarea')).toBeVisible();
+  await page.getByRole('button', { name: 'Chỉnh sửa', exact: true }).click();
   const backPrompt = page
     .waitForEvent('dialog', { timeout: 10_000 })
     .then((dialog) => dialog.dismiss());
@@ -100,6 +113,10 @@ test('customer keeps a pinned invitation and publishes only current-release asse
   ).toHaveCount(0);
   await page.unroute(failedRefresh);
   await page.getByRole('button', { name: 'Thử tải lại thông tin' }).click();
+  await page
+    .getByRole('dialog', { name: 'Thiệp đã sẵn sàng gửi' })
+    .getByRole('button', { name: 'Đóng thông tin chia sẻ' })
+    .click();
   const publicLink = page.getByRole('link', { name: 'Xem thiệp công khai' });
   await expect(publicLink).toHaveAttribute('href', /\/i\/[0-9a-f-]+$/);
   const publicPath = await publicLink.getAttribute('href');
@@ -132,6 +149,9 @@ test('customer keeps a pinned invitation and publishes only current-release asse
 
   const adminPage = await browser.newPage();
   await adminPage.goto(builderOrigin + '/login');
+  await expect(
+    adminPage.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await adminPage
     .getByLabel('Email', { exact: true })
     .fill(seed.customerFlowAdmin.email);
@@ -142,8 +162,17 @@ test('customer keeps a pinned invitation and publishes only current-release asse
     .getByRole('button', { name: 'Đăng nhập', exact: true })
     .click();
   await expect(
-    adminPage.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.customerFlowAdmin.email);
+    adminPage.getByRole('heading', {
+      name: 'Đăng nhập thành công',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await adminPage
+    .getByRole('button', { name: 'Tài khoản', exact: true })
+    .click();
+  await expect(adminPage.locator('#product-account-disclosure')).toContainText(
+    seed.customerFlowAdmin.email,
+  );
   await adminPage.goto(
     `${builderOrigin}/admin/templates/${seed.publishedTemplate.id}/edit`,
   );
@@ -185,6 +214,10 @@ test('customer keeps a pinned invitation and publishes only current-release asse
   expect((await page.request.get(firstAsset)).status()).toBe(404);
   expect((await page.request.get(secondAsset)).status()).toBe(200);
 
+  await page
+    .getByRole('dialog', { name: 'Thiệp đã sẵn sàng gửi' })
+    .getByRole('button', { name: 'Đóng thông tin chia sẻ' })
+    .click();
   await page.getByLabel('Tên cô dâu').fill('Local unpublish edit');
   await page.route(failedRefresh, failGet);
   await page.getByRole('button', { name: 'Gỡ xuất bản' }).click();
@@ -215,10 +248,11 @@ test('customer keeps a pinned invitation and publishes only current-release asse
   const acceptedLogout = page
     .waitForEvent('dialog', { timeout: 10_000 })
     .then((dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
   await page.getByRole('button', { name: 'Đăng xuất', exact: true }).click();
   await acceptedLogout;
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
+    page.getByRole('button', { name: 'Tài khoản', exact: true }),
   ).not.toBeVisible();
 });
 
@@ -235,14 +269,21 @@ test('preserves customer CAS through publication reads when another tab saves We
     casPhoto: string;
   };
   await page.goto(builderOrigin + '/login');
+  await expect(
+    page.getByRole('button', { name: 'Đăng nhập', exact: true }),
+  ).toBeEnabled();
   await page.getByLabel('Email', { exact: true }).fill(seed.casCustomer.email);
   await page
     .getByLabel('Mật khẩu', { exact: true })
     .fill(seed.casCustomer.password);
-  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.getByLabel('Mật khẩu', { exact: true }).press('Enter');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
-  ).toContainText(seed.casCustomer.email);
+    page.getByRole('heading', { name: 'Đăng nhập thành công', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Tài khoản', exact: true }).click();
+  await expect(page.locator('#product-account-disclosure')).toContainText(
+    seed.casCustomer.email,
+  );
   const scenarios = [
     { mutation: 'publish', first: true, dirty: false, retry: false },
     { mutation: 'publish', first: true, dirty: true, retry: true },
@@ -255,8 +296,16 @@ test('preserves customer CAS through publication reads when another tab saves We
     await page.goto(builderOrigin + '/templates');
     await page.getByLabel('Tìm mẫu', { exact: true }).fill('Mẫu CAS');
     await expect(
-      page.getByRole('button', { name: 'Chọn mẫu Mẫu CAS', exact: true }),
+      page.getByRole('button', { name: 'Xem mẫu Mẫu CAS', exact: true }),
     ).toBeVisible();
+    await page
+      .getByRole('button', { name: 'Xem mẫu Mẫu CAS', exact: true })
+      .click();
+    await expect(
+      page
+        .getByRole('dialog', { name: 'Mẫu CAS', exact: true })
+        .getByRole('button', { name: 'Chọn mẫu này', exact: true }),
+    ).toBeEnabled();
     const created = page
       .waitForResponse(
         (response) =>
@@ -271,7 +320,8 @@ test('preserves customer CAS through publication reads when another tab saves We
         );
       });
     await page
-      .getByRole('button', { name: 'Chọn mẫu Mẫu CAS', exact: true })
+      .getByRole('dialog', { name: 'Mẫu CAS', exact: true })
+      .getByRole('button', { name: 'Chọn mẫu này', exact: true })
       .click();
     expect((await created).status()).toBe(201);
     await expect(page).toHaveURL(/\/invitations\/[0-9a-f-]+\/edit$/, {
@@ -292,6 +342,10 @@ test('preserves customer CAS through publication reads when another tab saves We
       await expect(
         page.getByRole('link', { name: 'Xem thiệp công khai' }),
       ).toBeVisible({ timeout: 90_000 });
+      await page
+        .getByRole('dialog', { name: 'Thiệp đã sẵn sàng gửi' })
+        .getByRole('button', { name: 'Đóng thông tin chia sẻ' })
+        .click();
     }
     if (scenario.dirty) await page.getByLabel('Tên cô dâu').fill('Lan');
     const routePath = `**/api/v1/invitations/${id}`;

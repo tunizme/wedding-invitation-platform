@@ -8,6 +8,7 @@ import {
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   MemorySelectorStore,
+  requireRecovery,
   setSelectorStoreForTests,
   type RecoveryReason,
 } from '../../src/features/identity-access/session/auth-selector';
@@ -86,4 +87,22 @@ describe('auth recovery notice', () => {
         ).toBeTruthy();
     },
   );
+});
+
+it('announces delayed recovery without stealing focus from an active account field', async () => {
+  sessionStore.clear();
+  const store = new MemorySelectorStore();
+  setSelectorStoreForTests(store);
+  await requireRecovery(store, 'STORAGE_UNAVAILABLE');
+  render(
+    <>
+      <input aria-label="Email đang nhập" />
+      <AuthRecoveryNotice />
+    </>,
+  );
+  const field = screen.getByRole('textbox', { name: 'Email đang nhập' });
+  field.focus();
+  await screen.findByRole('alert');
+  await waitFor(() => expect(document.activeElement).toBe(field));
+  expect(screen.getByRole('alert').getAttribute('aria-live')).toBe('assertive');
 });

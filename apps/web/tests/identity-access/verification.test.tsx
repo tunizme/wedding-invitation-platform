@@ -1,3 +1,5 @@
+import { renderToString } from 'react-dom/server';
+import { EmailRequestForm } from '../../src/features/identity-access/forms/recovery-forms';
 import { StrictMode, type ComponentType } from 'react';
 import {
   act,
@@ -42,7 +44,7 @@ const password = '  Replacement password 🔒  ';
 
 async function mount(route: Route, suffix = '', strict = false) {
   window.history.replaceState(null, '', `/${route}${suffix}`);
-  const load = pages[`../../src/app/(auth)/${route}/page.tsx`];
+  const load = pages[`../../src/app/(product)/(auth)/${route}/page.tsx`];
   expect(load, `T038 page /${route} must exist`).toBeTypeOf('function');
   const { default: Page } = await load();
   const rendered = render(
@@ -122,6 +124,17 @@ afterEach(() => {
 });
 
 describe('US2 verification and recovery UI', () => {
+  it('associates local reset password errors without fabricating server field details', async () => {
+    await mount('reset-password', `#token=${proof}`);
+    const input = await screen.findByLabelText('Mật khẩu mới');
+    fireEvent.change(input, { target: { value: 'short' } });
+    fireEvent.submit(input.closest('form')!);
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription(/8 đến 128/);
+    expect(iamRequest).not.toHaveBeenCalled();
+    fireEvent.change(input, { target: { value: 'Valid password' } });
+    expect(input).not.toHaveAttribute('aria-invalid', 'true');
+  });
   it('extracts and removes the verification fragment before submitting proof in the POST body', async () => {
     vi.mocked(iamRequest).mockImplementation(async () => {
       expect(window.location.hash).toBe('');
@@ -316,4 +329,19 @@ describe('US2 verification and recovery UI', () => {
     expect(document.body.textContent).not.toContain(password);
     noSessionSideEffects();
   });
+});
+
+it('keeps native recovery submission disabled until hydration without blocking autofill', () => {
+  for (const reset of [false, true]) {
+    const html = renderToString(<EmailRequestForm reset={reset} />);
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    expect(
+      document.querySelector('button[type="submit"]')?.hasAttribute('disabled'),
+    ).toBe(true);
+    expect(
+      document
+        .querySelector('input[type="email"]')
+        ?.getAttribute('autocomplete'),
+    ).toBe('email');
+  }
 });

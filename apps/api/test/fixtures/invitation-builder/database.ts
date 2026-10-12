@@ -150,6 +150,10 @@ export async function builderDatabase() {
     const revision = async (
       actor: AuthenticatedPrincipal,
       templateId: string,
+      candidate: {
+        document: TemplateDesignRevision['document'];
+        sampleData: TemplateDesignRevision['sample_data'];
+      } = { document: blankDesign(), sampleData: emptyWedding() },
     ) => {
       const thumbnail = await asset(actor, 'SYSTEM_THUMBNAIL');
       const rows: TemplateDesignRevision[] = await db.query(
@@ -158,9 +162,9 @@ export async function builderDatabase() {
         [
           randomUUID(),
           templateId,
-          blankDesign(),
-          emptyWedding(),
-          canonicalHash(blankDesign()),
+          candidate.document,
+          candidate.sampleData,
+          canonicalHash(candidate.document),
           thumbnail.id,
           actor.userId,
         ],

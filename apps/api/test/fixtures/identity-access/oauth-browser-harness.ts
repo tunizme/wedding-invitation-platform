@@ -52,7 +52,10 @@ export interface OAuthBrowserHarness {
 }
 
 type SeedUser = (email: string, password: string) => Promise<void>;
-type SocialProof = (email: string) => Promise<string | undefined>;
+type SocialProof = (
+  email: string,
+  purpose?: string,
+) => Promise<string | undefined>;
 
 function startProvider(
   port: number,
@@ -118,15 +121,34 @@ function startProvider(
       });
       return;
     }
-    if (request.method === 'POST' && url.pathname === '/social-proof') {
+    if (
+      request.method === 'POST' &&
+      ['/social-proof', '/email-proof'].includes(url.pathname)
+    ) {
       const chunks: Buffer[] = [];
       request.on('data', (chunk: Buffer) => chunks.push(chunk));
       request.on('end', () => {
         try {
           const body = JSON.parse(Buffer.concat(chunks).toString()) as {
             email: string;
+            purpose?: string;
           };
-          socialProof(body.email).then(
+          const purpose =
+            url.pathname === '/social-proof'
+              ? 'SOCIAL_EMAIL_VERIFICATION'
+              : body.purpose;
+          if (
+            !purpose ||
+            ![
+              'SOCIAL_EMAIL_VERIFICATION',
+              'LOCAL_EMAIL_VERIFICATION',
+              'PASSWORD_RESET',
+            ].includes(purpose)
+          ) {
+            response.writeHead(400).end();
+            return;
+          }
+          socialProof(body.email, purpose).then(
             (proof) =>
               proof
                 ? response
@@ -179,7 +201,7 @@ export async function startOAuthBrowserHarness(
         .get(DataSource)
         .query('DELETE FROM auth_rate_limit_buckets');
     },
-    async (email) => {
+    async (email, purpose = 'SOCIAL_EMAIL_VERIFICATION') => {
       if (!holder.app) throw new Error('Harness app not ready');
       const source = holder.app.get(DataSource);
       const crypto = holder.app.get(CredentialCrypto);
@@ -193,9 +215,9 @@ export async function startOAuthBrowserHarness(
       >(
         `SELECT o.id,o.challenge_id,o.payload_ciphertext,o.encryption_key_version
          FROM email_outbox o JOIN auth_challenges c ON c.id=o.challenge_id
-         WHERE o.recipient_email=$1 AND c.purpose='SOCIAL_EMAIL_VERIFICATION'
+         WHERE o.recipient_email=$1 AND c.purpose=$2
          ORDER BY o.created_at DESC LIMIT 1`,
-        [email],
+        [email, purpose],
       );
       if (!row) return undefined;
       await source.query(

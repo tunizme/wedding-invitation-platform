@@ -20,7 +20,9 @@ const db = new Client({
 });
 db.connect()
   .then(() =>
-    db.query("DELETE FROM auth_rate_limit_buckets WHERE action='LOGIN_IP'"),
+    db.query(
+      "DELETE FROM auth_rate_limit_buckets WHERE action IN ('LOGIN_IP', 'LOGIN_EMAIL', 'AUTH_CONTEXT_PROVISION')",
+    ),
   )
   .then(() => db.end())
   .catch(async () => {

@@ -1,3 +1,4 @@
+import { UnavailableInvitation } from '../../../ui/product/unavailable-invitation';
 import { serverEnvironment } from '../../../config/server-env';
 import '@/features/invitation-builder/renderer/fonts.css';
 import { PublicInvitationView } from '../../../features/invitations/public-invitation-view';
@@ -21,12 +22,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  if (!/^[0-9a-f-]{36}$/i.test(slug))
-    return (
-      <main>
-        <p>Thiệp không khả dụng.</p>
-      </main>
-    );
+  if (!/^[0-9a-f-]{36}$/i.test(slug)) return <UnavailableInvitation />;
   const base = serverEnvironment().apiInternalBaseUrl;
   let value: PublicResponse | null = null;
   try {
@@ -47,18 +43,9 @@ export default async function Page({
         value.scene.rendererContractVersion === 2)
     )
   )
-    return (
-      <main>
-        <p>Thiệp không khả dụng.</p>
-      </main>
-    );
+    return <UnavailableInvitation />;
   const publicBase = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!publicBase)
-    return (
-      <main>
-        <p>Thiệp không khả dụng.</p>
-      </main>
-    );
+  if (!publicBase) return <UnavailableInvitation />;
   const origin = new URL(publicBase).origin;
   const assetUrls = Object.fromEntries(
     Object.entries(value.context.assetUrls).map(([id, path]) => [
