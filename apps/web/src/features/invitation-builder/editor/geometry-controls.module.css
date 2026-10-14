@@ -1,0 +1,76 @@
+.textSelection {
+  --moveable-color: #4aa5ff;
+}
+.textSelection :global(.moveable-line) {
+  background: #9bceff;
+}
+.textSelection :global(.moveable-control) {
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+}
+.textSelection .textHandle {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  min-height: 26px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #777;
+  border-radius: 50%;
+  background: #fff;
+  color: #333;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+  cursor: move;
+  pointer-events: auto;
+  touch-action: none;
+}
+.textHandle svg {
+  pointer-events: none;
+}
+.textSelection .rotateHandle {
+  cursor: grab;
+}
+.rotationFeedback[data-rotation-aligned='true'] :global(.moveable-line) {
+  background: #1670cf;
+}
+.rotationFeedback[data-rotation-aligned='true']
+  :global(.moveable-rotation-control) {
+  box-shadow: 0 0 0 3px rgb(22 112 207 / 25%);
+}
+.textSelection.rotationFeedback[data-rotation-aligned='true'] .rotateHandle {
+  border-color: #1670cf;
+  background: #eaf3ff;
+  color: #1670cf;
+}
+.rotationAngle {
+  display: none;
+  position: absolute;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #1670cf;
+  color: #fff;
+  font:
+    12px/1.5 Arial,
+    sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.rotationFeedback[data-rotation-aligned='true'] .rotationAngle {
+  display: block;
+}
+.textSelection .textHandle:focus-visible {
+  outline: 2px solid #1670cf;
+  outline-offset: 3px;
+}
+@media (pointer: coarse) {
+  .textSelection .textHandle::before {
+    content: '';
+    position: absolute;
+    inset: -7px -3px;
+  }
+}

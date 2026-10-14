@@ -1,10 +1,21 @@
+import { isAdvanced, type CanvasNode } from './editor-document';
 import type { ElementNode, SupportedTemplateDesign } from './types';
 
 export type FormField = {
   id: string;
   label: string;
   type:
-    'text' | 'textarea' | 'date-time' | 'venue' | 'asset' | 'bank' | 'timeline';
+    | 'text'
+    | 'textarea'
+    | 'date-time'
+    | 'venue'
+    | 'asset'
+    | 'bank'
+    | 'timeline'
+    | 'album'
+    | 'audio'
+    | 'video'
+    | 'phone';
   essential: boolean;
   requiresEventKey?: boolean;
   auxiliary?: boolean;
@@ -132,27 +143,17 @@ export const EVENT_KEYS = [
   'afterParty',
 ] as const;
 
-export function formFieldsForDesign(document: SupportedTemplateDesign) {
+export function formFieldsForDesign(
+  document: SupportedTemplateDesign | import('./types').TemplateDesign,
+) {
   const fields = new Map<
     string,
     FormField & { required: boolean; eventKey?: string }
   >();
-  const nodes =
-    document.schemaVersion === 2
-      ? document.sectionOrder
-          .flatMap((id) =>
-            document.sections[id].hidden
-              ? []
-              : [
-                  ...document.sections[id].flowNodeIds,
-                  ...document.sections[id].artworkNodeIds,
-                ],
-          )
-          .map((id) => document.nodes[id])
-      : document.nodes.ROOT.nodes.map((id) => {
-          const node = document.nodes[id] as ElementNode;
-          return { ...node, bindings: node.props.bindings };
-        });
+  const nodes = document.nodes.ROOT.nodes.map((id) => {
+    const node = document.nodes[id] as ElementNode;
+    return { ...node, bindings: node.props.bindings };
+  });
   for (const node of nodes) {
     if (!node || node.hidden) continue;
     for (const binding of node.bindings) {
@@ -184,5 +185,49 @@ export function formFieldsForDesign(document: SupportedTemplateDesign) {
         });
     }
   }
+  if (document.schemaVersion === 3) {
+    for (const id of document.nodes.ROOT.nodes) {
+      const node = document.nodes[id] as CanvasNode;
+      if (node.hidden || !isAdvanced(node)) continue;
+      const content = node.props.content;
+      if (content.field) {
+        const type =
+          node.type.resolvedName === 'Album' ||
+          node.type.resolvedName === 'Carousel'
+            ? 'album'
+            : node.type.resolvedName === 'YouTube'
+              ? 'video'
+              : 'phone';
+        fields.set('fields.' + content.field, {
+          id: 'fields.' + content.field,
+          label: content.label,
+          type,
+          essential: true,
+          required: !node.custom.optional,
+        });
+      }
+      if (node.type.resolvedName === 'Reminder')
+        fields.set('wedding.event:' + content.eventKey, {
+          ...BINDING_CATALOG['wedding.event'],
+          required: !node.custom.optional,
+          eventKey: content.eventKey,
+        });
+    }
+    if (document.settings.audio.field)
+      fields.set('fields.' + document.settings.audio.field, {
+        id: 'fields.' + document.settings.audio.field,
+        label: 'Nhạc nền',
+        type: 'audio',
+        essential: false,
+        required: false,
+      });
+  }
+  if (
+    'nodeOptions' in document &&
+    Object.values(document.nodeOptions).some(
+      (option) => option.action?.kind === 'gift',
+    )
+  )
+    fields.set('bank:', { ...BINDING_CATALOG.bank, required: false });
   return [...fields.values()];
 }

@@ -33,7 +33,7 @@ Browser tests cần Chromium của Playwright: `pnpm --filter @wedding/ui-protot
 - Ảnh upload dùng blob local, kiểm MIME/kích thước cơ bản; không mô phỏng pipeline re-encode, EXIF, storage hay toàn bộ bảo vệ phía API.
 - QR ngân hàng là dữ liệu giả, **không chuyển tiền**.
 
-## Layout v3
+## Layout
 
 Header giữ logo và tên “tiệm làm thiệp”, bỏ tagline. Customer editor là form accordion một cột với tab **Chỉnh sửa / Xem trước**. Các field ngắn có hai cột trên desktop, một cột trên mobile; không có rail hoặc content sheet. Preview dùng canvas mobile390px, giữ draft và autosave khi đổi tab.
 
@@ -55,11 +55,7 @@ Plugin `prototype-only-rsvp-transport` chỉ thay import transport của `Public
 
 Admin prototype minh họa quản lý mẫu, metadata tên, layer selection, geometry, optional content, undo, save và publish confirmation. Engine Craft.js, drag/resize, binding editor, crop/focal và job thật giữ trong ứng dụng hiện có; đặc tả UI cho các phần đó nằm trong tài liệu thiết kế.
 
-Feature007 đã được nối vào prototype qua shared renderer/resolver/validator production. Ba mẫu đầu là document v2 theo section: demo và guest tự thích ứng theo container (dưới768px: tối đa480px; từ768px: tối đa900px). Nội dung thông tin tối đa560px desktop, story640px, form400px; album hai cột desktop/một cột mobile. Popup và Customer preview luôn mobile tối đa390px, không có device selector.
-
-Admin authoring v2 có preview390/900px và mô phỏng chỉnh preset nội dung, khoảng cách, số cột desktop, undo, save/publish trong bộ nhớ; không thay thế toàn bộ Admin authoring production. Mẫu thứ tư vẫn v1 canvas390px để review tương thích. Mẫu v2 được tác giả sắp xếp section tường minh, không có chuyển đổi tự động thiệp cũ. Invitation ghim document khi tạo; chỉnh catalog không đổi document đã ghim.
-
-Không coi screenshot hoặc smoke tests là chứng nhận WCAG hay release-ready. Prototype không kiểm lại pipeline publication/storage của feature007.
+Prototype dùng chung document500px và renderer hiện tại. Demo/guest thu nhỏ theo vùng chứa; popup/customer preview giới hạn390px. Phần authoring cũ đã được gỡ; liên kết “Mở editor thiệp” đưa tới admin production ở localhost:3000/admin/templates. Chạy `node scripts/responsive-product.mjs run editor` để kiểm thử editor thực tế trên ba trình duyệt.
 
 ## Assets
 

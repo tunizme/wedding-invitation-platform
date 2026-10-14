@@ -32,15 +32,25 @@ function validateFields(payload: RsvpPayload): RsvpFieldErrors {
   return errors;
 }
 export function PublicRsvp({
+  locale = 'vi',
   slug,
   title,
   closedLabel = 'Đã đóng xác nhận',
   successLabel = 'Cảm ơn bạn đã phản hồi',
+  nameLabel,
+  submitLabel,
+  buttonColor,
+  buttonTextColor,
 }: {
+  locale?: 'vi' | 'en';
   slug: string;
   title: string;
   closedLabel?: string;
   successLabel?: string;
+  nameLabel?: string;
+  submitLabel?: string;
+  buttonColor?: string;
+  buttonTextColor?: string;
 }) {
   const [name, setName] = useState(''),
     [attendance, setAttendance] =
@@ -168,9 +178,14 @@ export function PublicRsvp({
   const closed = !!state && (!state.open || !state.available);
   return (
     <RsvpWidget
+      locale={locale}
       title={title}
       closedLabel={closedLabel}
       successLabel={successLabel}
+      nameLabel={nameLabel}
+      submitLabel={submitLabel}
+      buttonColor={buttonColor}
+      buttonTextColor={buttonTextColor}
       mode="public"
       displayState={
         success

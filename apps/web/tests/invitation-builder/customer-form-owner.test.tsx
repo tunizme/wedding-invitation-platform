@@ -1,3 +1,4 @@
+import { scalePrimitiveDocument } from '../../src/features/invitation-builder/document/editor-document';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
@@ -81,7 +82,7 @@ const invitation = (owner: string, name: string): InvitationDetail => ({
   designRevisionId: '00000000-0000-4000-8000-000000000004',
   draftWeddingData: { schemaVersion: 1, bride: { name } },
   templateName: 'Mẫu mùa xuân',
-  document: design,
+  document: scalePrimitiveDocument(design),
   formFields: [
     {
       id: 'bride.name',

@@ -132,7 +132,7 @@ export class TemplatePublicationService {
         assistance_invitation_id: null,
         name: 'Template thumbnail',
         kind: 'THUMBNAIL',
-        width: 390,
+        width: job.candidate_document.schemaVersion === 3 ? 500 : 390,
         height: 520,
       });
       const revisionNumber: { next: number }[] = await manager.query(

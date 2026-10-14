@@ -41,7 +41,7 @@ afterEach(() => {
   sessionStore.clear();
 });
 describe('guided Admin template creation', () => {
-  it('validates trimmed metadata and describes both supported schemas without sending whitespace', async () => {
+  it('validates trimmed metadata and describes the single500 canvas without sending whitespace', async () => {
     render(<NewTemplate />);
     fireEvent.change(screen.getByLabelText('Tên mẫu'), {
       target: { value: '   ' },
@@ -51,10 +51,10 @@ describe('guided Admin template creation', () => {
     );
     expect(mocks.request).not.toHaveBeenCalled();
     expect(await screen.findByText('Nhập tên mẫu để tiếp tục.')).toBeVisible();
-    expect(screen.getByText(/390px/)).toBeVisible();
-    expect(screen.getByText(/900px/)).toBeVisible();
+    expect(screen.getByText(/canvas 500px/)).toBeVisible();
+    expect(screen.queryByLabelText('Kiểu thiết kế')).not.toBeInTheDocument();
   });
-  it('retains metadata on a known failure and submits one trimmed responsive draft on retry', async () => {
+  it('retains metadata on a known failure and submits one trimmed draft on retry', async () => {
     mocks.request
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValueOnce({ id: 'new-draft' });
@@ -64,9 +64,6 @@ describe('guided Admin template creation', () => {
     });
     fireEvent.change(screen.getByLabelText('Danh mục'), {
       target: { value: '  Thanh lịch  ' },
-    });
-    fireEvent.change(screen.getByLabelText('Kiểu thiết kế'), {
-      target: { value: '2' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Tạo mẫu' }));
     await screen.findByRole('alert');
@@ -80,7 +77,6 @@ describe('guided Admin template creation', () => {
     expect(mocks.request.mock.calls[1][1].body).toEqual({
       name: 'Mùa thu',
       category: 'Thanh lịch',
-      schemaVersion: 2,
     });
   });
   it('admits only one pending create and blocks replay after an uncertain transport result', async () => {

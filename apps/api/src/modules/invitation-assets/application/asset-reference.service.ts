@@ -1,3 +1,7 @@
+import {
+  documentAssetIds,
+  contentFieldAssetIds,
+} from '../../invitation-builder/domain/editor-document';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { DataSource, EntityManager } from 'typeorm';
 import { createHash } from 'node:crypto';
@@ -6,8 +10,6 @@ import type { AuthenticatedPrincipal } from '../../identity-access/authorization
 import type {
   SupportedTemplateDesign,
   WeddingData,
-  Background,
-  ElementNode,
 } from '../../invitation-builder/domain/document.types';
 import { UUID_EXPRESSION } from '../../invitation-builder/domain/validation-helpers';
 import type { Asset } from '../domain/entities';
@@ -31,42 +33,17 @@ export type ReferenceScope =
 export function weddingAssetIds(data: WeddingData): string[] {
   return [
     ...new Set(
-      [data.bride?.photo, data.groom?.photo, data.couple?.photo].filter(
-        (id): id is string => Boolean(id),
-      ),
+      [
+        data.bride?.photo,
+        data.groom?.photo,
+        data.couple?.photo,
+        ...contentFieldAssetIds(data.fields),
+      ].filter((id): id is string => Boolean(id)),
     ),
   ].sort();
 }
 export function designAssetIds(design: SupportedTemplateDesign): string[] {
-  const ids = new Set<string>();
-  const background = (value: Background | undefined) => {
-    if (value?.kind === 'asset') ids.add(value.assetId);
-  };
-  if (design.schemaVersion === 2) {
-    background(design.background);
-    for (const section of Object.values(design.sections))
-      background(section.background);
-    for (const node of Object.values(design.nodes)) {
-      background(node.appearance.background);
-      if ('assetId' in node.content && node.content.assetId)
-        ids.add(node.content.assetId);
-      for (const binding of node.bindings)
-        if (binding.target === 'assetId' && binding.fallback)
-          ids.add(binding.fallback);
-    }
-    return [...ids].sort();
-  }
-  background(design.nodes.ROOT.props.canvas.background);
-  for (const id of design.nodes.ROOT.nodes) {
-    const node = design.nodes[id] as ElementNode;
-    background(node.props.appearance.background);
-    if ('assetId' in node.props.content && node.props.content.assetId)
-      ids.add(node.props.content.assetId);
-    for (const binding of node.props.bindings)
-      if (binding.target === 'assetId' && binding.fallback)
-        ids.add(binding.fallback);
-  }
-  return [...ids].sort();
+  return documentAssetIds(design);
 }
 
 export class AssetReferenceService {
@@ -289,6 +266,7 @@ export class AssetReferenceService {
       OR EXISTS(SELECT 1 FROM template_revision_asset_refs WHERE asset_id=$1)
       OR EXISTS(SELECT 1 FROM invitation_asset_refs WHERE asset_id=$1)
       OR EXISTS(SELECT 1 FROM publication_job_asset_refs WHERE asset_id=$1)
+      OR EXISTS(SELECT 1 FROM editor_preset_asset_refs WHERE asset_id=$1)
       OR EXISTS(SELECT 1 FROM invitation_templates WHERE cover_asset_id=$1)
       OR EXISTS(SELECT 1 FROM template_design_revisions WHERE thumbnail_asset_id=$1) AS used`,
       [id],

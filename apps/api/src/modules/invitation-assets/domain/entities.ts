@@ -1,7 +1,8 @@
 import { EntitySchema } from 'typeorm';
 
 export type AssetScope = 'TEMPLATE' | 'CUSTOMER' | 'SYSTEM_THUMBNAIL';
-export type AssetKind = 'IMAGE' | 'DECORATION' | 'BACKGROUND' | 'THUMBNAIL';
+export type AssetKind =
+  'IMAGE' | 'DECORATION' | 'BACKGROUND' | 'THUMBNAIL' | 'AUDIO';
 export interface Asset {
   id: string;
   scope: AssetScope;
@@ -11,7 +12,10 @@ export interface Asset {
   name: string;
   kind: AssetKind;
   object_key: string;
-  mime_type: 'image/webp' | 'image/png';
+  mime_type: 'image/webp' | 'image/png' | 'audio/mpeg';
+  duration_ms?: number | null;
+  category?: string | null;
+  attribution?: Record<string, unknown> | null;
   byte_size: number;
   width: number;
   height: number;
@@ -34,6 +38,9 @@ export const AssetEntity = new EntitySchema<Asset>({
     object_key: { type: 'varchar', length: 256 },
     mime_type: { type: 'varchar', length: 20 },
     byte_size: { type: 'integer' },
+    duration_ms: { type: 'integer', nullable: true },
+    category: { type: 'varchar', length: 64, nullable: true },
+    attribution: { type: 'jsonb', nullable: true },
     width: { type: 'integer' },
     height: { type: 'integer' },
     sha256: { type: 'char', length: 64 },

@@ -1,4 +1,9 @@
-/** Wire contract v1. This app owns its copy; never import another app's runtime. */
+import type {
+  EditorDocument,
+  EditorScene,
+  ContentFieldValue,
+} from './editor-document';
+/** Shared primitive shapes. Each app owns its runtime implementation. */
 export const DOCUMENT_LIMITS = {
   bytes: 1_048_576,
   weddingBytes: 262_144,
@@ -49,7 +54,20 @@ export interface Box {
 export interface Border {
   width: number;
   color: HexRGBA;
-  style: 'solid' | 'dashed' | 'dotted';
+  style: 'solid' | 'dashed' | 'dotted' | 'double';
+  /** Which edges draw the border; all four when absent. */
+  position?:
+    | 'all'
+    | 'top'
+    | 'right'
+    | 'bottom'
+    | 'left'
+    | 'vertical'
+    | 'horizontal'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';
 }
 export interface Shadow {
   offsetX: number;
@@ -70,6 +88,13 @@ export interface TextStyle {
   fontWeight: 400 | 700;
   italic: boolean;
   underline: boolean;
+  strike?: boolean;
+  textShadow?: {
+    offsetX: number;
+    offsetY: number;
+    blur: number;
+    color: HexRGBA;
+  };
   color: HexRGBA;
   letterSpacing: number;
   lineHeight: number;
@@ -82,6 +107,12 @@ export interface Appearance {
   shadow: Shadow | null;
   background?: Background;
   borderRadius?: number;
+  borderRadii?: {
+    topLeft: number;
+    topRight: number;
+    bottomRight: number;
+    bottomLeft: number;
+  };
   padding?: Padding;
 }
 export interface Venue {
@@ -108,7 +139,8 @@ export interface TimelineEntry {
   dateLabel?: string;
 }
 export interface WeddingData {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
+  fields?: Record<string, ContentFieldValue>;
   bride?: { name?: string; photo?: UUID };
   groom?: { name?: string; photo?: UUID };
   couple?: { photo?: UUID };
@@ -159,15 +191,33 @@ export interface ContentByKind {
     positionY: number;
   };
   Decoration: ContentByKind['Image'];
-  Shape: { primitive: 'rectangle' | 'ellipse' | 'line'; fill: HexRGBA };
-  Calendar: { textStyle: TextStyle; accentColor: HexRGBA };
-  Countdown: { textStyle: TextStyle; label: string; endedLabel: string };
+  Shape: {
+    primitive: 'rectangle' | 'ellipse' | 'triangle' | 'line';
+    fill: HexRGBA;
+  };
+  Calendar: {
+    textStyle: TextStyle;
+    accentColor: HexRGBA;
+    variant?: 'classic' | 'minimal' | 'filled';
+  };
+  Countdown: {
+    textStyle: TextStyle;
+    label: string;
+    endedLabel: string;
+    layout?: 'horizontal' | 'vertical';
+    gap?: number;
+    frameColor?: HexRGBA;
+  };
   Map: { textStyle: TextStyle; label: string };
   RSVP: {
     textStyle: TextStyle;
     title: string;
     closedLabel: string;
     successLabel: string;
+    nameLabel?: string;
+    submitLabel?: string;
+    buttonColor?: HexRGBA;
+    buttonTextColor?: HexRGBA;
   };
   QRBank: { textStyle: TextStyle; label: string };
   Timeline: { textStyle: TextStyle; accentColor: HexRGBA };
@@ -335,112 +385,5 @@ export const PROPERTY_MATRIX = {
   },
 } as const;
 
-/** Responsive document contract v2; legacy names above retain exact v1 shapes. */
-export type TypographyOverride = Partial<
-  Pick<TextStyle, 'fontSize' | 'lineHeight' | 'letterSpacing' | 'textAlign'>
->;
-export type AppearanceOverride = {
-  padding?: Partial<Padding>;
-  borderRadius?: number;
-};
-export type FlowLayout = {
-  widthPercent: number;
-  maxWidth: number | null;
-  align: 'start' | 'center' | 'end';
-};
-export type ArtworkLayout = {
-  xPercent: number;
-  yPercent: number;
-  widthPercent: number;
-  aspectRatio: number;
-  rotation: number;
-};
-export type SectionRule = {
-  layout: 'stack' | 'grid';
-  columns: 1 | 2;
-  contentPreset: 'full' | 'information' | 'story' | 'form' | 'custom';
-  customMaxWidth: number | null;
-  padding: Padding;
-  gap: number;
-  minHeight: number;
-  align: 'start' | 'center' | 'end';
-};
-export type SectionDesktop = Partial<Omit<SectionRule, 'padding'>> & {
-  padding?: Partial<Padding>;
-};
-export type InvitationSection = {
-  id: UUID;
-  label: string;
-  hidden: boolean;
-  background: Background;
-  flowNodeIds: UUID[];
-  artworkNodeIds: UUID[];
-  mobile: SectionRule;
-  desktop: SectionDesktop;
-};
-export type FlowMobile = {
-  layout: FlowLayout;
-  typography: TypographyOverride;
-  appearance: AppearanceOverride;
-};
-export type FlowDesktop = {
-  layout?: Partial<FlowLayout>;
-  typography?: TypographyOverride;
-  appearance?: AppearanceOverride;
-};
-export type ArtworkMobile = { layout: ArtworkLayout };
-export type ArtworkDesktop = { layout?: Partial<ArtworkLayout> };
-export type ContentV2<K extends ComponentName> = ContentByKind[K] &
-  (K extends 'Image' | 'Decoration'
-    ? { alt: string; aspectRatio?: number }
-    : object);
-export type LeafV2 = {
-  [K in ComponentName]: {
-    id: UUID;
-    type: K;
-    content: ContentV2<K>;
-    bindings: Binding[];
-    appearance: Appearance;
-    custom: { layerName: string; locked: boolean; optional: boolean };
-    hidden: boolean;
-  } & (
-    | { role: 'flow'; mobile: FlowMobile; desktop: FlowDesktop }
-    | (K extends 'Image' | 'Decoration' | 'Shape'
-        ? { role: 'artwork'; mobile: ArtworkMobile; desktop: ArtworkDesktop }
-        : never)
-  );
-}[ComponentName];
-export type ResponsiveViewport = {
-  mobileMaxWidth: 480;
-  desktopMinWidth: 768;
-  desktopMaxWidth: 900;
-};
-export interface TemplateDesignV2 {
-  schemaVersion: 2;
-  viewport: ResponsiveViewport;
-  background: Background;
-  sectionOrder: UUID[];
-  sections: Record<UUID, InvitationSection>;
-  nodes: Record<UUID, LeafV2>;
-}
-export type ResolvedSectionV2 = Omit<InvitationSection, 'label' | 'hidden'>;
-type ResolveLeafV2<N extends LeafV2> = N extends LeafV2
-  ? Omit<N, 'bindings' | 'custom' | 'hidden' | 'content'> & {
-      content: ResolvedContentByKind[N['type']] &
-        (N['type'] extends 'Image' | 'Decoration'
-          ? { alt: string; aspectRatio?: number }
-          : object);
-    }
-  : never;
-export type ResolvedLeafV2 = ResolveLeafV2<LeafV2>;
-export interface ResolvedSceneV2 {
-  schemaVersion: 2;
-  rendererContractVersion: 2;
-  viewport: ResponsiveViewport;
-  background: Background;
-  sectionOrder: UUID[];
-  sections: Record<UUID, ResolvedSectionV2>;
-  nodes: Record<UUID, ResolvedLeafV2>;
-}
-export type SupportedTemplateDesign = TemplateDesign | TemplateDesignV2;
-export type SupportedResolvedScene = ResolvedScene | ResolvedSceneV2;
+export type SupportedTemplateDesign = EditorDocument;
+export type SupportedResolvedScene = EditorScene;

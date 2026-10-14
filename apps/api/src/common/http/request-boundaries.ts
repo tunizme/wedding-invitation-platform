@@ -23,6 +23,10 @@ export const builderMultipartLimits = Object.freeze({
   fieldNameSize: 32,
   headerPairs: 40,
 });
+export const audioMultipartLimits = Object.freeze({
+  ...builderMultipartLimits,
+  fileSize: 20 * 1024 * 1024,
+});
 export const BUILDER_MULTIPART_BODY_LIMIT = 10 * 1024 * 1024 + 64 * 1024;
 
 export function configureRequestBoundaries(
@@ -33,6 +37,7 @@ export function configureRequestBoundaries(
     template: json({ limit: 1536 * 1024 }),
     invitation: json({ limit: 272 * 1024 }),
     rsvp: json({ limit: 8 * 1024 }),
+    interaction: json({ limit: 20 * 1024 }),
     iam: json({ limit: 100 * 1024 }),
   };
   const form = urlencoded({
@@ -46,20 +51,31 @@ export function configureRequestBoundaries(
     const path = request.path;
     if (request.is('multipart/form-data')) {
       const size = request.headers['content-length'];
-      if (size !== undefined && Number(size) > BUILDER_MULTIPART_BODY_LIMIT)
+      if (
+        size !== undefined &&
+        Number(size) >
+          (/^\/api\/v1\/(?:admin\/template-audio|assets\/audio)\/?$/.test(path)
+            ? 20 * 1024 * 1024 + 64 * 1024
+            : BUILDER_MULTIPART_BODY_LIMIT)
+      )
         return next(new PayloadTooLargeException());
       return next();
     }
-    const parser = /^\/api\/v1\/admin\/templates(?:\/|$)/.test(path)
-      ? parsers.template
-      : /^\/api\/v1\/public\/invitations\/[^/]+\/rsvps\/?$/.test(path)
-        ? parsers.rsvp
-        : /^\/api\/v1\/(?:admin\/)?invitations(?:\/|$)/.test(path) ||
-            /^\/api\/v1\/admin\/customers\/[^/]+\/invitations(?:\/|$)/.test(
-              path,
-            )
-          ? parsers.invitation
-          : parsers.iam;
+    const parser =
+      /^\/api\/v1\/public\/invitations\/[^/]+\/(?:wishes|likes|forms)(?:\/|$)/.test(
+        path,
+      )
+        ? parsers.interaction
+        : /^\/api\/v1\/admin\/(?:templates|editor-presets)(?:\/|$)/.test(path)
+          ? parsers.template
+          : /^\/api\/v1\/public\/invitations\/[^/]+\/rsvps\/?$/.test(path)
+            ? parsers.rsvp
+            : /^\/api\/v1\/(?:admin\/)?invitations(?:\/|$)/.test(path) ||
+                /^\/api\/v1\/admin\/customers\/[^/]+\/invitations(?:\/|$)/.test(
+                  path,
+                )
+              ? parsers.invitation
+              : parsers.iam;
     const complete = (error?: unknown) => {
       if (!error) return next();
       // This callback receives parser errors only. Never reflect body samples,

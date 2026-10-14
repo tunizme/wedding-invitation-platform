@@ -1,3 +1,4 @@
+import { validContentFields } from '../invitation-builder/document/editor-document';
 import { z } from 'zod';
 import { rawWeddingSchema } from '../invitation-builder/document/schema-definitions';
 import {
@@ -16,6 +17,35 @@ import {
 export function validateWeddingData(
   input: unknown,
 ): ValidationResult<WeddingData> {
+  if (
+    input &&
+    typeof input === 'object' &&
+    'schemaVersion' in input &&
+    input.schemaVersion === 2
+  ) {
+    if (
+      !jsonWithinLimit(input, DOCUMENT_LIMITS.weddingBytes) ||
+      !('fields' in input) ||
+      !validContentFields(input.fields)
+    )
+      return {
+        valid: false,
+        code: 'DOCUMENT_INVALID',
+        issues: [issue('/fields', 'TYPE_OR_FIELD_INVALID')],
+      };
+    const { fields, ...legacy } = input;
+    const checked = validateWeddingData({ ...legacy, schemaVersion: 1 });
+    return checked.valid
+      ? {
+          valid: true,
+          value: {
+            ...checked.value,
+            schemaVersion: 2,
+            fields: structuredClone(fields),
+          },
+        }
+      : checked;
+  }
   if (!jsonWithinLimit(input, DOCUMENT_LIMITS.weddingBytes))
     return {
       valid: false,

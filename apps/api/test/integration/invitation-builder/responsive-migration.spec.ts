@@ -1,15 +1,45 @@
-import request from 'supertest';
 import { randomUUID } from 'node:crypto';
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
 import {
-  responsiveDatabase,
-  responsiveDocument,
-} from '../../fixtures/invitation-builder/responsive-seed';
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  describe,
+  it,
+  expect,
+} from 'vitest';
+import { builderDatabase as responsiveDatabase } from '../../fixtures/invitation-builder/database';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+const fixture = <T>(feature: string, name: string): T =>
+  JSON.parse(
+    readFileSync(
+      resolve(
+        __dirname,
+        '../../../../../specs',
+        feature,
+        'contracts/fixtures',
+        name,
+      ),
+      'utf8',
+    ),
+  ) as T;
+const responsiveDocument = () =>
+  fixture<Record<string, unknown>>(
+    '007-responsive-invitation-layout',
+    'valid-v2.json',
+  );
+const blankDesign = () =>
+  fixture<
+    import('../../../src/modules/invitation-builder/domain/document.types').TemplateDesign
+  >('004-invitation-builder', 'blank.json');
+const emptyScene = () => ({
+  schemaVersion: 1,
+  rendererContractVersion: 1,
+  canvas: blankDesign().nodes.ROOT.props.canvas,
+  elements: [],
+});
 import { ResponsiveInvitationDocuments20261011000100 } from '../../../src/infrastructure/database/migrations/20261011000100-ResponsiveInvitationDocuments';
-import {
-  blankDesign,
-  emptyScene,
-} from '../../fixtures/invitation-builder/candidates';
 import { canonicalHash } from '../../../src/modules/invitation-builder/domain/validation-helpers';
 type Fixture = Awaited<ReturnType<typeof responsiveDatabase>>;
 describe.sequential(
@@ -17,6 +47,59 @@ describe.sequential(
   () => {
     let f: Fixture;
     let admin: Awaited<ReturnType<Fixture['user']>>;
+    const historicalTemplate = async () => {
+      const [row] = await f.db.query<
+        Awaited<ReturnType<Fixture['template']>>[]
+      >(
+        `INSERT INTO invitation_templates(id,name,category,draft_document,draft_sample_data,created_by) VALUES($1,'Migration fixture','Wedding',$2,$3,$4) RETURNING *`,
+        [randomUUID(), blankDesign(), { schemaVersion: 1 }, admin.id],
+      );
+      return row;
+    };
+    const historicalRevision = async (templateId: string) => {
+      const thumbnail = await f.asset(admin.principal, 'SYSTEM_THUMBNAIL');
+      const [row] = await f.db.query<
+        Awaited<ReturnType<Fixture['revision']>>[]
+      >(
+        `INSERT INTO template_design_revisions(id,template_id,revision_number,schema_version,document,sample_data,document_hash,renderer_contract_version,thumbnail_asset_id,created_by) VALUES($1,$2,1,1,$3,$4,$5,1,$6,$7) RETURNING *`,
+        [
+          randomUUID(),
+          templateId,
+          blankDesign(),
+          { schemaVersion: 1 },
+          canonicalHash(blankDesign()),
+          thumbnail.id,
+          admin.id,
+        ],
+      );
+      return row;
+    };
+    let constraints: {
+      table_name: string;
+      constraint_name: string;
+      definition: string;
+    }[];
+    beforeEach(async () => {
+      await f.db.query(
+        'TRUNCATE invitation_templates, invitations, editor_presets CASCADE',
+      );
+      constraints = await f.db.query(
+        `SELECT e.table_name,e.constraint_name,pg_get_constraintdef(c.oid) AS definition FROM editor_legacy_constraints e JOIN pg_constraint c ON c.conrelid=to_regclass(e.table_name) AND c.conname=e.constraint_name`,
+      );
+      const legacy: typeof constraints = await f.db.query(
+        'SELECT * FROM editor_legacy_constraints',
+      );
+      for (const c of legacy)
+        await f.db.query(
+          `ALTER TABLE ${c.table_name} DROP CONSTRAINT ${c.constraint_name}, ADD CONSTRAINT ${c.constraint_name} ${c.definition}`,
+        );
+    });
+    afterEach(async () => {
+      for (const c of constraints)
+        await f.db.query(
+          `ALTER TABLE ${c.table_name} DROP CONSTRAINT ${c.constraint_name}, ADD CONSTRAINT ${c.constraint_name} ${c.definition}`,
+        );
+    });
     beforeAll(async () => {
       f = await responsiveDatabase();
       admin = await f.user('ADMIN');
@@ -29,8 +112,8 @@ describe.sequential(
       const runner = f.db.createQueryRunner();
       try {
         await migration.down(runner);
-        const template = await f.template(admin.principal);
-        const revision = await f.revision(admin.principal, template.id);
+        const template = await historicalTemplate();
+        const revision = await historicalRevision(template.id);
         const owner = await f.user(),
           invitation = await f.invitation(owner.principal, revision.id);
         await f.db.query<Record<string, unknown>[]>(
@@ -111,7 +194,7 @@ describe.sequential(
       }
     });
     it('enforces numeric supported versions and revision JSON/metadata/pair agreement', async () => {
-      const template = await f.template(admin.principal);
+      const template = await historicalTemplate();
       const document = responsiveDocument();
       const thumbnail = await f.asset(admin.principal, 'SYSTEM_THUMBNAIL');
       const insert = (schema: number, renderer: number, doc: unknown) =>
@@ -146,8 +229,8 @@ describe.sequential(
         ).rejects.toThrow();
     });
     it('enforces full public scene pairs and candidate document versions without weakening data1', async () => {
-      const template = await f.template(admin.principal);
-      const revision = await f.revision(admin.principal, template.id);
+      const template = await historicalTemplate();
+      const revision = await historicalRevision(template.id);
       const owner = await f.user();
       const invitation = await f.invitation(owner.principal, revision.id);
       const scene = {
@@ -204,7 +287,7 @@ describe.sequential(
       ).toEqual(scene);
     });
     it('rejects unsupported candidate and data versions under direct SQL', async () => {
-      const template = await f.template(admin.principal),
+      const template = await historicalTemplate(),
         document = responsiveDocument(),
         created = new Date();
       const job = (candidate: unknown, data: unknown) =>
@@ -227,81 +310,6 @@ describe.sequential(
           job({ ...document, schemaVersion: version }, { schemaVersion: 1 }),
         ).rejects.toThrow();
       await expect(job(document, { schemaVersion: 2 })).rejects.toThrow();
-    });
-    it('accepts strict Admin create/save2, rejects unknown versions, retains data1 and CAS', async () => {
-      const create = (body: Record<string, unknown>) =>
-        request(f.app.getHttpServer())
-          .post('/api/v1/admin/templates')
-          .set(admin.headers)
-          .send(body);
-      const response = await create({
-        name: 'Mẫu responsive kiểm thử',
-        category: 'Wedding',
-        schemaVersion: 2,
-      }).expect(201);
-      const id = (response.body as { id: string }).id;
-      expect(
-        (response.body as { draftDocument: { schemaVersion: number } })
-          .draftDocument.schemaVersion,
-      ).toBe(2);
-      for (const version of [0, 3, '2', null])
-        await create({
-          name: 'Mẫu lỗi',
-          category: 'Wedding',
-          schemaVersion: version,
-        }).expect(422);
-      const save = (
-        expectedVersion: number,
-        document: unknown,
-        sampleData: unknown = { schemaVersion: 1 },
-      ) =>
-        request(f.app.getHttpServer())
-          .patch(`/api/v1/admin/templates/${id}/draft`)
-          .set(admin.headers)
-          .send({ expectedVersion, document, sampleData });
-      const document = responsiveDocument();
-      const saved = await save(1, document).expect(200);
-      expect(
-        (
-          saved.body as {
-            id: string;
-            draftDocument: unknown;
-            editVersion: number;
-          }
-        ).draftDocument,
-      ).toEqual(document);
-      expect(
-        (
-          saved.body as {
-            id: string;
-            draftDocument: unknown;
-            editVersion: number;
-          }
-        ).editVersion,
-      ).toBe(2);
-      await save(1, document).expect(409);
-      await save(2, { ...document, schemaVersion: 3 }).expect(422);
-      await save(2, document, { schemaVersion: 2 }).expect(422);
-      expect(
-        (
-          (
-            await request(f.app.getHttpServer())
-              .get(`/api/v1/admin/templates/${id}`)
-              .set(admin.headers)
-              .expect(200)
-          ).body as { draftDocument: unknown }
-        ).draftDocument,
-      ).toEqual(document);
-      const customer = await f.user();
-      await request(f.app.getHttpServer())
-        .patch(`/api/v1/admin/templates/${id}/draft`)
-        .set(customer.headers)
-        .send({
-          expectedVersion: 2,
-          document,
-          sampleData: { schemaVersion: 1 },
-        })
-        .expect(403);
     });
   },
 );

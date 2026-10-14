@@ -27,6 +27,27 @@ export function backgroundStyle(
 export function boxTransform(box: Box) {
   return `translate(${box.x}px, ${box.y}px) rotate(${box.rotation}deg)`;
 }
+// Draws the border only on the chosen edges (all four by default).
+function borderStyle(border: Appearance['border']): CSSProperties {
+  const line = `${border.width}px ${border.style} ${border.color}`;
+  const position = border.position ?? 'all';
+  if (position === 'all') return { border: line };
+  const edges: Record<string, string[]> = {
+    top: ['Top'],
+    right: ['Right'],
+    bottom: ['Bottom'],
+    left: ['Left'],
+    vertical: ['Top', 'Bottom'],
+    horizontal: ['Left', 'Right'],
+    'top-left': ['Top', 'Left'],
+    'top-right': ['Top', 'Right'],
+    'bottom-left': ['Bottom', 'Left'],
+    'bottom-right': ['Bottom', 'Right'],
+  };
+  const style: Record<string, string> = {};
+  for (const edge of edges[position]) style[`border${edge}`] = line;
+  return style as CSSProperties;
+}
 export function frameStyle(
   box: Box,
   appearance: Appearance,
@@ -43,8 +64,16 @@ export function frameStyle(
     transformOrigin: '50% 50%',
     boxSizing: 'border-box',
     opacity: appearance.opacity,
-    border: `${border.width}px ${border.style} ${border.color}`,
+    ...borderStyle(border),
     borderRadius: appearance.borderRadius,
+    ...(appearance.borderRadii
+      ? {
+          borderTopLeftRadius: appearance.borderRadii.topLeft,
+          borderTopRightRadius: appearance.borderRadii.topRight,
+          borderBottomRightRadius: appearance.borderRadii.bottomRight,
+          borderBottomLeftRadius: appearance.borderRadii.bottomLeft,
+        }
+      : {}),
     boxShadow: shadow
       ? `${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px ${shadow.color}`
       : undefined,
@@ -65,6 +94,7 @@ export function elementFrameStyle(
   const style = frameStyle(box, appearance, assets);
   const primitive = (content as { primitive?: string }).primitive;
   if (kind === 'Shape' && primitive === 'ellipse') style.borderRadius = '50%';
+  if (kind === 'Shape' && primitive === 'triangle') style.borderWidth = 0;
   if (kind === 'Shape' && primitive === 'line') style.borderWidth = 0;
   return style;
 }
@@ -74,8 +104,14 @@ export function textStyle(style: TextStyle): CSSProperties {
     fontSize: style.fontSize,
     fontWeight: style.fontWeight,
     fontStyle: style.italic ? 'italic' : 'normal',
-    textDecoration: style.underline ? 'underline' : 'none',
+    textDecoration:
+      [style.underline && 'underline', style.strike && 'line-through']
+        .filter(Boolean)
+        .join(' ') || 'none',
     color: style.color,
+    textShadow: style.textShadow
+      ? `${style.textShadow.offsetX}px ${style.textShadow.offsetY}px ${style.textShadow.blur}px ${style.textShadow.color}`
+      : undefined,
     letterSpacing: style.letterSpacing,
     lineHeight: style.lineHeight,
     textAlign: style.textAlign,
@@ -133,20 +169,31 @@ export function ShapeDisplay({
   content: ContentByKind['Shape'];
   border?: Appearance['border'];
 }) {
+  // A line is drawn by its top border. The frame border is 0 by default, so fall
+  // back to a 2px stroke in the shape colour instead of an invisible 0px line.
+  const styled = !!border && border.width > 0;
+  const thickness = styled ? border.width : 2;
   return (
     <div
       aria-hidden
       style={{
         width: '100%',
-        height: content.primitive === 'line' ? 1 : '100%',
+        height: content.primitive === 'line' ? 0 : '100%',
         position: content.primitive === 'line' ? 'absolute' : undefined,
-        top: content.primitive === 'line' ? '50%' : undefined,
+        top:
+          content.primitive === 'line'
+            ? `calc(50% - ${thickness / 2}px)`
+            : undefined,
         background: content.primitive === 'line' ? undefined : content.fill,
         borderTop:
           content.primitive === 'line'
-            ? `${border?.width ?? 1}px ${border?.style ?? 'solid'} ${border?.color ?? content.fill}`
+            ? `${thickness}px ${styled ? border.style : 'solid'} ${styled ? border.color : content.fill}`
             : undefined,
         borderRadius: content.primitive === 'ellipse' ? '50%' : 'inherit',
+        clipPath:
+          content.primitive === 'triangle'
+            ? 'polygon(50% 0, 100% 100%, 0 100%)'
+            : undefined,
       }}
     />
   );

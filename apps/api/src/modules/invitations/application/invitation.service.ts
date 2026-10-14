@@ -73,7 +73,7 @@ export class InvitationService {
     const input = closedObject(body, ['templateId', 'designRevisionId']);
     const templateId = resourceId(input.templateId as string),
       revisionId = resourceId(input.designRevisionId as string);
-    const blank = validateWeddingData({ schemaVersion: 1 });
+    const blank = validateWeddingData({ schemaVersion: 2, fields: {} });
     if (!blank.valid)
       throw new BuilderProblemException(422, blank.code, blank.issues);
     return this.db.transaction(async (manager) => {

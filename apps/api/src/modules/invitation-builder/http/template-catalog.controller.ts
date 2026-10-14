@@ -119,7 +119,7 @@ export class TemplateCatalogController {
     );
     if (
       !rows[0] ||
-      ![1, 2].includes(rows[0].schema_version) ||
+      rows[0].schema_version !== 3 ||
       rows[0].schema_version !== rows[0].document.schemaVersion ||
       rows[0].renderer_contract_version !== rows[0].schema_version
     )

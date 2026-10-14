@@ -1,4 +1,4 @@
-// Web-owned Zod definitions for document contract v1; verify changes against the shared corpus.
+// Web-owned Zod definitions for primitive projection validation; verify changes against the shared corpus.
 
 import { z } from 'zod';
 
@@ -83,7 +83,34 @@ const field_border: z.ZodType = z.strictObject({
       (value) => new RegExp('^#[0-9A-Fa-f]{8}$').test(value),
       'STRING_FORMAT',
     ),
-  style: z.enum(['solid', 'dashed', 'dotted']),
+  style: z.enum(['solid', 'dashed', 'dotted', 'double']),
+  position: z
+    .enum([
+      'all',
+      'top',
+      'right',
+      'bottom',
+      'left',
+      'vertical',
+      'horizontal',
+      'top-left',
+      'top-right',
+      'bottom-left',
+      'bottom-right',
+    ])
+    .optional(),
+});
+
+const field_textShadow: z.ZodType = z.strictObject({
+  offsetX: z.number().min(-100).max(100),
+  offsetY: z.number().min(-100).max(100),
+  blur: z.number().min(0).max(100),
+  color: z
+    .string()
+    .refine(
+      (value) => new RegExp('^#[0-9A-Fa-f]{8}$').test(value),
+      'STRING_FORMAT',
+    ),
 });
 
 const field_shadow: z.ZodType = z.union([
@@ -91,7 +118,7 @@ const field_shadow: z.ZodType = z.union([
     offsetX: z.number().min(-100).max(100),
     offsetY: z.number().min(-100).max(100),
     blur: z.number().min(0).max(100),
-    spread: z.number().min(-50).max(50),
+    spread: z.number().min(-100).max(100),
     color: z
       .string()
       .refine(
@@ -101,6 +128,13 @@ const field_shadow: z.ZodType = z.union([
   }),
   z.null(),
 ]);
+
+const field_cornerRadii = z.strictObject({
+  topLeft: z.number().min(0).max(600),
+  topRight: z.number().min(0).max(600),
+  bottomRight: z.number().min(0).max(600),
+  bottomLeft: z.number().min(0).max(600),
+});
 
 const field_padding: z.ZodType = z.strictObject({
   top: z.number().min(0).max(100),
@@ -115,14 +149,16 @@ const field_textStyle: z.ZodType = z.strictObject({
   fontWeight: z.union([z.literal(400), z.literal(700)]),
   italic: z.boolean(),
   underline: z.boolean(),
+  strike: z.boolean().optional(),
+  textShadow: field_textShadow.optional(),
   color: z
     .string()
     .refine(
       (value) => new RegExp('^#[0-9A-Fa-f]{8}$').test(value),
       'STRING_FORMAT',
     ),
-  letterSpacing: z.number().min(-5).max(20),
-  lineHeight: z.number().min(0.8).max(3),
+  letterSpacing: z.number().min(-5).max(100),
+  lineHeight: z.number().min(0.5).max(3),
   textAlign: z.enum(['left', 'center', 'right', 'justify']),
   textTransform: z.enum(['none', 'uppercase', 'lowercase', 'capitalize']),
 });
@@ -147,6 +183,7 @@ const field_Text: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),
@@ -212,6 +249,7 @@ const field_Image: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
     }),
     content: z.strictObject({
       assetId: z.union([
@@ -271,6 +309,7 @@ const field_Decoration: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
     }),
     content: z.strictObject({
       assetId: z.union([
@@ -330,10 +369,11 @@ const field_Shape: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
     }),
     content: z.strictObject({
-      primitive: z.enum(['rectangle', 'ellipse', 'line']),
+      primitive: z.enum(['rectangle', 'ellipse', 'triangle', 'line']),
       fill: z
         .string()
         .refine(
@@ -378,10 +418,12 @@ const field_Calendar: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),
     content: z.strictObject({
+      variant: z.enum(['classic', 'minimal', 'filled']).optional(),
       textStyle: field_textStyle,
       accentColor: z
         .string()
@@ -428,6 +470,7 @@ const field_Countdown: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),
@@ -435,6 +478,15 @@ const field_Countdown: z.ZodType = z.strictObject({
       textStyle: field_textStyle,
       label: text(120, 0),
       endedLabel: text(120, 0),
+      layout: z.enum(['horizontal', 'vertical']).optional(),
+      gap: z.number().min(0).max(40).optional(),
+      frameColor: z
+        .string()
+        .refine(
+          (value) => new RegExp('^#[0-9A-Fa-f]{8}$').test(value),
+          'STRING_FORMAT',
+        )
+        .optional(),
     }),
     bindings: z
       .array(
@@ -474,6 +526,7 @@ const field_Map: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),
@@ -519,6 +572,7 @@ const field_RSVP: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),
@@ -527,6 +581,22 @@ const field_RSVP: z.ZodType = z.strictObject({
       title: text(120, 0),
       closedLabel: text(120, 0),
       successLabel: text(120, 0),
+      nameLabel: text(120, 0).optional(),
+      submitLabel: text(120, 0).optional(),
+      buttonColor: z
+        .string()
+        .refine(
+          (value) => new RegExp('^#[0-9A-Fa-f]{8}$').test(value),
+          'STRING_FORMAT',
+        )
+        .optional(),
+      buttonTextColor: z
+        .string()
+        .refine(
+          (value) => new RegExp('^#[0-9A-Fa-f]{8}$').test(value),
+          'STRING_FORMAT',
+        )
+        .optional(),
     }),
     bindings: z.array(z.never()).max(1),
   }),
@@ -616,6 +686,7 @@ const field_QRBank: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),
@@ -672,6 +743,7 @@ const field_Timeline: z.ZodType = z.strictObject({
       border: field_border,
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
+      borderRadii: field_cornerRadii.optional(),
       background: field_background,
       padding: field_padding,
     }),

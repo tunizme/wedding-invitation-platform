@@ -1,3 +1,5 @@
+import { EditorPresetService } from './application/editor-preset.service';
+import { EditorPresetController } from './http/editor-preset.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InvitationBuilderConfigModule } from '../../config/invitation-builder-config.module';
@@ -45,6 +47,7 @@ import { InvitationPublicationService } from '../invitations/application/invitat
     ]),
   ],
   controllers: [
+    EditorPresetController,
     TemplateDraftController,
     TemplateCoverController,
     TemplateCatalogController,
@@ -52,6 +55,12 @@ import { InvitationPublicationService } from '../invitations/application/invitat
     PublicationOperationsController,
   ],
   providers: [
+    {
+      provide: EditorPresetService,
+      inject: [DataSource, AssetReferenceService],
+      useFactory: (db: DataSource, refs: AssetReferenceService) =>
+        new EditorPresetService(db, refs),
+    },
     {
       provide: TemplateDraftService,
       inject: [DataSource, AssetReferenceService],

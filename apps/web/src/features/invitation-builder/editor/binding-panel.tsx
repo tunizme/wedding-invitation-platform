@@ -7,7 +7,7 @@ import type {
   EventKey,
   TimelineEntry,
 } from '../document/types';
-import type { EditorCommand } from './commands';
+import type { EditorCommand } from './editor-commands';
 import { AssetLibrary } from '../assets/asset-library';
 import { sampleWeddingData } from './sample-data-panel';
 

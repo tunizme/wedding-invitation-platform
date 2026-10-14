@@ -36,11 +36,13 @@ export interface TemplateDetail extends TemplateSummary {
 export interface AssetSummary {
   id: string;
   name: string;
-  kind: 'IMAGE' | 'DECORATION' | 'BACKGROUND' | 'THUMBNAIL';
+  kind: 'IMAGE' | 'DECORATION' | 'BACKGROUND' | 'THUMBNAIL' | 'AUDIO';
   mimeType: string;
   byteSize: number;
   width: number;
   height: number;
+  category?: string | null;
+  durationMs?: number | null;
   createdAt: string;
   previewUrl: string;
 }
@@ -88,7 +90,7 @@ async function fetchBuilder(
   token?: string,
 ): Promise<Response> {
   if (
-    !/^\/(?:admin\/templates|admin\/template-assets|assets|templates|invitations|publication-operations)(?:[/?]|$)/.test(
+    !/^\/(?:admin\/templates|admin\/template-assets|admin\/template-audio|admin\/editor-presets|admin\/invitations|assets|templates|invitations|publication-operations)(?:[/?]|$)/.test(
       path,
     ) ||
     /[\\#]/.test(path) ||
@@ -238,17 +240,28 @@ export async function uploadBuilderAsset(
   options: Pick<Options, 'signal' | 'scope'> = {},
 ): Promise<AssetSummary> {
   if (
-    file.size > 10 * 1024 * 1024 ||
-    !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+    file.size > (kind === 'AUDIO' ? 20 : 10) * 1024 * 1024 ||
+    !(
+      kind === 'AUDIO'
+        ? ['audio/mpeg']
+        : ['image/jpeg', 'image/png', 'image/webp']
+    ).includes(file.type)
   )
     throw new BuilderApiError(422, 'UPLOAD_INVALID');
   const form = new FormData();
   form.append('file', file, file.name);
   form.append('name', name);
   form.append('kind', kind);
-  if (scope === 'customer' && kind !== 'IMAGE')
+  if (scope === 'customer' && !['IMAGE', 'AUDIO'].includes(kind))
     throw new BuilderApiError(422, 'UPLOAD_INVALID');
-  const path = scope === 'template' ? '/admin/template-assets' : '/assets';
+  const path =
+    kind === 'AUDIO'
+      ? scope === 'template'
+        ? '/admin/template-audio'
+        : '/assets/audio'
+      : scope === 'template'
+        ? '/admin/template-assets'
+        : '/assets';
   return builderRequest<AssetSummary>(path, {
     ...options,
     method: 'POST',

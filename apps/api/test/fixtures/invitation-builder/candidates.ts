@@ -1,10 +1,12 @@
+import {
+  createBlankDocument,
+  defaultEditorSettings,
+  type EditorDocument,
+  type EditorScene,
+} from '../../../src/modules/invitation-builder/domain/editor-document';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type {
-  TemplateDesign,
-  WeddingData,
-  ResolvedScene,
-} from '../../../src/modules/invitation-builder/domain/document.types';
+import type { WeddingData } from '../../../src/modules/invitation-builder/domain/document.types';
 
 const corpus = resolve(
   __dirname,
@@ -12,10 +14,7 @@ const corpus = resolve(
 );
 export const fixtureBytes = () =>
   readFileSync(resolve(corpus, 'assets/photo.png'));
-export const blankDesign = (): TemplateDesign =>
-  JSON.parse(
-    readFileSync(resolve(corpus, 'blank.json'), 'utf8'),
-  ) as TemplateDesign;
+export const blankDesign = (): EditorDocument => createBlankDocument();
 export const emptyWedding = (): WeddingData => ({ schemaVersion: 1 });
 export const sampleWedding = (
   name: 'sample-a' | 'sample-b' = 'sample-a',
@@ -23,11 +22,13 @@ export const sampleWedding = (
   JSON.parse(
     readFileSync(resolve(corpus, name + '.json'), 'utf8'),
   ) as WeddingData;
-export const emptyScene = (): ResolvedScene => ({
-  schemaVersion: 1,
-  rendererContractVersion: 1,
+export const emptyScene = (): EditorScene => ({
+  schemaVersion: 3,
+  rendererContractVersion: 3,
   canvas: blankDesign().nodes.ROOT.props.canvas,
   elements: [],
+  nodeOptions: {},
+  settings: defaultEditorSettings(),
 });
 
 export function deferred<T = void>() {

@@ -1,3 +1,4 @@
+import { scalePrimitiveDocument } from '../../../src/modules/invitation-builder/domain/editor-document';
 import { writeFile } from 'node:fs/promises';
 import { expect, it } from 'vitest';
 import { builderDatabase } from './database';
@@ -8,7 +9,6 @@ import { resolve } from 'node:path';
 import type {
   TemplateDesign,
   WeddingData,
-  TemplateDesignV2,
 } from '../../../src/modules/invitation-builder/domain/document.types';
 import { canonicalHash } from '../../../src/modules/invitation-builder/domain/validation-helpers';
 it('seeds disposable frontend principals and private resources', async () => {
@@ -36,7 +36,7 @@ it('seeds disposable frontend principals and private resources', async () => {
         'utf8',
       ),
     ) as { document: TemplateDesign; weddingData: WeddingData };
-    const design = representative.document;
+    const design = scalePrimitiveDocument(representative.document);
     const weddingData = representative.weddingData;
     await f.db.query(
       'UPDATE invitation_templates SET draft_document=$2,draft_sample_data=$3 WHERE id=$1',
@@ -108,17 +108,7 @@ it('seeds disposable frontend principals and private resources', async () => {
       adminA.principal,
       'SYSTEM_THUMBNAIL',
     );
-    const responsiveDocument = JSON.parse(
-      readFileSync(
-        resolve(
-          __dirname,
-          '../../../../../specs/007-responsive-invitation-layout/contracts/fixtures/pilot-v2.json',
-        ),
-        'utf8',
-      )
-        .replaceAll('70000000-0000-4000-8000-000000000100', assetA.id)
-        .replaceAll('70000000-0000-4000-8000-000000000101', responsiveAsset.id),
-    ) as TemplateDesignV2;
+    const responsiveDocument = structuredClone(design);
     const responsiveSample = {
       ...weddingData,
       bride: { name: 'Ngọc Anh' },
@@ -127,7 +117,7 @@ it('seeds disposable frontend principals and private resources', async () => {
     const responsiveRevisionId = randomUUID();
     await f.db.query(
       `INSERT INTO template_design_revisions(id,template_id,revision_number,schema_version,document,sample_data,document_hash,renderer_contract_version,thumbnail_asset_id,created_by)
-      VALUES($1,$2,1,2,$3,$4,$5,2,$6,$7)`,
+      VALUES($1,$2,1,3,$3,$4,$5,3,$6,$7)`,
       [
         responsiveRevisionId,
         responsiveTemplate.id,

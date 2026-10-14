@@ -1,18 +1,17 @@
 'use client';
-import styles from './public-responsive.module.css';
+import type { EditorScene } from '../invitation-builder/document/editor-document';
 import { useEffect, useRef, useState } from 'react';
 import type {
   RenderContext,
-  ResolvedScene,
   SupportedResolvedScene,
 } from '../invitation-builder/document/types';
 import { InvitationRenderer } from '../invitation-builder/renderer/invitation-renderer';
 
-function LegacyPublicInvitationView({
+function ScaledInvitationView({
   scene,
   context,
 }: {
-  scene: ResolvedScene;
+  scene: EditorScene;
   context: RenderContext;
 }) {
   const outer = useRef<HTMLDivElement>(null),
@@ -56,25 +55,10 @@ function LegacyPublicInvitationView({
 export function PublicInvitationView({
   scene,
   context,
-  hostPolicy = 'adaptive',
 }: {
   scene: SupportedResolvedScene;
   context: RenderContext;
   hostPolicy?: 'adaptive' | 'mobile';
 }) {
-  if (scene.schemaVersion === 2)
-    return (
-      <div
-        data-testid="public-workarea"
-        className={context.mode === 'public' ? styles.surface : undefined}
-        style={{ width: '100%', marginInline: 'auto' }}
-      >
-        <InvitationRenderer
-          scene={scene}
-          context={context}
-          hostPolicy={hostPolicy}
-        />
-      </div>
-    );
-  return <LegacyPublicInvitationView scene={scene} context={context} />;
+  return <ScaledInvitationView scene={scene} context={context} />;
 }

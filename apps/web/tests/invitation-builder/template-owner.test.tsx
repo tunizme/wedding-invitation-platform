@@ -1,3 +1,4 @@
+import { scalePrimitiveDocument } from '../../src/features/invitation-builder/document/editor-document';
 import {
   act,
   cleanup,
@@ -12,11 +13,14 @@ import { privateSession } from '../identity-access/private-session-fixture';
 import type { OperationScope } from '../../src/features/identity-access/session/operation-scope';
 const mocks = vi.hoisted(() => ({ request: vi.fn(), push: vi.fn() }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push }) }));
-vi.mock('next/dynamic', () => ({
-  default:
-    () =>
-    ({ initial }: { initial: { name: string } }) => <h1>{initial.name}</h1>,
-}));
+vi.mock(
+  '../../src/features/invitation-builder/editor/invitation-editor',
+  () => ({
+    default: ({ initial }: { initial: { name: string } }) => (
+      <h1>{initial.name}</h1>
+    ),
+  }),
+);
 vi.mock('../../src/features/invitation-builder/api/client', async (load) => ({
   ...(await load<
     typeof import('../../src/features/invitation-builder/api/client')
@@ -191,7 +195,7 @@ const corpus = JSON.parse(
 const revision = {
   id: templateId,
   revisionId,
-  document: corpus.document,
+  document: scalePrimitiveDocument(corpus.document),
   sampleData: corpus.weddingData,
   formFields: [],
 };
@@ -371,15 +375,15 @@ describe('catalog popup and demo (005 US6)', () => {
     expect(mocks.push).not.toHaveBeenCalled();
   });
   it('aborts pending protected assets on close without admitting late object URLs', async () => {
-    const document = JSON.parse(
-      readFileSync(
-        resolve(
-          __dirname,
-          '../../../../specs/007-responsive-invitation-layout/contracts/fixtures/pilot-v2.json',
-        ),
-        'utf8',
-      ),
-    );
+    const document = scalePrimitiveDocument(corpus.document);
+    document.nodes.ROOT.props.canvas.background = {
+      kind: 'asset',
+      assetId: '70000000-0000-4000-8000-000000000100',
+      fit: 'cover',
+      positionX: 0.5,
+      positionY: 0.5,
+    };
+    document.settings.shareImageId = '70000000-0000-4000-8000-000000000101';
     const completions: Array<() => void> = [];
     mocks.request.mockImplementation((path: string) => {
       if (path.includes('/assets/'))

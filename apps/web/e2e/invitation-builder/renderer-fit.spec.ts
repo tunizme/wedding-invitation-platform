@@ -1,6 +1,7 @@
+import { defaultEditorSettings } from '../../src/features/invitation-builder/document/editor-document';
 import { test, expect } from './fixtures';
 import type { Page } from '@playwright/test';
-import type { ResolvedScene } from '../../src/features/invitation-builder/document/types';
+import type { EditorScene } from '../../src/features/invitation-builder/document/editor-document';
 
 const style = {
   fontId: 'noto-sans-v1',
@@ -15,10 +16,12 @@ const style = {
   textTransform: 'none',
 };
 const base = {
-  schemaVersion: 1 as const,
-  rendererContractVersion: 1 as const,
+  nodeOptions: {},
+  settings: defaultEditorSettings(),
+  schemaVersion: 3 as const,
+  rendererContractVersion: 3 as const,
   canvas: {
-    width: 390 as const,
+    width: 500 as const,
     height: 780,
     background: { kind: 'solid' as const, color: '#FFFFFFFF' },
   },
@@ -49,10 +52,10 @@ function element(
   };
 }
 async function render(page: Page, elements: ReturnType<typeof element>[]) {
-  await page.waitForFunction(() => Boolean(window.invitationRenderer));
+  await page.waitForFunction(() => Boolean(window.invitationCanvasRenderer));
   return page.evaluate(
     async ({ scene }) => {
-      const renderer = window.invitationRenderer;
+      const renderer = window.invitationCanvasRenderer;
       if (!renderer) throw new Error('Renderer contract not ready');
       return renderer.render({
         candidateHash: 'a'.repeat(64),
@@ -63,9 +66,10 @@ async function render(page: Page, elements: ReturnType<typeof element>[]) {
           assetUrls: {},
         },
         states: 'publication-validation',
+        containerWidth: 390,
       });
     },
-    { scene: { ...base, elements } as unknown as ResolvedScene },
+    { scene: { ...base, elements } as unknown as EditorScene },
   );
 }
 
@@ -95,7 +99,7 @@ test('serves an empty, private-cache-free harness and verifies DOM readiness and
     ),
   ]);
   expect(report).toMatchObject({
-    version: 1,
+    version: 3,
     candidateHash: 'a'.repeat(64),
     ready: true,
     captureRect: { x: 0, y: 0, width: 390, height: 520 },
@@ -316,7 +320,7 @@ test.describe('production thumbnail geometry', () => {
     builderOrigin,
   }) => {
     await page.goto(builderOrigin + '/internal/invitation-renderer');
-    await page.waitForFunction(() => Boolean(window.invitationRenderer));
+    await page.waitForFunction(() => Boolean(window.invitationCanvasRenderer));
     for (const height of [390, 780]) {
       const edge = Math.min(height, 520);
       const shapes = [
@@ -335,7 +339,7 @@ test.describe('production thumbnail geometry', () => {
       ];
       const report = await page.evaluate(
         async (scene) =>
-          window.invitationRenderer!.render({
+          window.invitationCanvasRenderer!.render({
             candidateHash: 'a'.repeat(64),
             scene,
             context: {
@@ -344,6 +348,7 @@ test.describe('production thumbnail geometry', () => {
               assetUrls: {},
             },
             states: 'publication-validation',
+            containerWidth: 390,
           }),
         {
           ...base,
@@ -353,7 +358,7 @@ test.describe('production thumbnail geometry', () => {
             background: { kind: 'solid', color: '#11AA33FF' },
           },
           elements: shapes,
-        } as unknown as ResolvedScene,
+        } as unknown as EditorScene,
       );
       expect(report.ready).toBe(true);
       expect(report.captureRect).toEqual({

@@ -34,7 +34,9 @@ export async function login(
   const session = await (await response).json();
   expect(typeof session.accessToken).toBe('string');
   await expect(
-    page.getByRole('navigation', { name: 'Phiên đăng nhập' }),
+    page.getByRole('status').filter({
+      has: page.getByRole('heading', { name: 'Đăng nhập thành công' }),
+    }),
   ).toContainText(account.email);
   return session.accessToken as string;
 }

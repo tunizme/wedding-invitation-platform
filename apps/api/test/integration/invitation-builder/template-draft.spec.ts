@@ -1,9 +1,7 @@
+import { createBlankDocument as blankDesign } from '../../../src/modules/invitation-builder/domain/editor-document';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { builderDatabase } from '../../fixtures/invitation-builder/database';
-import {
-  blankDesign,
-  emptyWedding,
-} from '../../fixtures/invitation-builder/candidates';
+import { emptyWedding } from '../../fixtures/invitation-builder/candidates';
 import { TemplateDraftService } from '../../../src/modules/invitation-builder/application/template-draft.service';
 describe.sequential('template persistence transactions', () => {
   let f: Awaited<ReturnType<typeof builderDatabase>>;
@@ -50,8 +48,8 @@ describe.sequential('template persistence transactions', () => {
     ) as PromiseRejectedResult;
     expect(failed.reason).toMatchObject({ problemCode: 'VERSION_CONFLICT' });
     const loaded = await drafts.get(admin.principal, template.id);
-    if (loaded.draftDocument.schemaVersion !== 1)
-      throw new Error('Expected legacy fixture');
+    if (loaded.draftDocument.schemaVersion !== 3)
+      throw new Error('Expected500 fixture');
     const background = loaded.draftDocument.nodes.ROOT.props.canvas.background;
     if (background.kind !== 'asset')
       throw new Error('Expected committed photo');

@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, statSync } from 'node:fs';
 import { cp, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
@@ -194,8 +194,15 @@ export class Processes {
   stop(child) {
     if (!child.pid) return;
     try {
-      if (process.platform === 'win32') child.kill('SIGKILL');
-      else process.kill(-child.pid, 'SIGKILL');
+      // Windows has no process groups; taskkill /T also stops servers that
+      // pnpm/wrappers spawned, so ports and SQL connections are released.
+      if (process.platform === 'win32') {
+        if (child.exitCode === null && child.signalCode === null)
+          spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+            stdio: 'ignore',
+            timeout: 10_000,
+          });
+      } else process.kill(-child.pid, 'SIGKILL');
     } catch (error) {
       if (error.code !== 'ESRCH')
         throw new Error('Builder writer shutdown failed.');

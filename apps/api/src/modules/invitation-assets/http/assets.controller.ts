@@ -14,7 +14,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import type { AuthenticatedRequest } from '../../identity-access/authorization/auth.guard';
 import { Roles } from '../../identity-access/authorization/roles.guard';
-import { builderMultipartLimits } from '../../../common/http/request-boundaries';
+import {
+  builderMultipartLimits,
+  audioMultipartLimits,
+} from '../../../common/http/request-boundaries';
 import { resourceId } from '../../invitation-builder/http/input';
 import { AssetReferenceService } from '../application/asset-reference.service';
 import { UploadService } from '../application/upload.service';
@@ -29,6 +32,48 @@ export class AssetsController {
     @Inject(AssetReferenceService)
     private readonly assets: AssetReferenceService,
   ) {}
+
+  @Post('admin/template-audio')
+  @Roles('ADMIN')
+  @UseInterceptors(FileInterceptor('file', { limits: audioMultipartLimits }))
+  async audioTemplate(
+    @UploadedFile() file: MultipartFile | undefined,
+    @Body() fields: Record<string, unknown>,
+    @Req() request: AuthenticatedRequest & Request,
+  ) {
+    return this.audio(file, fields, request);
+  }
+
+  @Post('assets/audio')
+  @Roles('CUSTOMER')
+  @UseInterceptors(FileInterceptor('file', { limits: audioMultipartLimits }))
+  async audioCustomer(
+    @UploadedFile() file: MultipartFile | undefined,
+    @Body() fields: Record<string, unknown>,
+    @Req() request: AuthenticatedRequest & Request,
+  ) {
+    return this.audio(file, fields, request);
+  }
+
+  private async audio(
+    file: MultipartFile | undefined,
+    fields: Record<string, unknown>,
+    request: AuthenticatedRequest & Request,
+  ) {
+    const abort = new AbortController(),
+      cancel = () => abort.abort();
+    request.once('aborted', cancel);
+    try {
+      return assetSummary(
+        await this.uploads.uploadAudio(file, fields, request.principal, {
+          deadline: Date.now() + 10000,
+          signal: abort.signal,
+        }),
+      );
+    } finally {
+      request.off('aborted', cancel);
+    }
+  }
 
   @Post('admin/template-assets')
   @Roles('ADMIN')

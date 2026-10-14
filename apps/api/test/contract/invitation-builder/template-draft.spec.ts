@@ -1,15 +1,11 @@
+import type { EditorDocument as TemplateDesign } from '../../../src/modules/invitation-builder/domain/editor-document';
+import { createBlankDocument as blankDesign } from '../../../src/modules/invitation-builder/domain/editor-document';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { builderDatabase } from '../../fixtures/invitation-builder/database';
-import {
-  blankDesign,
-  emptyWedding,
-} from '../../fixtures/invitation-builder/candidates';
-import type {
-  TemplateDesign,
-  WeddingData,
-} from '../../../src/modules/invitation-builder/domain/document.types';
+import { emptyWedding } from '../../fixtures/invitation-builder/candidates';
+import type { WeddingData } from '../../../src/modules/invitation-builder/domain/document.types';
 
 type Fixture = Awaited<ReturnType<typeof builderDatabase>>;
 type Account = Awaited<ReturnType<Fixture['user']>>;
@@ -66,7 +62,7 @@ describe.sequential('admin template draft contract', () => {
       publishedRevisionId: null,
       editVersion: 1,
       createdBy: admin.id,
-      draftSampleData: { schemaVersion: 1 },
+      draftSampleData: { schemaVersion: 2, fields: {} },
     });
     expect(value.draftDocument).toEqual(blankDesign());
     expect(response.headers['cache-control']).toBe('no-store');
@@ -176,7 +172,10 @@ describe.sequential('admin template draft contract', () => {
       .set(admin.headers)
       .expect(200);
     expect(detail(after).editVersion).toBe(1);
-    expect(detail(after).draftSampleData).toEqual(emptyWedding());
+    expect(detail(after).draftSampleData).toEqual({
+      schemaVersion: 2,
+      fields: {},
+    });
   });
 
   it('updates metadata with CAS and chooses cover override, retained thumbnail, then null', async () => {

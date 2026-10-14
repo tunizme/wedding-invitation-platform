@@ -5,6 +5,7 @@ import type { AuthenticatedPrincipal } from '../../identity-access/authorization
 import type { AssetKind, AssetScope } from '../domain/entities';
 import { AssetWriteService } from './asset-write.service';
 import type { StorageContext } from '../domain/asset-store.port';
+import { mp3Duration } from './mp3';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_PIXELS = 25_000_000;
@@ -21,6 +22,51 @@ export class UploadService {
   constructor(
     @Inject(AssetWriteService) private readonly writes: AssetWriteService,
   ) {}
+
+  async uploadAudio(
+    file: UploadFile | undefined,
+    input: Record<string, unknown>,
+    actor: AuthenticatedPrincipal,
+    context: StorageContext,
+  ) {
+    if (
+      !file ||
+      !Buffer.isBuffer(file.buffer) ||
+      file.mimetype !== 'audio/mpeg' ||
+      file.size !== file.buffer.length ||
+      !input ||
+      Object.keys(input).some((k) => !['name', 'kind'].includes(k)) ||
+      input.kind !== 'AUDIO' ||
+      typeof input.name !== 'string' ||
+      !input.name.trim() ||
+      [...input.name.trim()].length > 120
+    )
+      throw new BuilderProblemException(422, 'UPLOAD_INVALID');
+    let duration: number;
+    try {
+      duration = mp3Duration(file.buffer);
+    } catch {
+      throw new BuilderProblemException(422, 'UPLOAD_INVALID');
+    }
+    if (context.signal?.aborted || Date.now() >= context.deadline)
+      throw new BuilderProblemException(503, 'STORAGE_UNAVAILABLE', [], 5);
+    return this.writes.upload(
+      file.buffer,
+      'audio/mpeg',
+      {
+        scope: actor.role === 'ADMIN' ? 'TEMPLATE' : 'CUSTOMER',
+        owner_user_id: actor.userId,
+        uploaded_by: actor.userId,
+        assistance_invitation_id: null,
+        name: input.name.trim(),
+        kind: 'AUDIO',
+        width: 0,
+        height: 0,
+        duration_ms: duration,
+      },
+      context,
+    );
+  }
 
   private async acquire(context: StorageContext): Promise<() => void> {
     if (context.signal?.aborted || Date.now() >= context.deadline)

@@ -1,3 +1,4 @@
+import { InvitationInteractionsModule } from './modules/invitation-interactions/interactions.module';
 import { InvitationRsvpModule } from './modules/invitation-rsvp/invitation-rsvp.module';
 import { Module } from '@nestjs/common';
 import { AppConfigModule } from './config/config.module';
@@ -18,6 +19,7 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
     InvitationBuilderModule,
     InvitationsModule,
     InvitationRsvpModule,
+    InvitationInteractionsModule,
   ],
 })
 export class AppModule {}

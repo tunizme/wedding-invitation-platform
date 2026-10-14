@@ -126,6 +126,7 @@ async function provision(env = process.env) {
   const workDeadline = hardDeadline - 5_000;
   const config = configuration(env);
   const scratch = await mkdtemp(join(tmpdir(), 'builder-storage-init-'));
+  const hostEnvFile = join(scratch, 'mc-host.env');
   const ownedContainers = new Set();
   const controller = new AbortController();
   const interrupt = () => controller.abort();
@@ -172,6 +173,8 @@ async function provision(env = process.env) {
       name,
       '--network',
       'host',
+      '--env-file',
+      hostEnvFile,
       '--user',
       `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`,
       '--volume',
@@ -185,20 +188,14 @@ async function provision(env = process.env) {
     ownedContainers.delete(name);
   };
   try {
+    const mcHost = new URL(config.accounts[0].endpoint);
+    mcHost.username = config.rootUser;
+    mcHost.password = config.rootPassword;
+    // MC_HOST takes precedence over persisted aliases. The pinned mc image
+    // may ignore a prewritten config.json alias when creating buckets.
     await writeFile(
-      join(scratch, 'config.json'),
-      JSON.stringify({
-        version: '10',
-        aliases: {
-          builder: {
-            url: config.accounts[0].endpoint,
-            accessKey: config.rootUser,
-            secretKey: config.rootPassword,
-            api: 'S3v4',
-            path: 'on',
-          },
-        },
-      }),
+      hostEnvFile,
+      `MC_HOST_builder=${mcHost.href.replace(/\/$/, '')}\n`,
       { mode: 0o600 },
     );
     await mc('ready', 'builder');

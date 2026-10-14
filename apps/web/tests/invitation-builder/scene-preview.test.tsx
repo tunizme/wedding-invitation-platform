@@ -1,21 +1,38 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ResolvedScene } from '../../src/features/invitation-builder/document/types';
+import type { EditorScene } from '../../src/features/invitation-builder/document/editor-document';
+import { defaultEditorSettings } from '../../src/features/invitation-builder/document/editor-document';
+vi.stubGlobal(
+  'ResizeObserver',
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
+vi.stubGlobal(
+  'IntersectionObserver',
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
 const measure = vi.hoisted(() => vi.fn());
 vi.mock('../../src/features/invitation-builder/renderer/measure', () => ({
   measureReadyScene: measure,
   SceneReadinessError: class extends Error {},
 }));
 import { ScenePreview } from '../../src/features/invitation-builder/renderer/scene-preview';
-const scene: ResolvedScene = {
-  schemaVersion: 1,
-  rendererContractVersion: 1,
+const scene: EditorScene = {
+  schemaVersion: 3,
+  rendererContractVersion: 3,
   canvas: {
-    width: 390,
+    width: 500,
     height: 390,
     background: { kind: 'solid', color: '#FFFFFFFF' },
   },
   elements: [],
+  nodeOptions: {},
+  settings: defaultEditorSettings(),
 };
 const context = {
   mode: 'preview' as const,

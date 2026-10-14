@@ -1,6 +1,3 @@
-import { randomUUID } from 'node:crypto';
-import { assertV2Report, type CaptureIdentity } from './capture-report-v2';
-export { assertV2Report } from './capture-report-v2';
 import { Inject } from '@nestjs/common';
 import { chromium, type Browser, type BrowserContext } from 'playwright';
 import type { InvitationBuilderEnvironment } from '../../../config/invitation-builder.environment';
@@ -54,12 +51,10 @@ export class ChromiumRenderer {
     assets: Record<string, RenderAsset>;
     hasVisibleRsvp: boolean;
   }): Promise<TrustedCapture> {
-    if (!(
-      (input.scene.schemaVersion === 1 &&
-        input.scene.rendererContractVersion === 1) ||
-      (input.scene.schemaVersion === 2 &&
-        input.scene.rendererContractVersion === 2)
-    ))
+    if (
+      input.scene.schemaVersion !== 3 ||
+      input.scene.rendererContractVersion !== 3
+    )
       throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
     let browser: Browser | undefined, context: BrowserContext | undefined;
     let timedOut = false;
@@ -140,8 +135,8 @@ export class ChromiumRenderer {
       await page.waitForFunction(
         () =>
           Boolean(
-            (window as Window & { invitationRenderer?: unknown })
-              .invitationRenderer,
+            (window as Window & { invitationCanvasRenderer?: unknown })
+              .invitationCanvasRenderer,
           ),
         undefined,
         { timeout: 5_000 },
@@ -149,177 +144,76 @@ export class ChromiumRenderer {
       const assetUrls = Object.fromEntries(
         Object.keys(input.assets).map((id) => [id, `/__render-assets/${id}`]),
       );
-      if (scene.schemaVersion === 2) {
+      if (scene.schemaVersion === 3) {
         await page.waitForFunction(
           () =>
-            Boolean(
-              (
-                window as Window & {
-                  invitationRendererV2?: {
-                    protocolVersion: number;
-                    supportedScenePairs: number[][];
-                    render: (request: unknown) => Promise<unknown>;
-                  };
-                }
-              ).invitationRendererV2,
-            ),
+            !!(window as Window & { invitationCanvasRenderer?: unknown })
+              .invitationCanvasRenderer,
           undefined,
           { timeout: 5000 },
         );
-        let mobilePng: Buffer | undefined;
-        for (const [pass, containerWidth] of (
-          [390, 900, 390] as const
-        ).entries()) {
+        for (const containerWidth of [500, 390, 500] as const) {
           await page.setViewportSize({ width: containerWidth, height: 780 });
-          const identity: CaptureIdentity = {
-            candidateHash: input.candidateHash,
-            containerWidth,
-            scenePair: [2, 2],
-            correlationId: randomUUID(),
-            hasVisibleRsvp: input.hasVisibleRsvp,
-          };
-          const report: unknown = await page.evaluate(
+          const report = await page.evaluate(
             async (request) => {
               const renderer = (
                 window as Window & {
-                  invitationRendererV2?: {
-                    protocolVersion: number;
-                    supportedScenePairs: number[][];
-                    render: (request: unknown) => Promise<unknown>;
+                  invitationCanvasRenderer?: {
+                    version: number;
+                    render: (r: unknown) => Promise<RenderReport>;
                   };
                 }
-              ).invitationRendererV2;
-              if (
-                !renderer ||
-                renderer.protocolVersion !== 2 ||
-                JSON.stringify(renderer.supportedScenePairs) !== '[[1,1],[2,2]]'
-              )
+              ).invitationCanvasRenderer;
+              if (renderer?.version !== 3)
                 throw new Error('RENDER_VERSION_MISMATCH');
               return renderer.render(request);
             },
             {
-              protocolVersion: 2 as const,
-              candidateHash: identity.candidateHash,
+              candidateHash: input.candidateHash,
               scene,
-              context: {
-                mode: 'capture' as const,
-                asOf: input.asOf,
-                assetUrls,
-              },
-              states: 'publication-validation' as const,
+              context: { mode: 'capture', asOf: input.asOf, assetUrls },
+              states: 'publication-validation',
               containerWidth,
-              scenePair: [2, 2] as [2, 2],
-              correlationId: identity.correlationId,
             },
           );
-          assertV2Report(report, identity);
+          const rect = await page
+            .locator('[data-testid="capture-root"]')
+            .boundingBox();
+          if (
+            report.version !== 3 ||
+            report.candidateHash !== input.candidateHash ||
+            report.hasVisibleRsvp !== input.hasVisibleRsvp ||
+            report.captureRect.x !== 0 ||
+            report.captureRect.y !== 0 ||
+            report.captureRect.width !== containerWidth ||
+            report.captureRect.height !== 520 ||
+            !rect ||
+            rect.x !== 0 ||
+            rect.y !== 0 ||
+            rect.width !== containerWidth ||
+            rect.height < 520
+          )
+            throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
           if (violations.length)
             throw new TrustedRenderError('RENDER_UNAVAILABLE');
           if (!report.ready)
             throw new TrustedRenderError(
-              report.issues.some((issue) => issue.code === 'FONT_UNAVAILABLE')
+              report.issues.some((i) => i.code === 'FONT_UNAVAILABLE')
                 ? 'FONT_UNAVAILABLE'
                 : 'CONTENT_OVERFLOW',
               report.issues,
             );
-          const root = await page
-            .locator('[data-testid="capture-root"] [data-invitation-root]')
-            .boundingBox();
-          const capture = await page
-            .locator('[data-testid="capture-root"]')
-            .boundingBox();
-          if (
-            !root ||
-            !capture ||
-            Math.abs(root.x - report.rootRect.x) > 1 ||
-            Math.abs(root.y - report.rootRect.y) > 1 ||
-            Math.abs(root.width - report.rootRect.width) > 1 ||
-            Math.abs(root.height - report.rootRect.height) > 1 ||
-            capture.x !== 0 ||
-            capture.y !== 0 ||
-            capture.width !== containerWidth ||
-            capture.height < 520
-          )
-            throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
-          if (pass === 2)
-            mobilePng = await page.screenshot({
-              type: 'png',
-              clip: { x: 0, y: 0, width: 390, height: 520 },
-              animations: 'disabled',
-              timeout: 10000,
-            });
         }
-        if (!mobilePng?.length)
-          throw new TrustedRenderError('RENDER_UNAVAILABLE');
-        return {
-          png: mobilePng,
-          issues: [],
-          hasVisibleRsvp: input.hasVisibleRsvp,
-        };
+        const png = await page.screenshot({
+          type: 'png',
+          clip: { x: 0, y: 0, width: 500, height: 520 },
+          animations: 'disabled',
+          timeout: 10000,
+        });
+        if (!png.length) throw new TrustedRenderError('RENDER_UNAVAILABLE');
+        return { png, issues: [], hasVisibleRsvp: input.hasVisibleRsvp };
       }
-      const report = await page.evaluate(
-        async (request) => {
-          const renderer = (
-            window as Window & {
-              invitationRenderer?: {
-                render: (value: unknown) => Promise<RenderReport>;
-              };
-            }
-          ).invitationRenderer;
-          if (!renderer) throw new Error('RENDERER_NOT_READY');
-          return renderer.render(request);
-        },
-        {
-          candidateHash: input.candidateHash,
-          scene,
-          context: { mode: 'capture', asOf: input.asOf, assetUrls },
-          states: 'publication-validation',
-        },
-      );
-      if (
-        report.version !== 1 ||
-        report.candidateHash !== input.candidateHash ||
-        report.captureRect.x !== 0 ||
-        report.captureRect.y !== 0 ||
-        report.captureRect.width !== 390 ||
-        report.captureRect.height !== 520 ||
-        report.hasVisibleRsvp !== input.hasVisibleRsvp
-      )
-        throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
-      if (violations.length) throw new TrustedRenderError('RENDER_UNAVAILABLE');
-      if (!report.ready) {
-        const fontMissing = report.issues.some(
-          (issue) => issue.code === 'FONT_UNAVAILABLE',
-        );
-        throw new TrustedRenderError(
-          fontMissing ? 'FONT_UNAVAILABLE' : 'CONTENT_OVERFLOW',
-          report.issues,
-        );
-      }
-      // Compare the report against actual DOM geometry before clipping at the origin.
-      const rect = await page
-        .locator('[data-testid="capture-root"]')
-        .boundingBox();
-      if (
-        !rect ||
-        rect.x !== 0 ||
-        rect.y !== 0 ||
-        rect.width !== 390 ||
-        rect.height < 520
-      )
-        throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
-      const png = await page.screenshot({
-        type: 'png',
-        clip: { x: 0, y: 0, width: 390, height: 520 },
-        animations: 'disabled',
-        timeout: 10_000,
-      });
-      if (png.length === 0) throw new TrustedRenderError('RENDER_UNAVAILABLE');
-      return {
-        png,
-        issues: report.issues,
-        hasVisibleRsvp: report.hasVisibleRsvp,
-      };
+      throw new TrustedRenderError('RENDER_VERSION_MISMATCH');
     } catch (error) {
       if (error instanceof TrustedRenderError) throw error;
       if (

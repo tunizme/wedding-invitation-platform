@@ -1,4 +1,4 @@
-import { validateTemplateDesignV2 } from './schema-v2';
+import { validateEditorDocument } from './editor-document';
 import type { SupportedTemplateDesign } from './types';
 import { z } from 'zod';
 import { rawDesignSchema } from './schema-definitions';
@@ -17,7 +17,7 @@ import {
   UUID_EXPRESSION,
 } from './validation-helpers';
 
-export function validateTemplateDesignV1(
+export function validatePrimitiveDocument(
   input: unknown,
 ): ValidationResult<TemplateDesign> {
   if (!jsonWithinLimit(input, DOCUMENT_LIMITS.bytes))
@@ -69,20 +69,42 @@ export function validateTemplateDesignV1(
     const { box, appearance, bindings, content } = node.props;
     const path = `/nodes/${id}/props`;
     const padding = appearance.padding;
+    const borderPosition = appearance.border.position ?? 'all';
+    const horizontalBorder =
+      appearance.border.width *
+      (borderPosition === 'all' || borderPosition === 'horizontal'
+        ? 2
+        : borderPosition === 'left' ||
+            borderPosition === 'right' ||
+            borderPosition.includes('-')
+          ? 1
+          : 0);
+    const verticalBorder =
+      appearance.border.width *
+      (borderPosition === 'all' || borderPosition === 'vertical'
+        ? 2
+        : borderPosition === 'top' ||
+            borderPosition === 'bottom' ||
+            borderPosition.includes('-')
+          ? 1
+          : 0);
     if (
       padding &&
-      (padding.left + padding.right + 2 * appearance.border.width >=
-        box.width ||
-        padding.top + padding.bottom + 2 * appearance.border.width >=
-          box.height)
+      (padding.left + padding.right + horizontalBorder >= box.width ||
+        padding.top + padding.bottom + verticalBorder >= box.height)
     )
       errors.push(issue(path + '/appearance/padding', 'CONTENT_BOX_EMPTY'));
     if (
       kind === 'Shape' &&
       'primitive' in content &&
-      (content.primitive === 'line' || content.primitive === 'ellipse')
+      (content.primitive === 'line' ||
+        content.primitive === 'ellipse' ||
+        content.primitive === 'triangle')
     ) {
-      if (appearance.borderRadius !== undefined)
+      if (
+        appearance.borderRadius !== undefined ||
+        appearance.borderRadii !== undefined
+      )
         errors.push(
           issue(path + '/appearance/borderRadius', 'PROPERTY_NOT_APPLICABLE'),
         );
@@ -142,12 +164,7 @@ export const templateDesignSchema = z
 export function validateSupportedTemplateDesign(
   input: unknown,
 ): ValidationResult<SupportedTemplateDesign> {
-  return input &&
-    typeof input === 'object' &&
-    'schemaVersion' in input &&
-    input.schemaVersion === 2
-    ? validateTemplateDesignV2(input)
-    : validateTemplateDesignV1(input);
+  return validateEditorDocument(input);
 }
-// Legacy consumers keep their v1 type until the versioned readers are integrated.
-export const validateTemplateDesign = validateTemplateDesignV1;
+// Internal primitive projection validation; never used to select a product editor.
+export const validateTemplateDesign = validatePrimitiveDocument;

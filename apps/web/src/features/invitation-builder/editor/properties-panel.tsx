@@ -1,42 +1,51 @@
 'use client';
-import { useState } from 'react';
-import type { ElementNode, TextStyle } from '../document/types';
-import type { EditorCommand } from './commands';
+import { useState, type ReactNode } from 'react';
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  Bold,
+  Italic,
+  Strikethrough,
+  Underline,
+  ArrowLeftRight,
+  ArrowUpDown,
+} from 'lucide-react';
+import type { ContentByKind, ElementNode, TextStyle } from '../document/types';
+import type { EditorCommand } from './editor-commands';
 import { BindingPanel } from './binding-panel';
+import { PropertyPopover } from './property-popover';
+import {
+  PaddingControl,
+  CornerRadiusControl,
+  ShadowControls,
+} from './appearance-controls';
+import {
+  ColorField,
+  FieldRow,
+  IconToggle,
+  NumberRow,
+  NumberControl,
+  RangeNumber,
+  PropertySection,
+  Segmented,
+  SliderRow,
+  Stepper,
+  ToggleRow,
+} from './property-controls';
+import styles from './property-controls.module.css';
 
-function NumberField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label style={{ display: 'block' }}>
-      {label}
-      <input
-        key={value}
-        aria-label={label}
-        type="number"
-        step="any"
-        defaultValue={value}
-        onBlur={(event) => {
-          if (event.target.value !== '') onChange(Number(event.target.value));
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') event.currentTarget.blur();
-        }}
-      />
-    </label>
-  );
-}
+const SHAPES = [
+  ['rectangle', 'Hình chữ nhật'],
+  ['ellipse', 'Hình tròn'],
+  ['triangle', 'Tam giác'],
+  ['line', 'Đường kẻ'],
+] as const;
+
 export function PropertiesPanel({
   id,
   node,
-  index,
-  count,
   onCommand,
   onReplace,
   disabled,
@@ -63,6 +72,7 @@ export function PropertiesPanel({
   };
   const content = node.props.content,
     appearance = node.props.appearance;
+  const isText = 'textStyle' in content;
   const updateText = (value: Partial<TextStyle>) => {
     if ('textStyle' in content)
       command({
@@ -71,381 +81,153 @@ export function PropertiesPanel({
         value: { textStyle: { ...content.textStyle, ...value } },
       });
   };
+  const setContent = (value: Record<string, unknown>) =>
+    command({ type: 'content', id, value });
+  const setAppearance = (value: Parameters<typeof command>[0] & object) =>
+    command(value);
+  const appearanceChange = (
+    value: Extract<EditorCommand, { type: 'appearance' }>['value'],
+  ) => setAppearance({ type: 'appearance', id, value });
+  // Single-line text input used by the widget content settings.
+  const textField = (label: string, value: string, key: string): ReactNode => (
+    <FieldRow label={label}>
+      <input
+        aria-label={label}
+        value={value}
+        onChange={(event) => setContent({ [key]: event.target.value })}
+      />
+    </FieldRow>
+  );
+  const kind = node.type.resolvedName;
   return (
     <section aria-label="Thuộc tính">
-      <h2>Thuộc tính</h2>
+      {isText && (
+        <p className={styles.hint}>Kích đúp vào văn bản để chỉnh sửa</p>
+      )}
       {error && <p role="alert">{error}</p>}
-      <button
-        disabled={disabled}
-        onClick={() =>
-          command({ type: 'lock', id, value: !node.custom.locked })
-        }
-      >
-        {node.custom.locked ? 'Mở khóa phần tử' : 'Khóa phần tử'}
-      </button>
       <fieldset
         disabled={disabled || node.custom.locked}
-        style={{ border: 0, padding: 0 }}
+        className={styles.fieldset}
       >
-        <BindingPanel
-          id={id}
-          node={node}
-          onCommand={command}
-          disabled={disabled}
-        />
-        <label>
-          Tên lớp
-          <input
-            aria-label="Tên lớp"
-            key={node.custom.layerName}
-            defaultValue={node.custom.layerName}
-            onBlur={(event) =>
-              command({ type: 'rename', id, value: event.target.value })
-            }
-          />
-        </label>
-        {(['x', 'y', 'width', 'height', 'rotation'] as const).map((key, i) => (
-          <NumberField
-            key={key}
-            label={['X', 'Y', 'Chiều rộng', 'Chiều cao', 'Góc xoay'][i]}
-            value={node.props.box[key]}
-            onChange={(value) =>
-              command({ type: 'box', id, value: { [key]: value } })
-            }
-          />
-        ))}
-        <NumberField
-          label="Độ mờ"
-          value={appearance.opacity}
-          onChange={(opacity) =>
-            command({ type: 'appearance', id, value: { opacity } })
-          }
-        />
-        <NumberField
-          label="Độ dày viền"
-          value={appearance.border.width}
-          onChange={(width) =>
-            command({
-              type: 'appearance',
-              id,
-              value: { border: { ...appearance.border, width } },
-            })
-          }
-        />
-        <label>
-          Màu viền
-          <input
-            aria-label="Màu viền"
-            key={appearance.border.color}
-            defaultValue={appearance.border.color}
-            onBlur={(event) =>
-              command({
-                type: 'appearance',
-                id,
-                value: {
-                  border: { ...appearance.border, color: event.target.value },
-                },
-              })
-            }
-          />
-        </label>
-        <label>
-          Kiểu viền
-          <select
-            value={appearance.border.style}
-            onChange={(event) =>
-              command({
-                type: 'appearance',
-                id,
-                value: {
-                  border: {
-                    ...appearance.border,
-                    style: event.target.value as 'solid' | 'dashed' | 'dotted',
-                  },
-                },
-              })
-            }
-          >
-            {['solid', 'dashed', 'dotted'].map((value) => (
-              <option key={value}>{value}</option>
-            ))}
-          </select>
-        </label>
-        {appearance.borderRadius !== undefined && (
-          <NumberField
-            label="Bo góc"
-            value={appearance.borderRadius}
-            onChange={(borderRadius) =>
-              command({ type: 'appearance', id, value: { borderRadius } })
-            }
-          />
-        )}
-        {appearance.background?.kind === 'solid' && (
-          <label>
-            Màu nền
-            <input
-              aria-label="Màu nền"
-              key={appearance.background.color}
-              defaultValue={appearance.background.color}
-              onBlur={(event) =>
-                command({
-                  type: 'appearance',
-                  id,
-                  value: {
-                    background: { kind: 'solid', color: event.target.value },
-                  },
-                })
-              }
-            />
-          </label>
-        )}
-        {appearance.padding &&
-          (['top', 'right', 'bottom', 'left'] as const).map((side) => (
-            <NumberField
-              key={side}
-              label={'Padding ' + side}
-              value={appearance.padding![side]}
-              onChange={(value) =>
-                command({
-                  type: 'appearance',
-                  id,
-                  value: { padding: { ...appearance.padding!, [side]: value } },
-                })
-              }
-            />
-          ))}
-        <label>
-          <input
-            type="checkbox"
-            checked={appearance.shadow !== null}
-            onChange={(event) =>
-              command({
-                type: 'appearance',
-                id,
-                value: {
-                  shadow: event.target.checked
-                    ? {
-                        offsetX: 0,
-                        offsetY: 2,
-                        blur: 6,
-                        spread: 0,
-                        color: '#00000040',
-                      }
-                    : null,
-                },
-              })
-            }
-          />
-          Đổ bóng
-        </label>
-        {appearance.shadow && (
-          <>
-            {(['offsetX', 'offsetY', 'blur', 'spread'] as const).map((key) => (
-              <NumberField
-                key={key}
-                label={'Shadow ' + key}
-                value={appearance.shadow![key]}
-                onChange={(value) =>
-                  command({
-                    type: 'appearance',
-                    id,
-                    value: { shadow: { ...appearance.shadow!, [key]: value } },
-                  })
-                }
-              />
-            ))}
-            <label>
-              Màu bóng
-              <input
-                defaultValue={appearance.shadow.color}
-                key={appearance.shadow.color}
-                onBlur={(event) =>
-                  command({
-                    type: 'appearance',
-                    id,
-                    value: {
-                      shadow: {
-                        ...appearance.shadow!,
-                        color: event.target.value,
-                      },
-                    },
-                  })
-                }
-              />
-            </label>
-          </>
-        )}
-        {node.type.resolvedName === 'Calendar' && 'accentColor' in content && (
-          <label>
-            Màu nhấn
-            <input
-              aria-label="Màu nhấn"
-              value={content.accentColor}
-              onChange={(event) =>
-                command({
-                  type: 'content',
-                  id,
-                  value: { accentColor: event.target.value },
-                })
-              }
-            />
-          </label>
-        )}
-        {node.type.resolvedName === 'Countdown' && 'label' in content && (
-          <>
-            <label>
-              Nhãn đếm ngược
-              <input
-                aria-label="Nhãn đếm ngược"
-                value={content.label}
-                onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { label: event.target.value },
-                  })
-                }
-              />
-            </label>
-            <label>
-              Nhãn kết thúc
-              <input
-                aria-label="Nhãn kết thúc"
-                value={
-                  (
-                    content as import('../document/types').ContentByKind['Countdown']
-                  ).endedLabel
-                }
-                onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { endedLabel: event.target.value },
-                  })
-                }
-              />
-            </label>
-          </>
-        )}
-        {node.type.resolvedName === 'Map' && 'label' in content && (
-          <label>
-            Nhãn bản đồ
-            <input
-              aria-label="Nhãn bản đồ"
-              value={content.label}
-              onChange={(event) =>
-                command({
-                  type: 'content',
-                  id,
-                  value: { label: event.target.value },
-                })
-              }
-            />
-          </label>
-        )}
-        {node.type.resolvedName === 'RSVP' && 'title' in content && (
-          <>
-            <label>
-              Tiêu đề RSVP
-              <input
-                aria-label="Tiêu đề RSVP"
-                value={content.title}
-                onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { title: event.target.value },
-                  })
-                }
-              />
-            </label>
-            <label>
-              Nhãn đóng RSVP
-              <input
-                aria-label="Nhãn đóng RSVP"
-                value={content.closedLabel}
-                onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { closedLabel: event.target.value },
-                  })
-                }
-              />
-            </label>
-            <label>
-              Nhãn RSVP thành công
-              <input
-                aria-label="Nhãn RSVP thành công"
-                value={content.successLabel}
-                onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { successLabel: event.target.value },
-                  })
-                }
-              />
-            </label>
-          </>
-        )}
-        {node.type.resolvedName === 'QRBank' && 'label' in content && (
-          <label>
-            Nhãn QR ngân hàng
-            <input
-              aria-label="Nhãn QR ngân hàng"
-              value={content.label}
-              onChange={(event) =>
-                command({
-                  type: 'content',
-                  id,
-                  value: { label: event.target.value },
-                })
-              }
-            />
-          </label>
-        )}
-        {node.type.resolvedName === 'Timeline' && 'accentColor' in content && (
-          <label>
-            Màu nhấn
-            <input
-              aria-label="Màu nhấn"
-              value={content.accentColor}
-              onChange={(event) =>
-                command({
-                  type: 'content',
-                  id,
-                  value: { accentColor: event.target.value },
-                })
-              }
-            />
-          </label>
-        )}
-
-        {'text' in content && (
-          <label>
-            Nội dung
-            <textarea
-              aria-label="Nội dung"
-              disabled={node.props.bindings.some(
-                (binding) => binding.target === 'text',
-              )}
-              key={content.text}
-              defaultValue={content.text}
-              onBlur={(event) =>
-                command({
-                  type: 'content',
-                  id,
-                  value: { text: event.target.value },
-                })
-              }
-            />
-          </label>
-        )}
         {'textStyle' in content && (
-          <>
-            <label>
-              Phông chữ
+          <PropertySection title="Kiểu chữ" defaultOpen>
+            <ToggleRow>
+              <IconToggle
+                label="Đậm"
+                pressed={content.textStyle.fontWeight === 700}
+                onClick={() =>
+                  updateText({
+                    fontWeight:
+                      content.textStyle.fontWeight === 700 ? 400 : 700,
+                  })
+                }
+              >
+                <Bold size={18} />
+              </IconToggle>
+              <IconToggle
+                label="Nghiêng"
+                pressed={content.textStyle.italic}
+                onClick={() =>
+                  updateText({ italic: !content.textStyle.italic })
+                }
+              >
+                <Italic size={18} />
+              </IconToggle>
+              <IconToggle
+                label="Gạch ngang"
+                pressed={content.textStyle.strike ?? false}
+                onClick={() =>
+                  updateText({ strike: !(content.textStyle.strike ?? false) })
+                }
+              >
+                <Strikethrough size={18} />
+              </IconToggle>
+              <IconToggle
+                label="Gạch chân"
+                pressed={content.textStyle.underline}
+                onClick={() =>
+                  updateText({ underline: !content.textStyle.underline })
+                }
+              >
+                <Underline size={18} />
+              </IconToggle>
+              <IconToggle
+                label="Chữ hoa"
+                pressed={content.textStyle.textTransform === 'uppercase'}
+                onClick={() =>
+                  updateText({
+                    textTransform:
+                      content.textStyle.textTransform === 'uppercase'
+                        ? 'none'
+                        : 'uppercase',
+                  })
+                }
+              >
+                Aa
+              </IconToggle>
+              <PropertyPopover
+                label="Giãn ký tự"
+                trigger={<ArrowLeftRight size={18} />}
+                pressed={content.textStyle.letterSpacing !== 0}
+              >
+                <RangeNumber
+                  label="Giãn ký tự"
+                  value={content.textStyle.letterSpacing}
+                  min={0}
+                  max={100}
+                  onChange={(letterSpacing) => updateText({ letterSpacing })}
+                />
+              </PropertyPopover>
+              <PropertyPopover
+                label="Giãn dòng"
+                trigger={<ArrowUpDown size={18} />}
+                pressed={content.textStyle.lineHeight !== 1.2}
+              >
+                <RangeNumber
+                  label="Giãn dòng"
+                  value={content.textStyle.lineHeight}
+                  min={0.5}
+                  max={2.5}
+                  step={0.01}
+                  onChange={(lineHeight) => updateText({ lineHeight })}
+                />
+              </PropertyPopover>
+            </ToggleRow>
+            <Segmented<TextStyle['textAlign']>
+              label="Căn chỉnh"
+              value={content.textStyle.textAlign}
+              onChange={(textAlign) => updateText({ textAlign })}
+              options={[
+                {
+                  value: 'left',
+                  label: 'Căn trái',
+                  icon: <AlignLeft size={16} />,
+                },
+                {
+                  value: 'center',
+                  label: 'Căn giữa',
+                  icon: <AlignCenter size={16} />,
+                },
+                {
+                  value: 'right',
+                  label: 'Căn phải',
+                  icon: <AlignRight size={16} />,
+                },
+                {
+                  value: 'justify',
+                  label: 'Căn đều',
+                  icon: <AlignJustify size={16} />,
+                },
+              ]}
+            />
+            <Stepper
+              label="Cỡ chữ"
+              value={content.textStyle.fontSize}
+              min={8}
+              max={160}
+              onChange={(fontSize) => updateText({ fontSize })}
+            />
+            <FieldRow label="Phông chữ">
               <select
                 value={content.textStyle.fontId}
                 onChange={(event) =>
@@ -457,99 +239,37 @@ export function PropertiesPanel({
                 <option value="noto-sans-v1">Noto Sans</option>
                 <option value="noto-serif-v1">Noto Serif</option>
               </select>
-            </label>
-            <NumberField
-              label="Cỡ chữ"
-              value={content.textStyle.fontSize}
-              onChange={(fontSize) => updateText({ fontSize })}
+            </FieldRow>
+            <div className={styles.colorPair}>
+              <ColorField
+                compact
+                label="Màu chữ"
+                value={content.textStyle.color}
+                onPick={(color) => updateText({ color })}
+              />
+              {appearance.background?.kind === 'solid' && (
+                <ColorField
+                  compact
+                  label="Màu nền"
+                  value={appearance.background.color}
+                  onPick={(color) =>
+                    appearanceChange({ background: { kind: 'solid', color } })
+                  }
+                />
+              )}
+            </div>
+            <SliderRow
+              label="Trong suốt"
+              value={appearance.opacity}
+              onChange={(opacity) => appearanceChange({ opacity })}
             />
-            <NumberField
-              label="Giãn ký tự"
-              value={content.textStyle.letterSpacing}
-              onChange={(letterSpacing) => updateText({ letterSpacing })}
-            />
-            <NumberField
-              label="Giãn dòng"
-              value={content.textStyle.lineHeight}
-              onChange={(lineHeight) => updateText({ lineHeight })}
-            />
-            <label>
-              Màu chữ
-              <input
-                aria-label="Màu chữ"
-                key={content.textStyle.color}
-                defaultValue={content.textStyle.color}
-                onBlur={(event) => updateText({ color: event.target.value })}
-              />
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={content.textStyle.fontWeight === 700}
-                onChange={(event) =>
-                  updateText({ fontWeight: event.target.checked ? 700 : 400 })
-                }
-              />
-              Đậm
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={content.textStyle.italic}
-                onChange={(event) =>
-                  updateText({ italic: event.target.checked })
-                }
-              />
-              Nghiêng
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={content.textStyle.underline}
-                onChange={(event) =>
-                  updateText({ underline: event.target.checked })
-                }
-              />
-              Gạch chân
-            </label>
-            <label>
-              Căn chữ
-              <select
-                value={content.textStyle.textAlign}
-                onChange={(event) =>
-                  updateText({
-                    textAlign: event.target.value as TextStyle['textAlign'],
-                  })
-                }
-              >
-                {['left', 'center', 'right', 'justify'].map((value) => (
-                  <option key={value}>{value}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Kiểu chữ
-              <select
-                value={content.textStyle.textTransform}
-                onChange={(event) =>
-                  updateText({
-                    textTransform: event.target
-                      .value as TextStyle['textTransform'],
-                  })
-                }
-              >
-                {['none', 'uppercase', 'lowercase', 'capitalize'].map(
-                  (value) => (
-                    <option key={value}>{value}</option>
-                  ),
-                )}
-              </select>
-            </label>
-          </>
+          </PropertySection>
         )}
         {'assetId' in content && (
-          <>
+          <PropertySection title="Hình ảnh" defaultOpen>
             <button
+              type="button"
+              className={styles.wideButton}
               disabled={node.props.bindings.some(
                 (binding) => binding.target === 'assetId',
               )}
@@ -557,108 +277,287 @@ export function PropertiesPanel({
             >
               Thay ảnh
             </button>
-            <label>
-              Khớp ảnh
+            <FieldRow label="Khớp ảnh">
               <select
                 value={content.fit}
-                onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { fit: event.target.value },
-                  })
-                }
+                onChange={(event) => setContent({ fit: event.target.value })}
               >
                 <option value="cover">Phủ kín</option>
                 <option value="contain">Vừa khung</option>
               </select>
-            </label>
-            <NumberField
+            </FieldRow>
+            <NumberRow
               label="Căn ảnh ngang"
               value={content.positionX}
-              onChange={(positionX) =>
-                command({ type: 'content', id, value: { positionX } })
-              }
+              onChange={(positionX) => setContent({ positionX })}
             />
-            <NumberField
+            <NumberRow
               label="Căn ảnh dọc"
               value={content.positionY}
-              onChange={(positionY) =>
-                command({ type: 'content', id, value: { positionY } })
-              }
+              onChange={(positionY) => setContent({ positionY })}
             />
-          </>
+          </PropertySection>
         )}
         {'primitive' in content && (
-          <>
-            <label>
-              Hình dạng
+          <PropertySection title="Hình dạng" defaultOpen>
+            <FieldRow label="Loại hình">
               <select
                 value={content.primitive}
                 onChange={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { primitive: event.target.value },
-                  })
+                  setContent({ primitive: event.target.value })
                 }
               >
-                {['rectangle', 'ellipse', 'line'].map((value) => (
-                  <option key={value}>{value}</option>
+                {SHAPES.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
                 ))}
               </select>
-            </label>
-            <label>
-              Màu hình
-              <input
-                key={content.fill}
-                defaultValue={content.fill}
-                onBlur={(event) =>
-                  command({
-                    type: 'content',
-                    id,
-                    value: { fill: event.target.value },
-                  })
+            </FieldRow>
+            <ColorField
+              label="Màu hình"
+              value={content.fill}
+              onPick={(fill) => setContent({ fill })}
+            />
+          </PropertySection>
+        )}
+        {kind === 'Calendar' && 'accentColor' in content && (
+          <PropertySection title="Lịch" defaultOpen>
+            <FieldRow label="Kiểu lịch">
+              <select
+                value={('variant' in content && content.variant) || 'classic'}
+                onChange={(event) =>
+                  setContent({ variant: event.target.value })
+                }
+              >
+                <option value="classic">Tô nền ngày</option>
+                <option value="minimal">Vòng quanh ngày</option>
+                <option value="filled">Ngày hình tròn</option>
+              </select>
+            </FieldRow>
+            <ColorField
+              label="Màu nhấn"
+              value={content.accentColor}
+              onPick={(accentColor) => setContent({ accentColor })}
+            />
+          </PropertySection>
+        )}
+        {kind === 'Timeline' && 'accentColor' in content && (
+          <PropertySection title="Dòng thời gian" defaultOpen>
+            <ColorField
+              label="Màu nhấn"
+              value={content.accentColor}
+              onPick={(accentColor) => setContent({ accentColor })}
+            />
+          </PropertySection>
+        )}
+        {kind === 'Countdown' && 'label' in content && (
+          <PropertySection title="Đếm ngược" defaultOpen>
+            <FieldRow label="Hướng hiển thị">
+              <select
+                value={('layout' in content && content.layout) || 'horizontal'}
+                onChange={(event) => setContent({ layout: event.target.value })}
+              >
+                <option value="horizontal">Ngang</option>
+                <option value="vertical">Dọc</option>
+              </select>
+            </FieldRow>
+            <NumberRow
+              label="Khoảng cách (px)"
+              min={0}
+              max={40}
+              value={('gap' in content ? content.gap : undefined) ?? 4}
+              onChange={(gap) => setContent({ gap })}
+            />
+            <ColorField
+              label="Màu khung"
+              value={
+                ('frameColor' in content && content.frameColor) || '#00000000'
+              }
+              onPick={(frameColor) => setContent({ frameColor })}
+            />
+            {textField('Nhãn đếm ngược', content.label, 'label')}
+            {textField(
+              'Nhãn kết thúc',
+              (content as ContentByKind['Countdown']).endedLabel,
+              'endedLabel',
+            )}
+          </PropertySection>
+        )}
+        {kind === 'Map' && 'label' in content && (
+          <PropertySection title="Bản đồ" defaultOpen>
+            {textField('Nhãn bản đồ', content.label, 'label')}
+          </PropertySection>
+        )}
+        {kind === 'RSVP' && 'title' in content && (
+          <PropertySection title="Xác nhận tham dự" defaultOpen>
+            {textField(
+              'Nhãn trường tên',
+              ('nameLabel' in content && content.nameLabel) || '',
+              'nameLabel',
+            )}
+            {textField(
+              'Nội dung nút gửi',
+              ('submitLabel' in content && content.submitLabel) || '',
+              'submitLabel',
+            )}
+            <ColorField
+              label="Màu nút gửi"
+              value={
+                ('buttonColor' in content && content.buttonColor) || '#00000000'
+              }
+              onPick={(buttonColor) => setContent({ buttonColor })}
+            />
+            <ColorField
+              label="Màu chữ nút gửi"
+              value={
+                ('buttonTextColor' in content && content.buttonTextColor) ||
+                '#000000FF'
+              }
+              onPick={(buttonTextColor) => setContent({ buttonTextColor })}
+            />
+            {textField('Tiêu đề RSVP', content.title, 'title')}
+            {textField('Nhãn đóng RSVP', content.closedLabel, 'closedLabel')}
+            {textField(
+              'Nhãn RSVP thành công',
+              content.successLabel,
+              'successLabel',
+            )}
+          </PropertySection>
+        )}
+        {kind === 'QRBank' && 'label' in content && (
+          <PropertySection title="QR mừng cưới" defaultOpen>
+            {textField('Nhãn QR ngân hàng', content.label, 'label')}
+          </PropertySection>
+        )}
+        {!isText && (
+          <PropertySection title="Màu sắc">
+            {appearance.background?.kind === 'solid' && (
+              <ColorField
+                label="Màu nền"
+                value={appearance.background.color}
+                onPick={(color) =>
+                  appearanceChange({ background: { kind: 'solid', color } })
                 }
               />
-            </label>
-          </>
+            )}
+            <SliderRow
+              label="Trong suốt"
+              value={appearance.opacity}
+              onChange={(opacity) => appearanceChange({ opacity })}
+            />
+          </PropertySection>
         )}
-        <button
-          onClick={() => command({ type: 'hide', id, value: !node.hidden })}
-        >
-          {node.hidden ? 'Hiện phần tử' : 'Ẩn phần tử'}
-        </button>
-        <button onClick={() => command({ type: 'duplicate', id })}>
-          Nhân bản phần tử
-        </button>
-        <button onClick={() => command({ type: 'delete', id })}>
-          Xóa phần tử
-        </button>
-        <button
-          disabled={index === count - 1}
-          onClick={() => command({ type: 'reorder', id, index: index + 1 })}
-        >
-          Đưa lên một lớp
-        </button>
-        <button
-          disabled={index === 0}
-          onClick={() => command({ type: 'reorder', id, index: index - 1 })}
-        >
-          Đưa xuống một lớp
-        </button>
-        <button
-          disabled={index === count - 1}
-          onClick={() => command({ type: 'reorder', id, index: count - 1 })}
-        >
-          Đưa lên trên cùng
-        </button>
-        <button
-          disabled={index === 0}
-          onClick={() => command({ type: 'reorder', id, index: 0 })}
-        >
-          Đưa xuống dưới cùng
-        </button>
+        {appearance.padding && (
+          <PropertySection title="Khoảng đệm">
+            <PaddingControl
+              value={appearance.padding}
+              onChange={(padding) => appearanceChange({ padding })}
+            />
+          </PropertySection>
+        )}
+        <PropertySection title="Đường viền">
+          <div className={styles.colorPair}>
+            <div className={styles.compactColor}>
+              <span>Size:</span>
+              <NumberControl
+                label="Độ dày viền"
+                value={appearance.border.width}
+                max={20}
+                onChange={(width) =>
+                  appearanceChange({ border: { ...appearance.border, width } })
+                }
+              />
+            </div>
+            <ColorField
+              compact
+              label="Màu viền"
+              value={appearance.border.color}
+              onPick={(color) =>
+                appearanceChange({ border: { ...appearance.border, color } })
+              }
+            />
+          </div>
+          <FieldRow label="Kiểu viền">
+            <select
+              value={appearance.border.style}
+              onChange={(event) =>
+                appearanceChange({
+                  border: {
+                    ...appearance.border,
+                    style: event.target.value as
+                      'solid' | 'dashed' | 'dotted' | 'double',
+                  },
+                })
+              }
+            >
+              <option value="solid">Nét liền</option>
+              <option value="dashed">Nét đứt</option>
+              <option value="dotted">Chấm tròn</option>
+              <option value="double">Viền đôi</option>
+            </select>
+          </FieldRow>
+          <FieldRow label="Vị trí viền">
+            <select
+              value={appearance.border.position ?? 'all'}
+              onChange={(event) =>
+                appearanceChange({
+                  border: {
+                    ...appearance.border,
+                    position: event.target.value as NonNullable<
+                      typeof appearance.border.position
+                    >,
+                  },
+                })
+              }
+            >
+              <option value="all">Toàn bộ</option>
+              <option value="top">Cạnh trên</option>
+              <option value="bottom">Cạnh dưới</option>
+              <option value="left">Cạnh trái</option>
+              <option value="right">Cạnh phải</option>
+              <option value="vertical">Trên và dưới</option>
+              <option value="horizontal">Trái và phải</option>
+              <option value="top-left">Trên trái</option>
+              <option value="top-right">Trên phải</option>
+              <option value="bottom-left">Dưới trái</option>
+              <option value="bottom-right">Dưới phải</option>
+            </select>
+          </FieldRow>
+          {appearance.borderRadius !== undefined && (
+            <CornerRadiusControl
+              appearance={appearance}
+              onChange={appearanceChange}
+            />
+          )}
+        </PropertySection>
+        <PropertySection title="Đổ bóng">
+          <ShadowControls
+            value={appearance.shadow}
+            onChange={(shadow) =>
+              appearanceChange({ shadow: shadow as typeof appearance.shadow })
+            }
+          />
+          {'textStyle' in content && (
+            <ShadowControls
+              text
+              value={content.textStyle.textShadow}
+              onChange={(shadow) =>
+                updateText({ textShadow: shadow ?? undefined })
+              }
+            />
+          )}
+        </PropertySection>
+        <PropertySection title="Liên kết dữ liệu">
+          <div className={styles.bindingSettings}>
+            <BindingPanel
+              id={id}
+              node={node}
+              onCommand={command}
+              disabled={disabled}
+            />
+          </div>
+        </PropertySection>
       </fieldset>
     </section>
   );

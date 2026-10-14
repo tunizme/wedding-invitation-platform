@@ -42,11 +42,11 @@ export interface TemplateDesignRevision {
   id: string;
   template_id: string;
   revision_number: number;
-  schema_version: 1 | 2;
+  schema_version: 1 | 2 | 3;
   document: SupportedTemplateDesign;
   sample_data: WeddingData;
   document_hash: string;
-  renderer_contract_version: 1 | 2;
+  renderer_contract_version: 1 | 2 | 3;
   thumbnail_asset_id: string;
   created_by: string;
   created_at: Date;

@@ -1,9 +1,9 @@
 'use client';
+import InvitationEditor from './invitation-editor';
 import {
   usePrivateOwner,
   useOperationLifetime,
 } from '../../identity-access/session/operation-scope';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -38,14 +38,6 @@ import {
   type TemplateSummary,
   type ListPage,
 } from '../api/client';
-const TemplateEditor = dynamic(() => import('./template-editor'), {
-  ssr: false,
-  loading: () => <p>Đang tải trình thiết kế…</p>,
-});
-const SectionEditor = dynamic(() => import('./section-editor'), {
-  ssr: false,
-  loading: () => <p>Đang tải trình thiết kế…</p>,
-});
 function useAdmin() {
   return (
     useSyncExternalStore(sessionStore.subscribe, sessionStore.get, () => null)
@@ -406,8 +398,7 @@ function OwnedNewTemplate() {
     [saving, setSaving] = useState(false),
     [uncertain, setUncertain] = useState(false);
   const [name, setName] = useState(''),
-    [category, setCategory] = useState('Wedding'),
-    [schemaVersion, setSchemaVersion] = useState('1');
+    [category, setCategory] = useState('Wedding');
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     category?: string;
@@ -434,7 +425,6 @@ function OwnedNewTemplate() {
         body: {
           name: name.trim(),
           category: category.trim(),
-          ...(schemaVersion === '2' ? { schemaVersion: 2 } : {}),
         },
       });
       if (!scope.isActive()) return;
@@ -486,26 +476,10 @@ function OwnedNewTemplate() {
           onChange={(event) => setCategory(event.target.value)}
           error={fieldErrors.category}
         />
-        <SelectField
-          id="new-template-schema"
-          name="schemaVersion"
-          label="Kiểu thiết kế"
-          value={schemaVersion}
-          onChange={(event) => setSchemaVersion(event.target.value)}
-        >
-          <option value="1">Canvas cũ</option>
-          <option value="2">Sections responsive</option>
-        </SelectField>
-        <div className={styles.schemaInfo}>
-          <p>
-            <strong>Canvas cũ:</strong> bố cục cố định 390px, giữ nguyên vị trí
-            từng thành phần.
-          </p>
-          <p>
-            <strong>Sections responsive:</strong> các phần nội dung tự xuống
-            dòng, tối đa 900px trên desktop.
-          </p>
-        </div>
+        <p className={styles.schemaInfo}>
+          Thiết kế thiệp trên canvas 500px, tự co theo màn hình điện thoại và
+          căn giữa trên desktop.
+        </p>
       </fieldset>
       <div className={styles.nextStep}>
         <ArrowRight size={20} aria-hidden="true" />
@@ -550,15 +524,7 @@ function OwnedEditTemplate({ id }: { id: string }) {
   if (!admin) return <p role="alert">Khu vực này chỉ dành cho Admin.</p>;
   if (error) return <p role="alert">{error}</p>;
   if (!template) return <p>Đang tải mẫu…</p>;
-  return (
-    <>
-      {template.draftDocument.schemaVersion === 2 ? (
-        <SectionEditor initial={template} onSaved={setTemplate} />
-      ) : (
-        <TemplateEditor initial={template} onSaved={setTemplate} />
-      )}
-    </>
-  );
+  return <InvitationEditor initial={template} onSaved={setTemplate} />;
 }
 
 export function TemplateList() {

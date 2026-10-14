@@ -1,3 +1,8 @@
+import {
+  createBlankDocument,
+  validateEditorDocument,
+  type EditorDocument,
+} from '../domain/editor-document';
 import { randomUUID } from 'node:crypto';
 import {
   ForbiddenException,
@@ -9,11 +14,7 @@ import type { AuthenticatedPrincipal } from '../../identity-access/authorization
 import { AssetReferenceService } from '../../invitation-assets/application/asset-reference.service';
 import type { Asset } from '../../invitation-assets/domain/entities';
 import type { InvitationTemplate } from '../domain/entities';
-import type {
-  TemplateDesign,
-  TemplateDesignV2,
-} from '../domain/document.types';
-import { validateSupportedTemplateDesign } from '../domain/document.validator';
+import type {} from '../domain/document.types';
 import { validateWeddingData } from '../../invitations/domain/wedding-data.validator';
 import { BuilderProblemException } from '../../../common/errors/public-problem.exception';
 import {
@@ -22,36 +23,13 @@ import {
 } from '../authorization/template.policy';
 import {
   closedObject,
-  documentVersion,
   listLimit,
   positiveVersion,
   queryString,
   resourceId,
 } from '../http/input';
 
-export function blankDesign(): TemplateDesign {
-  return {
-    schemaVersion: 1,
-    nodes: {
-      ROOT: {
-        type: { resolvedName: 'InvitationCanvas' },
-        isCanvas: true,
-        props: {
-          canvas: {
-            width: 390,
-            height: 1600,
-            background: { kind: 'solid', color: '#FFFFFFFF' },
-          },
-        },
-        displayName: 'InvitationCanvas',
-        custom: {},
-        hidden: false,
-        nodes: [],
-        linkedNodes: {},
-      },
-    },
-  };
-}
+export const blankDesign = createBlankDocument;
 function text(value: unknown, max: number): string {
   if (
     typeof value !== 'string' ||
@@ -65,7 +43,7 @@ function metadata(body: unknown, create = false) {
   const input = closedObject(
     body,
     create
-      ? ['name', 'category', 'tags', 'sortOrder', 'schemaVersion']
+      ? ['name', 'category', 'tags', 'sortOrder']
       : [
           'expectedVersion',
           'name',
@@ -76,14 +54,12 @@ function metadata(body: unknown, create = false) {
         ],
   );
   const output: {
-    schemaVersion?: 1 | 2;
     name?: string;
     category?: string;
     tags?: string[];
     sortOrder?: number;
     coverAssetId?: string | null;
   } = {};
-  if (create) output.schemaVersion = documentVersion(input.schemaVersion);
   for (const key of ['name', 'category'] as const)
     if (create || Object.hasOwn(input, key))
       output[key] = text(input[key], key === 'name' ? 120 : 64);
@@ -158,8 +134,8 @@ export class TemplateDraftService {
         value.category,
         JSON.stringify(value.tags ?? []),
         value.sortOrder ?? 0,
-        value.schemaVersion === 2 ? blankResponsiveDesign() : blankDesign(),
-        { schemaVersion: 1 },
+        createBlankDocument(),
+        { schemaVersion: 2, fields: {} },
         actor.userId,
       ],
     );
@@ -178,7 +154,7 @@ export class TemplateDraftService {
     return this.db.transaction(async (manager) => {
       const row = await requireTemplate(manager, id, actor, true);
       assertVersion(row.edit_version, expected);
-      const design = validateSupportedTemplateDesign(input.document),
+      const design = validateEditorDocument(input.document),
         sample = validateWeddingData(input.sampleData);
       if (!design.valid)
         throw new BuilderProblemException(422, design.code, design.issues);
@@ -240,9 +216,7 @@ export class TemplateDraftService {
     return this.db.transaction(async (manager) => {
       const original = await requireTemplate(manager, id, actor, true);
       assertVersion(original.edit_version, expected);
-      const validation = validateSupportedTemplateDesign(
-        original.draft_document,
-      );
+      const validation = validateEditorDocument(original.draft_document);
       if (!validation.valid)
         throw new BuilderProblemException(
           422,
@@ -250,48 +224,33 @@ export class TemplateDraftService {
           validation.issues,
         );
       const document = structuredClone(validation.value);
-      if (document.schemaVersion === 1) {
-        const nodes: TemplateDesign['nodes'] = { ROOT: document.nodes.ROOT };
-        nodes.ROOT.nodes = document.nodes.ROOT.nodes.map((old) => {
-          const fresh = randomUUID();
-          nodes[fresh] = document.nodes[old];
-          return fresh;
-        });
-        document.nodes = nodes;
-      } else {
-        const sectionIds = new Map(
-          Object.keys(document.sections).map((id) => [id, randomUUID()]),
-        );
-        const nodeIds = new Map(
-          Object.keys(document.nodes).map((id) => [id, randomUUID()]),
-        );
-        document.sectionOrder = document.sectionOrder.map((id) =>
-          sectionIds.get(id)!,
-        );
-        document.sections = Object.fromEntries(
-          Object.entries(document.sections).map(([id, section]) => {
-            const fresh = sectionIds.get(id)!;
-            return [
-              fresh,
-              {
-                ...section,
-                id: fresh,
-                flowNodeIds: section.flowNodeIds.map((id) => nodeIds.get(id)!),
-                artworkNodeIds: section.artworkNodeIds.map((id) =>
-                  nodeIds.get(id)!,
-                ),
-              },
-            ];
-          }),
-        );
-        document.nodes = Object.fromEntries(
-          Object.entries(document.nodes).map(([id, node]) => {
-            const fresh = nodeIds.get(id)!;
-            return [fresh, { ...node, id: fresh }];
-          }),
-        );
-      }
       const newId = randomUUID();
+      if (document.schemaVersion === 3) {
+        const ids = new Map(
+          document.nodes.ROOT.nodes.map((id) => [id, randomUUID()]),
+        );
+        const nodes: EditorDocument['nodes'] = { ROOT: document.nodes.ROOT };
+        const opts: EditorDocument['nodeOptions'] = {};
+        const groups = new Map<string, string>();
+        for (const [old, fresh] of ids) {
+          nodes[fresh] = document.nodes[old];
+          if (document.nodeOptions[old]) {
+            opts[fresh] = structuredClone(document.nodeOptions[old]);
+            const option = opts[fresh];
+            if (option.groupId) {
+              if (!groups.has(option.groupId))
+                groups.set(option.groupId, randomUUID());
+              option.groupId = groups.get(option.groupId)!;
+            }
+            if (option.action?.kind === 'scroll')
+              option.action.value =
+                ids.get(option.action.value) ?? option.action.value;
+          }
+        }
+        nodes.ROOT.nodes = [...ids.values()];
+        document.nodes = nodes;
+        document.nodeOptions = opts;
+      }
       const rows: InvitationTemplate[] = await manager.query(
         `INSERT INTO invitation_templates(id,name,category,tags,sort_order,cover_asset_id,draft_document,draft_sample_data,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
         [
@@ -392,83 +351,4 @@ export class TemplateDraftService {
     if (!rows[0]) throw new NotFoundException();
     return rows[0];
   }
-}
-
-export function blankResponsiveDesign(): TemplateDesignV2 {
-  const sid = randomUUID(),
-    id = randomUUID();
-  return {
-    schemaVersion: 2,
-    viewport: {
-      mobileMaxWidth: 480,
-      desktopMinWidth: 768,
-      desktopMaxWidth: 900,
-    },
-    background: { kind: 'solid', color: '#FFFAF4FF' },
-    sectionOrder: [sid],
-    sections: {
-      [sid]: {
-        id: sid,
-        label: 'Lễ thành hôn',
-        hidden: false,
-        background: { kind: 'solid', color: '#FFFFFF00' },
-        flowNodeIds: [id],
-        artworkNodeIds: [],
-        mobile: {
-          layout: 'stack',
-          columns: 1,
-          contentPreset: 'full',
-          customMaxWidth: null,
-          padding: { top: 24, right: 24, bottom: 24, left: 24 },
-          gap: 24,
-          minHeight: 0,
-          align: 'center',
-        },
-        desktop: {},
-      },
-    },
-    nodes: {
-      [id]: {
-        id,
-        type: 'Text',
-        role: 'flow',
-        content: {
-          text: 'Ngày vui của chúng mình',
-          textStyle: {
-            fontId: 'noto-serif-v1',
-            fontSize: 24,
-            fontWeight: 400,
-            italic: false,
-            underline: false,
-            color: '#342B28FF',
-            letterSpacing: 0,
-            lineHeight: 1.5,
-            textAlign: 'center',
-            textTransform: 'none',
-          },
-        },
-        bindings: [],
-        appearance: {
-          opacity: 1,
-          border: { width: 0, color: '#00000000', style: 'solid' },
-          shadow: null,
-          borderRadius: 0,
-          background: { kind: 'solid', color: '#FFFFFF00' },
-          padding: { top: 0, right: 0, bottom: 0, left: 0 },
-        },
-        custom: {
-          layerName: 'Tên cô dâu và chú rể',
-          locked: false,
-          optional: false,
-        },
-        hidden: false,
-        mobile: {
-          layout: { widthPercent: 100, maxWidth: null, align: 'center' },
-          typography: {},
-          appearance: {},
-        },
-        desktop: {},
-      },
-    },
-  };
 }

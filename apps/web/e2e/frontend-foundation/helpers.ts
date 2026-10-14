@@ -157,7 +157,7 @@ export async function expectSession(
 }
 export type Account = { id: string; email: string; password: string };
 export type Seed = {
-  scene: import('../../src/features/invitation-builder/document/types').ResolvedScene;
+  scene: import('../../src/features/invitation-builder/document/editor-document').EditorScene;
   design: import('../../src/features/invitation-builder/document/types').TemplateDesign;
   designRevisionId: string;
   customerA: Account;
@@ -236,16 +236,17 @@ export async function capture(
   assetUrls: Record<string, string> = {},
 ) {
   await page.goto('/internal/invitation-renderer');
-  await page.waitForFunction(() => Boolean(window.invitationRenderer));
+  await page.waitForFunction(() => Boolean(window.invitationCanvasRenderer));
   return page.evaluate(
     async ({ scene, assetUrls }) => {
-      if (!window.invitationRenderer)
+      if (!window.invitationCanvasRenderer)
         throw new Error('Missing capture renderer');
-      return window.invitationRenderer.render({
+      return window.invitationCanvasRenderer.render({
         candidateHash: 'a'.repeat(64),
         scene,
         context: { mode: 'capture', asOf: '2026-01-01T00:00:00Z', assetUrls },
         states: 'publication-validation',
+        containerWidth: 390,
       });
     },
     { scene, assetUrls },

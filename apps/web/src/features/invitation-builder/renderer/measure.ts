@@ -1,4 +1,4 @@
-import { measureSceneV2, waitForSceneReadyV2 } from './measure-v2';
+import type { EditorScene } from '../document/editor-document';
 import type {
   ResolvedScene,
   SupportedResolvedScene,
@@ -12,7 +12,7 @@ export class SceneReadinessError extends Error {
     super(code);
   }
 }
-const fontsIn = (scene: ResolvedScene) => [
+const fontsIn = (scene: ResolvedScene | EditorScene) => [
   ...new Map(
     scene.elements.flatMap((element) => {
       const style = (element.content as unknown as { textStyle?: TextStyle })
@@ -29,9 +29,9 @@ const fontsIn = (scene: ResolvedScene) => [
   ).values(),
 ];
 
-export async function waitForSceneReadyV1(
+export async function waitForCanvasReady(
   root: HTMLElement,
-  scene: ResolvedScene,
+  scene: ResolvedScene | EditorScene,
 ) {
   const pending: Promise<unknown>[] = [];
   for (const style of fontsIn(scene)) {
@@ -80,9 +80,9 @@ export async function waitForSceneReadyV1(
   );
 }
 
-export function measureSceneV1(
+export function measureCanvas(
   root: HTMLElement,
-  scene: ResolvedScene,
+  scene: ResolvedScene | EditorScene,
 ): MeasureIssue[] {
   const issues: MeasureIssue[] = [],
     width = scene.canvas.width,
@@ -166,7 +166,7 @@ export function measureSceneV1(
 
 export async function measureReadyScene(
   root: HTMLElement,
-  scene: SupportedResolvedScene,
+  scene: SupportedResolvedScene | ResolvedScene,
   options?: { signal?: AbortSignal; deadline?: number },
 ) {
   await waitForSceneReady(root, scene, options);
@@ -175,18 +175,15 @@ export async function measureReadyScene(
 
 export function waitForSceneReady(
   root: HTMLElement,
-  scene: SupportedResolvedScene,
-  options?: { signal?: AbortSignal; deadline?: number },
+  scene: SupportedResolvedScene | ResolvedScene,
+  _options?: { signal?: AbortSignal; deadline?: number },
 ) {
-  if (scene.schemaVersion === 2)
-    return waitForSceneReadyV2(root, scene, options?.signal, options?.deadline);
-  return waitForSceneReadyV1(root, scene);
+  void _options;
+  return waitForCanvasReady(root, scene);
 }
 export function measureScene(
   root: HTMLElement,
-  scene: SupportedResolvedScene,
+  scene: SupportedResolvedScene | ResolvedScene,
 ): MeasureIssue[] {
-  return scene.schemaVersion === 2
-    ? measureSceneV2(root, scene)
-    : measureSceneV1(root, scene);
+  return measureCanvas(root, scene);
 }

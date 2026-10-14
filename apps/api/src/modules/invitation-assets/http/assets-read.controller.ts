@@ -35,6 +35,8 @@ export function assetSummary(
     byteSize: asset.byte_size,
     width: asset.width,
     height: asset.height,
+    category: asset.category ?? null,
+    durationMs: asset.duration_ms ?? null,
     createdAt: asset.created_at.toISOString(),
     previewUrl,
   };
@@ -54,16 +56,19 @@ export class AssetsReadController {
     @Req() request: AuthenticatedRequest,
     @Query() query: Record<string, unknown>,
   ) {
-    closedObject(query, ['limit', 'cursor', 'q', 'kind', 'mine']);
+    closedObject(query, ['limit', 'cursor', 'q', 'kind', 'mine', 'category']);
     const limit = listLimit(query),
       cursor = newestCursor(queryString(query, 'cursor'));
     const q = queryString(query, 'q')?.trim(),
       kind = queryString(query, 'kind'),
-      mine = queryString(query, 'mine');
+      mine = queryString(query, 'mine'),
+      category = queryString(query, 'category');
     if (
+      (category !== undefined &&
+        !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(category)) ||
       (q !== undefined && (!q || [...q].length > 120)) ||
       (kind !== undefined &&
-        !['IMAGE', 'DECORATION', 'BACKGROUND'].includes(kind)) ||
+        !['IMAGE', 'DECORATION', 'BACKGROUND', 'AUDIO'].includes(kind)) ||
       (mine !== undefined && !['true', 'false'].includes(mine))
     )
       throw new UnprocessableEntityException();
@@ -74,6 +79,7 @@ export class AssetsReadController {
       AND ($1::text IS NULL OR strpos(lower(name),lower($1))>0)
       AND ($2::text IS NULL OR kind=$2) AND ($3::uuid IS NULL OR uploaded_by=$3)
       AND ($4::timestamptz IS NULL OR (created_at,id)<($4::timestamptz,$5::uuid))
+      AND ($7::text IS NULL OR category=$7)
       ORDER BY created_at DESC,id DESC LIMIT $6`,
       [
         q ?? null,
@@ -82,6 +88,7 @@ export class AssetsReadController {
         cursor?.createdAt ?? null,
         cursor?.id ?? null,
         limit + 1,
+        category ?? null,
       ],
     );
     const page = rows.slice(0, limit),
@@ -108,7 +115,7 @@ export class AssetsReadController {
       kind = queryString(query, 'kind');
     if (
       (q !== undefined && (!q || [...q].length > 120)) ||
-      (kind !== undefined && kind !== 'IMAGE')
+      (kind !== undefined && !['IMAGE', 'AUDIO'].includes(kind))
     )
       throw new UnprocessableEntityException();
     const rows: (Asset & { cursor_created_at: string })[] = await this.db.query(

@@ -196,7 +196,7 @@ describe('wedding widget display states', () => {
         onChange={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText('Ảnh mẫu bride')).toHaveValue(photo);
+    expect(screen.getByLabelText('Ảnh mẫu cô dâu')).toHaveValue(photo);
     expect(
       screen.getByRole('option', { name: 'Ảnh đang sử dụng' }),
     ).toHaveValue(photo);

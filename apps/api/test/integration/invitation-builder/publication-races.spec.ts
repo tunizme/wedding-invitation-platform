@@ -1,3 +1,4 @@
+import { createBlankDocument as blankDesign } from '../../../src/modules/invitation-builder/domain/editor-document';
 import { RetainUnpublishedTemplateRevision20261004000100 } from '../../../src/infrastructure/database/migrations/20261004000100-RetainUnpublishedTemplateRevision';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
@@ -14,7 +15,6 @@ import {
   TrustedRenderError,
 } from '../../../src/modules/invitation-builder/publication/chromium-renderer';
 import {
-  blankDesign,
   emptyWedding,
   fixtureBytes,
 } from '../../fixtures/invitation-builder/candidates';
@@ -599,7 +599,7 @@ describe.sequential('publication admission and state races', () => {
         const revisionId = randomUUID();
         await f.db.query(
           `INSERT INTO template_design_revisions(id,template_id,revision_number,schema_version,document,sample_data,document_hash,renderer_contract_version,thumbnail_asset_id,created_by)
-        SELECT $1,template_id,revision_number+1,schema_version,$2,sample_data,$3,renderer_contract_version,thumbnail_asset_id,created_by FROM template_design_revisions WHERE id=$4`,
+        SELECT $1,template_id,revision_number+1,3,$2,sample_data,$3,3,thumbnail_asset_id,created_by FROM template_design_revisions WHERE id=$4`,
           [revisionId, document, canonicalHash(document), previous.id],
         );
         await f.db.query(

@@ -1,3 +1,4 @@
+import { createPrototypeDesign } from './responsive-fixtures';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
@@ -369,7 +370,7 @@ export function InvitationEditor({ id }: { id: string }) {
     saved = useRef(JSON.stringify(data));
   latest.current = data;
   const fields = formFieldsForDesign(
-    invitation?.document ?? createDesign(template),
+    invitation?.document ?? createPrototypeDesign(template),
   );
   const has = (name: string) => fields.some((f) => f.id === name);
   const available = categories.filter((c) => c.id !== 'bank' || has('bank'));

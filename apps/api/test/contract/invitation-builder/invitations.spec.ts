@@ -277,7 +277,10 @@ describe.sequential('customer invitation contract', () => {
       'SELECT published_wedding_data,draft_wedding_data FROM invitations WHERE id=$1',
       [id],
     );
-    expect(before[0].published_wedding_data).toEqual(emptyWedding());
+    expect(before[0].published_wedding_data).toEqual({
+      schemaVersion: 2,
+      fields: {},
+    });
     expect(before[0].draft_wedding_data).toEqual(draft);
     const second = await publish(3);
     expect(second.result).toMatchObject({

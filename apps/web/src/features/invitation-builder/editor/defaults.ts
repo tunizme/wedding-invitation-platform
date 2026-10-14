@@ -31,7 +31,15 @@ export function primitiveNode(
   };
   const content =
     type === 'Text'
-      ? { text: 'Văn bản', textStyle: { ...defaultTextStyle } }
+      ? {
+          text: 'Văn bản',
+          textStyle: {
+            ...defaultTextStyle,
+            fontSize: 26,
+            lineHeight: 1.2,
+            textAlign: 'center' as const,
+          },
+        }
       : type === 'Shape'
         ? { primitive: 'rectangle', fill: '#E7C7CFFF' }
         : {
@@ -45,10 +53,10 @@ export function primitiveNode(
     isCanvas: false,
     props: {
       box: {
-        x: 20,
-        y: 20,
-        width: type === 'Text' ? 300 : type === 'Image' ? 240 : 120,
-        height: type === 'Text' ? 80 : type === 'Image' ? 180 : 120,
+        x: type === 'Text' ? 10 : 20,
+        y: type === 'Text' ? 100 : 20,
+        width: type === 'Text' ? 480 : type === 'Image' ? 240 : 120,
+        height: type === 'Text' ? 32 : type === 'Image' ? 180 : 120,
         rotation: 0,
       },
       appearance,

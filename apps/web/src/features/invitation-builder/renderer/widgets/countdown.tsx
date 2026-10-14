@@ -15,6 +15,7 @@ function remaining(datetime: string, asOf: string) {
   return { days, hours, minutes, seconds };
 }
 export function CountdownWidget({
+  locale = 'vi',
   datetime,
   timeZone,
   asOf,
@@ -22,7 +23,14 @@ export function CountdownWidget({
   endedLabel,
   live = false,
   validationState,
+  layout = 'horizontal',
+  gap = 4,
+  frameColor,
 }: {
+  layout?: 'horizontal' | 'vertical';
+  gap?: number;
+  frameColor?: string;
+  locale?: 'vi' | 'en';
   datetime: string;
   timeZone: string;
   asOf: string;
@@ -66,24 +74,74 @@ export function CountdownWidget({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 4,
+          gridTemplateColumns: layout === 'vertical' ? '1fr' : 'repeat(4, 1fr)',
+          gap,
+          ...(frameColor
+            ? {
+                // Frame each unit via its children's outline.
+                ['--countdown-frame' as string]: frameColor,
+              }
+            : {}),
         }}
       >
-        <div aria-label="Ngày">
-          <span>Ngày</span>
+        <div
+          aria-label={locale === 'vi' ? 'Ngày' : 'Days'}
+          style={
+            frameColor
+              ? {
+                  border: `1px solid ${frameColor}`,
+                  borderRadius: 6,
+                  padding: 4,
+                }
+              : undefined
+          }
+        >
+          <span>{locale === 'vi' ? 'Ngày' : 'Days'}</span>
           <strong>{String(value.days).padStart(4, '0')}</strong>
         </div>
-        <div aria-label="Giờ">
-          <span>Giờ</span>
+        <div
+          aria-label={locale === 'vi' ? 'Giờ' : 'Hours'}
+          style={
+            frameColor
+              ? {
+                  border: `1px solid ${frameColor}`,
+                  borderRadius: 6,
+                  padding: 4,
+                }
+              : undefined
+          }
+        >
+          <span>{locale === 'vi' ? 'Giờ' : 'Hours'}</span>
           <strong>{String(value.hours).padStart(2, '0')}</strong>
         </div>
-        <div aria-label="Phút">
-          <span>Phút</span>
+        <div
+          aria-label={locale === 'vi' ? 'Phút' : 'Minutes'}
+          style={
+            frameColor
+              ? {
+                  border: `1px solid ${frameColor}`,
+                  borderRadius: 6,
+                  padding: 4,
+                }
+              : undefined
+          }
+        >
+          <span>{locale === 'vi' ? 'Phút' : 'Minutes'}</span>
           <strong>{String(value.minutes).padStart(2, '0')}</strong>
         </div>
-        <div aria-label="Giây">
-          <span>Giây</span>
+        <div
+          aria-label={locale === 'vi' ? 'Giây' : 'Seconds'}
+          style={
+            frameColor
+              ? {
+                  border: `1px solid ${frameColor}`,
+                  borderRadius: 6,
+                  padding: 4,
+                }
+              : undefined
+          }
+        >
+          <span>{locale === 'vi' ? 'Giây' : 'Seconds'}</span>
           <strong>{String(value.seconds).padStart(2, '0')}</strong>
         </div>
       </div>

@@ -19,7 +19,9 @@
     "migration:generate": "typeorm-ts-node-commonjs migration:generate src/infrastructure/database/migrations/Generated -d src/infrastructure/database/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/infrastructure/database/data-source.ts",
-    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infrastructure/database/data-source.ts"
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infrastructure/database/data-source.ts",
+    "invitations:reset:local": "node scripts/reset-invitations-local.cjs",
+    "library:seed:local": "ts-node src/modules/invitation-assets/library-seed.command.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1141.0",

@@ -32,6 +32,7 @@ type FormValues = {
 };
 /** The live form and trusted capture use the same markup and dimensions. */
 export function RsvpWidget({
+  locale = 'vi',
   title,
   displayState,
   mode,
@@ -46,7 +47,17 @@ export function RsvpWidget({
   retryLabel,
   uncertain = false,
   fieldErrors,
+  nameLabel,
+  submitLabel,
+  buttonColor,
+  buttonTextColor,
 }: {
+  locale?: 'vi' | 'en';
+  /** Optional authored overrides of the form's name label, submit text and button colours. */
+  nameLabel?: string;
+  submitLabel?: string;
+  buttonColor?: string;
+  buttonTextColor?: string;
   title: string;
   displayState: RsvpDisplayState;
   mode: 'editor' | 'preview' | 'capture' | 'public';
@@ -86,7 +97,7 @@ export function RsvpWidget({
           disabled={mode !== 'public'}
           onClick={onNewResponse}
         >
-          Gửi phản hồi mới
+          {locale === 'vi' ? 'Gửi phản hồi mới' : 'Send another response'}
         </button>
       </section>
     );
@@ -95,7 +106,7 @@ export function RsvpWidget({
       <section aria-label={title}>
         {heading}
         <button type="button" disabled>
-          Gửi xác nhận (xem trước)
+          {locale === 'vi' ? 'Gửi xác nhận (xem trước)' : 'Send RSVP (preview)'}
         </button>
       </section>
     );
@@ -143,7 +154,7 @@ export function RsvpWidget({
         }}
       >
         <label style={labelStyle}>
-          Tên khách mời
+          {nameLabel || (locale === 'vi' ? 'Tên khách mời' : 'Guest name')}
           <input
             style={fieldStyle}
             required
@@ -157,21 +168,27 @@ export function RsvpWidget({
         </label>
         {fieldError('name')}
         <label style={labelStyle}>
-          Tham dự
+          {locale === 'vi' ? 'Tham dự' : 'Attendance'}
           <select
             style={fieldStyle}
             value={form?.attendance ?? 'ATTENDING'}
             disabled={fieldsDisabled}
             onChange={(event) => form?.change('attendance', event.target.value)}
           >
-            <option value="ATTENDING">Có tham dự</option>
-            <option value="DECLINED">Không tham dự</option>
+            <option value="ATTENDING">
+              {locale === 'vi' ? 'Có tham dự' : 'Attending'}
+            </option>
+            <option value="DECLINED">
+              {locale === 'vi' ? 'Không tham dự' : 'Not attending'}
+            </option>
           </select>
         </label>
         {form?.attendance !== 'DECLINED' && (
           <div>
             <label style={labelStyle}>
-              Số người (gồm bạn)
+              {locale === 'vi'
+                ? 'Số người (gồm bạn)'
+                : 'Party size (including you)'}
               <input
                 style={fieldStyle}
                 type="number"
@@ -192,7 +209,7 @@ export function RsvpWidget({
           </div>
         )}
         <label style={labelStyle}>
-          Lời nhắn
+          {locale === 'vi' ? 'Lời nhắn' : 'Message'}
           <textarea
             style={{ ...fieldStyle, height: 40, resize: 'none' }}
             value={form?.message ?? ''}
@@ -204,15 +221,27 @@ export function RsvpWidget({
         </label>
         {fieldError('message')}
         <button
-          style={{ marginTop: 8, minHeight: 28 }}
+          style={{
+            marginTop: 8,
+            minHeight: 28,
+            ...(buttonColor
+              ? { background: buttonColor, border: 0, borderRadius: 6 }
+              : {}),
+            ...(buttonTextColor ? { color: buttonTextColor } : {}),
+          }}
           type="submit"
           disabled={fieldsDisabled || disabled}
         >
           {displayState === 'submitting'
-            ? 'Đang gửi…'
+            ? locale === 'vi'
+              ? 'Đang gửi…'
+              : 'Sending…'
             : uncertain
-              ? 'Thử gửi lại'
-              : 'Gửi phản hồi'}
+              ? locale === 'vi'
+                ? 'Thử gửi lại'
+                : 'Retry'
+              : submitLabel ||
+                (locale === 'vi' ? 'Gửi phản hồi' : 'Send response')}
         </button>
       </form>
       {status && (

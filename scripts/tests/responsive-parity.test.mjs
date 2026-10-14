@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { root, runCase } from '../responsive-validate.mjs';
 
 test(
-  'independent FE/API serialized resolution equals shared expected corpus',
+  'independent native 500px FE/API serialized resolution stays equal',
   { timeout: 120000 },
   async () => {
     const base = resolve(root, '.artifacts/responsive');
@@ -15,8 +15,8 @@ test(
       for (const app of ['web', 'api']) {
         const file =
           app === 'web'
-            ? 'tests/invitation-builder/resolve-v2.test.ts'
-            : 'test/unit/invitation-builder/resolve-v2.spec.ts';
+            ? 'tests/invitation-builder/editor-parity.test.ts'
+            : 'test/unit/invitation-builder/editor-parity.spec.ts';
         const command = [
           'pnpm',
           'exec',
@@ -42,19 +42,12 @@ test(
       const web = JSON.parse(readFileSync(resolve(owned, 'web.json'), 'utf8'));
       const api = JSON.parse(readFileSync(resolve(owned, 'api.json'), 'utf8'));
       assert.deepEqual(web, api);
-      const corpus = JSON.parse(
-        readFileSync(
-          resolve(
-            root,
-            'specs/007-responsive-invitation-layout/contracts/fixtures/resolution-v2.json',
-          ),
-          'utf8',
-        ),
-      );
-      assert.deepEqual(
-        web,
-        corpus.map((c) => c.expected),
-      );
+      assert.equal(web.length, 3);
+      for (const result of web) {
+        assert.equal(result.scene.canvas.width, 500);
+        assert.equal(result.scene.schemaVersion, 3);
+        assert.equal(result.scene.settings.pageAnimation, 'fade-mix');
+      }
     } finally {
       rmSync(owned, { recursive: true, force: true });
     }

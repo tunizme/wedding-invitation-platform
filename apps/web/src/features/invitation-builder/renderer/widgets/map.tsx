@@ -1,9 +1,11 @@
 import type { Venue } from '../../document/types';
 export function MapWidget({
+  locale = 'vi',
   venue,
   mode,
   label = 'Địa điểm',
 }: {
+  locale?: 'vi' | 'en';
   venue: Required<Venue>;
   mode: 'editor' | 'preview' | 'capture' | 'public';
   label?: string;
@@ -17,12 +19,12 @@ export function MapWidget({
     <section aria-label={label}>
       <strong>{label}</strong>
       <div
-        aria-label="Bản đồ địa điểm"
+        aria-label={locale === 'vi' ? 'Bản đồ địa điểm' : 'Venue map'}
         style={{ width: '100%', height: 160, background: '#f3f0ed' }}
       >
         {mode !== 'capture' && mode !== 'editor' && (
           <iframe
-            title={'Bản đồ ' + venue.name}
+            title={(locale === 'vi' ? 'Bản đồ ' : 'Map ') + venue.name}
             src={mapUrl}
             loading="lazy"
             style={{
@@ -38,7 +40,7 @@ export function MapWidget({
       <strong>{venue.name}</strong>
       <p>{venue.address}</p>
       <a href={directions} target="_blank" rel="noreferrer">
-        Mở chỉ đường
+        {locale === 'vi' ? 'Mở chỉ đường' : 'Get directions'}
       </a>
     </section>
   );

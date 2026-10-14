@@ -2,7 +2,7 @@ import { normalizeWedding } from '../../../src/modules/invitation-builder/domain
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { resolveDesign } from '../../../src/modules/invitation-builder/domain/resolve-design';
+import { resolvePrimitiveDocument as resolveDesign } from '../../../src/modules/invitation-builder/domain/resolve-design';
 import type {
   TemplateDesign,
   WeddingData,

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { canonicalHash } from '../../../src/modules/invitation-builder/domain/validation-helpers';
-import { resolveDesign } from '../../../src/modules/invitation-builder/domain/resolve-design';
+import { resolvePrimitiveDocument as resolveDesign } from '../../../src/modules/invitation-builder/domain/resolve-design';
 import type {
   TemplateDesign,
   WeddingData,

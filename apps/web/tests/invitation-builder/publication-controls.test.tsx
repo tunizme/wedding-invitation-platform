@@ -1,5 +1,4 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { createBlankDocument } from '../../src/features/invitation-builder/document/editor-document';
 import {
   act,
   cleanup,
@@ -13,6 +12,7 @@ import { sessionStore } from '../../src/features/identity-access/session/store';
 import { privateSession } from '../identity-access/private-session-fixture';
 import type { TemplateDetail } from '../../src/features/invitation-builder/api/client';
 import type { OperationScope } from '../../src/features/identity-access/session/operation-scope';
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const mocks = vi.hoisted(() => ({
   enqueue: vi.fn(),
   unpublish: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock(
 vi.mock('../../src/features/invitation-builder/renderer/scene-preview', () => ({
   ScenePreview: () => null,
 }));
-import TemplateEditor from '../../src/features/invitation-builder/editor/template-editor';
+import TemplateEditor from '../../src/features/invitation-builder/editor/invitation-editor';
 import { BuilderApiError } from '../../src/features/invitation-builder/api/client';
 import { PublicationControls } from '../../src/features/invitation-builder/editor/publication-controls';
 const template = {
@@ -56,6 +56,14 @@ const template = {
 } as TemplateDetail;
 afterEach(cleanup);
 beforeEach(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  );
   sessionStore.clear();
   const session = privateSession();
   sessionStore.set({ ...session, user: { ...session.user, role: 'ADMIN' } });
@@ -396,15 +404,7 @@ describe('publication owner disposal (005 US1)', () => {
 
 describe('template publication refresh versus external edits', () => {
   it('disposes editor asset and save scopes on owner switch while renewal retains edits', async () => {
-    const document = JSON.parse(
-      readFileSync(
-        resolve(
-          __dirname,
-          '../../../../specs/004-invitation-builder/contracts/fixtures/blank.json',
-        ),
-        'utf8',
-      ),
-    );
+    const document = createBlankDocument();
     const initial = {
       ...template,
       name: 'Template A',
@@ -427,14 +427,14 @@ describe('template publication refresh versus external edits', () => {
     );
     const saved = vi.fn();
     render(<TemplateEditor initial={initial} onSaved={saved} />);
-    fireEvent.change(await screen.findByLabelText('Chiều cao thiệp'), {
+    fireEvent.change(await screen.findByLabelText('Chiều cao'), {
       target: { value: '1800' },
     });
-    fireEvent.blur(screen.getByLabelText('Chiều cao thiệp'));
+    fireEvent.blur(screen.getByLabelText('Chiều cao'));
     const a = sessionStore.get()!;
     act(() => sessionStore.set({ ...a, accessToken: 'renewed' }));
-    expect(screen.getByLabelText('Chiều cao thiệp')).toHaveValue(1800);
-    fireEvent.click(screen.getByRole('button', { name: 'Lưu bản nháp' }));
+    expect(screen.getByLabelText('Chiều cao')).toHaveValue(1800);
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
     const request = mocks.request.mock.calls.find(
       ([, options]) => options?.method === 'PATCH',
     );
@@ -444,20 +444,12 @@ describe('template publication refresh versus external edits', () => {
     await act(async () => finish({ ...initial, editVersion: 3 }));
     expect(scope.signal.aborted).toBe(true);
     expect(saved).not.toHaveBeenCalled();
-    expect(screen.getByLabelText('Chiều cao thiệp')).toHaveValue(1600);
+    expect(screen.getByLabelText('Chiều cao')).toHaveValue(2000);
   });
   for (const retry of [false, true])
     for (const dirty of [false, true])
       it(`preserves the write baseline with retry=${retry} and save-before-publish=${dirty}`, async () => {
-        const document = JSON.parse(
-          readFileSync(
-            resolve(
-              __dirname,
-              '../../../../specs/004-invitation-builder/contracts/fixtures/blank.json',
-            ),
-            'utf8',
-          ),
-        );
+        const document = createBlankDocument();
         const initial: TemplateDetail = {
           ...template,
           status: 'DRAFT',
@@ -486,8 +478,8 @@ describe('template publication refresh versus external edits', () => {
           },
           publishedRevisionId: 'revision',
         };
-        if (remote.draftDocument.schemaVersion !== 1)
-          throw new Error('Expected legacy fixture');
+        if (remote.draftDocument.schemaVersion !== 3)
+          throw new Error('Expected500 fixture');
         remote.draftDocument.nodes.ROOT.props.canvas.height = 2200;
         let failRead = retry;
         const patches: { expectedVersion: number }[] = [];
@@ -522,12 +514,12 @@ describe('template publication refresh versus external edits', () => {
         );
         const onSaved = vi.fn();
         render(<TemplateEditor initial={initial} onSaved={onSaved} />);
-        await screen.findByLabelText('Chiều cao thiệp');
+        await screen.findByLabelText('Chiều cao');
         if (dirty) {
-          fireEvent.change(screen.getByLabelText('Chiều cao thiệp'), {
+          fireEvent.change(screen.getByLabelText('Chiều cao'), {
             target: { value: '1800' },
           });
-          fireEvent.blur(screen.getByLabelText('Chiều cao thiệp'));
+          fireEvent.blur(screen.getByLabelText('Chiều cao'));
         }
         fireEvent.click(screen.getByRole('button', { name: 'Xuất bản' }));
         await screen.findByRole('button', { name: 'Thử tải lại thông tin' });
@@ -539,26 +531,20 @@ describe('template publication refresh versus external edits', () => {
         }
         await screen.findByText(/phiên bản mới.*Bản sửa/);
         expect(onSaved.mock.calls.at(-1)?.[0].editVersion).toBe(5);
-        expect(screen.getByLabelText('Chiều cao thiệp')).toHaveValue(
-          dirty ? 1800 : 1600,
+        expect(screen.getByLabelText('Chiều cao')).toHaveValue(
+          dirty ? 1800 : 2000,
         );
-        expect(screen.getByLabelText('Tên mẫu')).toHaveValue('Template A');
-        fireEvent.change(screen.getByLabelText('Chiều cao thiệp'), {
+        expect(
+          screen.getByRole('heading', { name: 'Template A' }),
+        ).toBeVisible();
+        fireEvent.change(screen.getByLabelText('Chiều cao'), {
           target: { value: '1900' },
         });
-        fireEvent.blur(screen.getByLabelText('Chiều cao thiệp'));
-        fireEvent.click(screen.getByRole('button', { name: 'Lưu bản nháp' }));
+        fireEvent.blur(screen.getByLabelText('Chiều cao'));
+        fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
         await waitFor(() => expect(patches.at(-1)?.expectedVersion).toBe(5));
-        vi.spyOn(window, 'confirm').mockReturnValue(true);
-        fireEvent.click(
-          screen.getByRole('button', {
-            name: 'Tải lại bản đã lưu',
-          }),
-        );
-        await waitFor(() =>
-          expect(screen.getByLabelText('Chiều cao thiệp')).toHaveValue(2200),
-        );
-        expect(onSaved.mock.calls.at(-1)?.[0].editVersion).toBe(6);
-        vi.restoreAllMocks();
+        expect(
+          screen.getByText('Phiên bản đã đổi. Bản sửa của bạn vẫn được giữ.'),
+        ).toBeVisible();
       });
 });

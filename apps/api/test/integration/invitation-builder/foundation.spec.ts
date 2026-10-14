@@ -101,7 +101,7 @@ describe.sequential(
       const template = await f.template(admin.principal);
       for (const [field, value] of [
         ['draft_document', {}],
-        ['draft_sample_data', { schemaVersion: 2 }],
+        ['draft_sample_data', { schemaVersion: 3 }],
         ['edit_version', 0],
         ['tags', ['a', 'a']],
         ['sort_order', 1000001],
@@ -602,6 +602,8 @@ describe.sequential(
           'byteSize',
           'width',
           'height',
+          'category',
+          'durationMs',
           'createdAt',
           'previewUrl',
         ].sort(),

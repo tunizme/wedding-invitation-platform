@@ -98,7 +98,7 @@ function OwnedAssetLibrary({
     )
       .then((page) => {
         if (!scope.isActive()) return;
-        setAssets(page.items);
+        setAssets(page.items.filter((asset) => asset.kind !== 'AUDIO'));
         setCursor(page.nextCursor);
       })
       .catch((cause: unknown) => {
@@ -130,9 +130,9 @@ function OwnedAssetLibrary({
       if (!scope.isActive()) return;
       setAssets((current) => [
         ...current,
-        ...page.items.filter(
-          (item) => !current.some((prior) => prior.id === item.id),
-        ),
+        ...page.items
+          .filter((asset) => asset.kind !== 'AUDIO')
+          .filter((item) => !current.some((prior) => prior.id === item.id)),
       ]);
       setCursor(page.nextCursor);
     } catch {

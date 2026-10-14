@@ -9,13 +9,18 @@ function dateParts(datetime: string, timeZone: string) {
   return Object.fromEntries(parts.map(({ type, value }) => [type, value]));
 }
 export function CalendarWidget({
+  locale = 'vi',
   datetime,
   timeZone,
   accentColor = '#AABBCCFF',
+  variant = 'classic',
 }: {
+  locale?: 'vi' | 'en';
   datetime: string;
   timeZone: string;
   accentColor: string;
+  /** classic: tinted day; minimal: ring around the day; filled: round solid day. */
+  variant?: 'classic' | 'minimal' | 'filled';
 }) {
   let parts: ReturnType<typeof dateParts>;
   try {
@@ -37,9 +42,12 @@ export function CalendarWidget({
     },
   );
   return (
-    <section aria-label="Lịch sự kiện" style={{ color: 'inherit' }}>
+    <section
+      aria-label={locale === 'vi' ? 'Lịch sự kiện' : 'Event calendar'}
+      style={{ color: 'inherit' }}
+    >
       <h3>
-        {new Intl.DateTimeFormat('vi-VN', {
+        {new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
           month: 'long',
           year: 'numeric',
           timeZone,
@@ -47,10 +55,13 @@ export function CalendarWidget({
       </h3>
       <div
         role="grid"
-        aria-label={`Lịch tháng ${month}/${year}`}
+        aria-label={`${locale === 'vi' ? 'Lịch tháng' : 'Calendar'} ${month}/${year}`}
         style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)' }}
       >
-        {WEEKDAYS.map((weekday) => (
+        {(locale === 'vi'
+          ? WEEKDAYS
+          : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        ).map((weekday) => (
           <span role="columnheader" key={weekday}>
             {weekday}
           </span>
@@ -60,7 +71,15 @@ export function CalendarWidget({
             role="gridcell"
             aria-current={value === day ? 'date' : undefined}
             key={index}
-            style={value === day ? { backgroundColor: accentColor } : undefined}
+            style={
+              value === day
+                ? variant === 'minimal'
+                  ? { boxShadow: `inset 0 0 0 2px ${accentColor}` }
+                  : variant === 'filled'
+                    ? { backgroundColor: accentColor, borderRadius: '50%' }
+                    : { backgroundColor: accentColor }
+                : undefined
+            }
           >
             {value ?? ''}
           </span>

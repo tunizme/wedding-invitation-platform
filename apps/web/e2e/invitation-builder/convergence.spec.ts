@@ -90,7 +90,7 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
     .getByLabel('Liên kết văn bản', { exact: true })
     .selectOption('bride.name');
   await page.getByRole('button', { name: 'Xem trước', exact: true }).click();
-  const photos = page.getByLabel('Ảnh mẫu bride', { exact: true });
+  const photos = page.getByLabel('Ảnh mẫu cô dâu', { exact: true });
   await expect(photos).toBeVisible();
   await expect.poll(() => photos.locator('option').count()).toBeGreaterThan(1);
   const photoIds = await photos
@@ -149,7 +149,7 @@ test('authors bindings, persisted samples, widgets and cover; customer publishes
   });
   await page.reload();
   await page.getByRole('button', { name: 'Xem trước', exact: true }).click();
-  await expect(page.getByLabel('Ảnh mẫu bride', { exact: true })).toHaveValue(
+  await expect(page.getByLabel('Ảnh mẫu cô dâu', { exact: true })).toHaveValue(
     photoIds[0],
   );
   await expect(page.getByTestId('workarea')).toContainText('Nguyễn Minh Anh');

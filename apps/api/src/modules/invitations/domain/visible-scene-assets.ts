@@ -2,26 +2,18 @@ import type { SupportedResolvedScene } from '../../invitation-builder/domain/doc
 
 /** Public byte delivery is limited to assets present in the committed scene. */
 export function visibleSceneAssetIds(scene: SupportedResolvedScene): string[] {
+  if (scene.schemaVersion !== 3 || scene.rendererContractVersion !== 3)
+    return [];
   const ids = new Set<string>();
-  if (scene.schemaVersion === 2) {
-    const background = (bg: typeof scene.background) => {
-      if (bg.kind === 'asset') ids.add(bg.assetId);
-    };
-    background(scene.background);
-    for (const id of scene.sectionOrder) {
-      const section = scene.sections[id];
-      background(section.background);
-      for (const nid of [...section.flowNodeIds, ...section.artworkNodeIds]) {
-        const node = scene.nodes[nid];
-        if (node.appearance.background) background(node.appearance.background);
-        if (
-          'assetId' in node.content &&
-          typeof node.content.assetId === 'string'
-        )
-          ids.add(node.content.assetId);
-      }
+  if (scene.schemaVersion === 3) {
+    if (scene.settings.audio.assetId) ids.add(scene.settings.audio.assetId);
+    if (scene.settings.shareImageId) ids.add(scene.settings.shareImageId);
+    for (const e of scene.elements) {
+      if ('assetIds' in e.content)
+        for (const a of e.content.assetIds ?? []) ids.add(a);
+      if ('posterId' in e.content && e.content.posterId)
+        ids.add(e.content.posterId);
     }
-    return [...ids].sort();
   }
   if (scene.canvas.background.kind === 'asset')
     ids.add(scene.canvas.background.assetId);

@@ -8,11 +8,17 @@ import {
 } from './builder-validate.mjs';
 import { parityProxy } from './responsive-parity-proxy.mjs';
 import { root } from './responsive-validate.mjs';
-const suites = {
-  publication: 'responsive-publication.spec.ts',
-  customer: 'responsive-customer.spec.ts',
-  authoring: 'responsive-authoring.spec.ts',
+import { pnpmCommand } from './auth-transition-stack.mjs';
+// Node cannot spawn pnpm.cmd without a shell on Windows; run its JS entry.
+const pnpm = (args) => pnpmCommand(args);
+const withIam = (args) => {
+  const [command, argv] = pnpm(args);
+  return [
+    process.execPath,
+    ['apps/api/scripts/with-test-iam.cjs', command, ...argv],
+  ];
 };
+const suites = { editor: 'invitation-editor.spec.ts' };
 const suite = process.argv[3];
 if (
   !suites[suite] ||
@@ -48,7 +54,7 @@ try {
           'responsive-seed.json',
         ),
       });
-      if (suite !== 'publication') {
+      {
         context.env.RESPONSIVE_PARITY_AS_OF = new Date().toISOString();
         context.env.API_INTERNAL_BASE_URL = await parityProxy(
           context,
@@ -56,63 +62,14 @@ try {
           context.env.RESPONSIVE_PARITY_AS_OF,
         );
       }
-      await context.command('pnpm', [
-        '--filter',
-        '@wedding/api',
-        'migration:run',
-      ]);
-      if (suite === 'customer')
-        await context.command('node', [
-          'apps/api/scripts/with-test-iam.cjs',
-          'pnpm',
-          '--filter',
-          '@wedding/api',
-          'exec',
-          'vitest',
-          'run',
-          '--configLoader',
-          'runner',
-          '--maxWorkers=1',
-          'test/contract/invitation-builder/responsive-customer.spec.ts',
-        ]);
-      if (suite === 'customer')
-        await context.command('pnpm', [
-          '--filter',
-          '@wedding/web',
-          'test',
-          'tests/invitation-builder/responsive-customer.test.tsx',
-          'tests/invitation-builder/customer-form.test.tsx',
-          'tests/invitation-builder/customer-form-owner.test.tsx',
-        ]);
-      if (suite === 'authoring') {
-        await context.command('node', [
-          'apps/api/scripts/with-test-iam.cjs',
-          'pnpm',
-          '--filter',
-          '@wedding/api',
-          'exec',
-          'vitest',
-          'run',
-          '--configLoader',
-          'runner',
-          '--maxWorkers=1',
-          'test/contract/invitation-builder/responsive-authoring.spec.ts',
-        ]);
-        await context.command('pnpm', [
-          '--filter',
-          '@wedding/web',
-          'test',
-          'tests/invitation-builder/section-authoring.test.tsx',
-        ]);
-      }
-      await context.command('pnpm', ['build:api']);
-      await context.command('pnpm', ['build:web']);
+      await context.command(
+        ...pnpm(['--filter', '@wedding/api', 'migration:run']),
+      );
+      await context.command(...pnpm(['build:api']));
+      await context.command(...pnpm(['build:web']));
       // The seed owns synthetic actors only; disable pumping until the runtime is healthy.
       await context.command(
-        'node',
-        [
-          'apps/api/scripts/with-test-iam.cjs',
-          'pnpm',
+        ...withIam([
           '--filter',
           '@wedding/api',
           'exec',
@@ -121,25 +78,28 @@ try {
           '--configLoader',
           'runner',
           '--config',
-          'test/fixtures/invitation-builder/responsive-browser-seed.config.ts',
-        ],
+          'test/fixtures/invitation-builder/editor-browser-seed.config.ts',
+        ]),
         { env: { ...context.env, BUILDER_ENABLE_PUBLICATION_WORKER: 'false' } },
       );
       await browserServer(context);
       const backend = context.processes.start(
-        'node',
-        [
-          'apps/api/scripts/with-test-iam.cjs',
-          'pnpm',
-          '--filter',
-          '@wedding/api',
-          'start',
-        ],
+        ...withIam(['--filter', '@wedding/api', 'start']),
         { env: context.env },
       );
+      // The package start script uses POSIX ${WEB_PORT:-3000}; pass the port directly.
       const frontend = context.processes.start(
-        'pnpm',
-        ['--filter', '@wedding/web', 'start'],
+        ...pnpm([
+          '--filter',
+          '@wedding/web',
+          'exec',
+          'next',
+          'start',
+          '--hostname',
+          '127.0.0.1',
+          '--port',
+          String(webPort),
+        ]),
         { env: context.env },
       );
       await healthy(
@@ -153,12 +113,11 @@ try {
         frontend,
       );
       for (const project of ['chromium', 'firefox', 'webkit']) {
-        await context.command('node', [
+        await context.command(process.execPath, [
           'apps/api/scripts/builder-reset-browser-login-ip.cjs',
         ]);
         await context.command(
-          'pnpm',
-          [
+          ...pnpm([
             '--filter',
             '@wedding/web',
             'exec',
@@ -166,7 +125,7 @@ try {
             'test',
             '--config=playwright.responsive.config.ts',
             `--project=${project}`,
-          ],
+          ]),
           {
             env: {
               ...context.env,

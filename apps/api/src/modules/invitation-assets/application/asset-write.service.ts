@@ -17,12 +17,16 @@ export type NewAssetMetadata = Pick<
   | 'kind'
   | 'width'
   | 'height'
->;
+> & {
+  duration_ms?: number | null;
+  category?: string | null;
+  attribution?: Record<string, unknown> | null;
+};
 export interface PreparedAsset {
   intent: AssetStorageWrite;
   byteSize: number;
   sha256: string;
-  mimeType: 'image/webp' | 'image/png';
+  mimeType: 'image/webp' | 'image/png' | 'audio/mpeg';
 }
 
 export class AssetWriteService {
@@ -32,12 +36,12 @@ export class AssetWriteService {
   ) {}
   async prepare(
     bytes: Buffer,
-    mimeType: 'image/webp' | 'image/png',
+    mimeType: 'image/webp' | 'image/png' | 'audio/mpeg',
     context: StorageContext,
     job?: { id: string; leaseToken: string },
   ): Promise<PreparedAsset> {
     const id = randomUUID();
-    const key = `${id}/${randomUUID()}.${mimeType === 'image/webp' ? 'webp' : 'png'}`;
+    const key = `${id}/${randomUUID()}.${mimeType === 'audio/mpeg' ? 'mp3' : mimeType === 'image/webp' ? 'webp' : 'png'}`;
     const token = randomUUID();
     if (context.signal?.aborted || context.deadline <= Date.now())
       throw new StorageUnavailableError();
@@ -97,8 +101,8 @@ export class AssetWriteService {
     }
     const id = randomUUID();
     const assets: Asset[] = await manager.query(
-      `INSERT INTO assets(id,scope,owner_user_id,uploaded_by,assistance_invitation_id,name,kind,object_key,mime_type,byte_size,width,height,sha256)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      `INSERT INTO assets(id,scope,owner_user_id,uploaded_by,assistance_invitation_id,name,kind,object_key,mime_type,byte_size,width,height,sha256,duration_ms,category,attribution)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb) RETURNING *`,
       [
         id,
         metadata.scope,
@@ -113,6 +117,9 @@ export class AssetWriteService {
         metadata.width,
         metadata.height,
         prepared.sha256,
+        metadata.duration_ms ?? null,
+        metadata.category ?? null,
+        metadata.attribution ? JSON.stringify(metadata.attribution) : null,
       ],
     );
     // Newly inserted asset lock precedes the intent lock. Failure rolls back both.
@@ -139,7 +146,7 @@ export class AssetWriteService {
   }
   async upload(
     bytes: Buffer,
-    mimeType: 'image/webp' | 'image/png',
+    mimeType: 'image/webp' | 'image/png' | 'audio/mpeg',
     metadata: NewAssetMetadata,
     context: StorageContext,
   ): Promise<Asset> {

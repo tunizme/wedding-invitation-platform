@@ -1,3 +1,4 @@
+import { InvitationInteractionsModule } from '../../../src/modules/invitation-interactions/interactions.module';
 import { InvitationRsvpModule } from '../../../src/modules/invitation-rsvp/invitation-rsvp.module';
 import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
@@ -67,6 +68,7 @@ export async function builderDatabase() {
         InvitationBuilderModule,
         InvitationsModule,
         InvitationRsvpModule,
+        InvitationInteractionsModule,
       ],
     })
       .overrideProvider(IDENTITY_CONFIG)
@@ -158,7 +160,7 @@ export async function builderDatabase() {
       const thumbnail = await asset(actor, 'SYSTEM_THUMBNAIL');
       const rows: TemplateDesignRevision[] = await db.query(
         `INSERT INTO template_design_revisions(id,template_id,revision_number,schema_version,document,sample_data,document_hash,renderer_contract_version,thumbnail_asset_id,created_by)
-        VALUES($1,$2,(SELECT COALESCE(max(revision_number),0)+1 FROM template_design_revisions WHERE template_id=$2),1,$3,$4,$5,1,$6,$7) RETURNING *`,
+        VALUES($1,$2,(SELECT COALESCE(max(revision_number),0)+1 FROM template_design_revisions WHERE template_id=$2),3,$3,$4,$5,3,$6,$7) RETURNING *`,
         [
           randomUUID(),
           templateId,

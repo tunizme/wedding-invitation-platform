@@ -1,8 +1,5 @@
-import { resolveDesignV2, type ResolutionV2 } from './resolve-design-v2';
-import type {
-  SupportedTemplateDesign,
-  TemplateDesignV2,
-} from './document.types';
+import { resolveEditorDocument } from './editor-document';
+import type { SupportedTemplateDesign } from './document.types';
 import type {
   Binding,
   ElementNode,
@@ -195,7 +192,7 @@ function mergeContent(
   return content;
 }
 
-export function resolveDesignV1(
+export function resolvePrimitiveDocument(
   document: TemplateDesign,
   inputData: WeddingData,
   options: Options,
@@ -404,28 +401,10 @@ export function resolveDesignV1(
 }
 
 export function resolveDesign(
-  document: TemplateDesign,
-  inputData: WeddingData,
-  options: Options,
-): Resolution;
-export function resolveDesign(
-  document: TemplateDesignV2,
-  inputData: WeddingData,
-  options: Options,
-): ResolutionV2;
-export function resolveDesign(
   document: SupportedTemplateDesign,
   inputData: WeddingData,
   options: Options,
-): Resolution | ResolutionV2;
-export function resolveDesign(
-  document: SupportedTemplateDesign,
-  inputData: WeddingData,
-  options: Options,
-): Resolution | ResolutionV2 {
-  if (document.schemaVersion === 2)
-    return resolveDesignV2(document, inputData, options);
-  if (document.schemaVersion === 1)
-    return resolveDesignV1(document, inputData, options);
-  throw new Error('UNSUPPORTED_SCHEMA');
+) {
+  if (document.schemaVersion !== 3) throw new Error('UNSUPPORTED_SCHEMA');
+  return resolveEditorDocument(document, inputData, options);
 }

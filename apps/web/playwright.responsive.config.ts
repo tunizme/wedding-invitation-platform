@@ -1,15 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { resolve } from 'node:path';
 
-const suites: Record<string, string> = {
-  capture: 'responsive-capture.spec.ts',
-  smoke: 'responsive-host.spec.ts',
-  prototype: 'responsive-prototype.spec.ts',
-  renderer: 'responsive-renderer.spec.ts',
-  customer: 'responsive-customer.spec.ts',
-  publication: 'responsive-publication.spec.ts',
-  authoring: 'responsive-authoring.spec.ts',
-};
+const suites: Record<string, string> = { editor: 'invitation-editor.spec.ts' };
 const suite = process.env.RESPONSIVE_SUITE;
 if (!suite || !suites[suite] || !process.env.RESPONSIVE_HOST_URL)
   throw new Error(

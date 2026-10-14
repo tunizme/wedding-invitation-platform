@@ -1,3 +1,4 @@
+import { scalePrimitiveDocument } from '../../src/features/invitation-builder/document/editor-document';
 import {
   act,
   cleanup,
@@ -56,7 +57,7 @@ beforeEach(() => {
   revision.mockResolvedValue({
     id: 'template',
     revisionId: 'revision',
-    document: corpus.document,
+    document: scalePrimitiveDocument(corpus.document),
     sampleData: corpus.weddingData,
     formFields: [],
   });

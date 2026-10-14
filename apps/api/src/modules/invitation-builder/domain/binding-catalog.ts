@@ -1,3 +1,4 @@
+import { isAdvanced, type CanvasNode } from './editor-document';
 import type {
   ComponentName,
   ElementNode,
@@ -7,7 +8,17 @@ import type {
 export type BindingField = {
   id: string;
   label: string;
-  valueType: 'string' | 'asset' | 'event' | 'venue' | 'bank' | 'timeline';
+  valueType:
+    | 'string'
+    | 'asset'
+    | 'event'
+    | 'venue'
+    | 'bank'
+    | 'timeline'
+    | 'album'
+    | 'audio'
+    | 'video'
+    | 'phone';
   essential: boolean;
   auxiliary?: boolean;
   requiresEventKey?: boolean;
@@ -155,27 +166,17 @@ export function bindingFieldsFor(
   });
 }
 
-export function formFieldsForDesign(document: SupportedTemplateDesign) {
+export function formFieldsForDesign(
+  document: SupportedTemplateDesign | import('./document.types').TemplateDesign,
+) {
   const fields = new Map<
     string,
     BindingField & { required: boolean; eventKey?: string }
   >();
-  const nodes =
-    document.schemaVersion === 2
-      ? document.sectionOrder
-          .flatMap((id) =>
-            document.sections[id].hidden
-              ? []
-              : [
-                  ...document.sections[id].flowNodeIds,
-                  ...document.sections[id].artworkNodeIds,
-                ],
-          )
-          .map((id) => document.nodes[id])
-      : document.nodes.ROOT.nodes.map((id) => {
-          const node = document.nodes[id] as ElementNode;
-          return { ...node, bindings: node.props.bindings };
-        });
+  const nodes = document.nodes.ROOT.nodes.map((id) => {
+    const node = document.nodes[id] as ElementNode;
+    return { ...node, bindings: node.props.bindings };
+  });
   for (const node of nodes) {
     if (!node || node.hidden) continue;
     for (const binding of node.bindings) {
@@ -203,6 +204,43 @@ export function formFieldsForDesign(document: SupportedTemplateDesign) {
         });
       }
     }
+  }
+  if (document.schemaVersion === 3) {
+    for (const id of document.nodes.ROOT.nodes) {
+      const node = document.nodes[id] as CanvasNode;
+      if (node.hidden || !isAdvanced(node)) continue;
+      const c = node.props.content;
+      if (c.field) {
+        const valueType =
+          node.type.resolvedName === 'Album' ||
+          node.type.resolvedName === 'Carousel'
+            ? 'album'
+            : node.type.resolvedName === 'YouTube'
+              ? 'video'
+              : 'phone';
+        fields.set('fields.' + c.field, {
+          id: 'fields.' + c.field,
+          label: c.label,
+          valueType,
+          essential: true,
+          required: !node.custom.optional,
+        });
+      }
+      if (node.type.resolvedName === 'Reminder')
+        fields.set('wedding.event:' + c.eventKey, {
+          ...BINDING_CATALOG['wedding.event'],
+          required: !node.custom.optional,
+          eventKey: c.eventKey,
+        });
+    }
+    if (document.settings.audio.field)
+      fields.set('fields.' + document.settings.audio.field, {
+        id: 'fields.' + document.settings.audio.field,
+        label: 'Nhạc nền',
+        valueType: 'audio',
+        essential: false,
+        required: false,
+      });
   }
   return [...fields.values()].map((field) => ({
     ...field,

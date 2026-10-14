@@ -32,7 +32,7 @@ export class PublicInvitationController {
     const row = rows[0];
     if (!row || !row.published_scene) throw new NotFoundException();
     if (!(
-      [1, 2].includes(row.published_scene.schemaVersion) &&
+      row.published_scene.schemaVersion === 3 &&
       row.published_scene.rendererContractVersion ===
         row.published_scene.schemaVersion
     ))

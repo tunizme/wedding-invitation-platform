@@ -486,43 +486,12 @@ test('platform text, primary action and input boundary meet contrast thresholds'
   expect(input.height).toBeGreaterThanOrEqual(44);
 });
 
-test('admin creates and publishes a draft, while customer designs remain pinned', async ({
-  page,
-}) => {
+test('admin authoring opens the single production editor', async ({ page }) => {
   await page.goto('/');
   await screen(page, `/admin/editor/${templateId}`);
-  await page.locator('.layer-list button').first().click();
-  await page.getByLabel('Khoảng cách mobile', { exact: true }).fill('48');
-  await page.getByRole('button', { name: 'Lưu mẫu', exact: true }).click();
-  await screen(page, `/template/${templateId}`);
-  await expect(page.locator('[data-section-content]').first()).toHaveCSS(
-    'gap',
-    '48px',
-  );
-  await screen(page, `/editor/${invitationId}`);
-  await page.getByRole('button', { name: 'Xem trước', exact: true }).click();
-  await expect(page.locator('[data-section-content]').first()).toHaveCSS(
-    'gap',
-    '16px',
-  );
-  await screen(page, '/admin/templates/new');
-  await page.getByLabel('Tên mẫu', { exact: true }).fill('Mẫu review mới');
-  await page.getByRole('button', { name: 'Tạo bản nháp' }).click();
-  await expect(page.locator('.workspace-toolbar h1')).toHaveText(
-    'Mẫu review mới',
-  );
-  await page.getByRole('button', { name: 'Xuất bản mẫu', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Xác nhận xuất bản', exact: true })
-    .click();
-  await page
-    .getByRole('button', { name: 'Về quản lý mẫu', exact: true })
-    .click();
   await expect(
-    page
-      .locator('.admin-template-list article')
-      .filter({ hasText: 'Mẫu review mới' }),
-  ).toContainText('Đã xuất bản');
+    page.getByRole('link', { name: 'Mở editor thiệp' }),
+  ).toHaveAttribute('href', 'http://localhost:3000/admin/templates');
 });
 
 for (const width of [360, 375, 390, 430, 768, 1440]) {
@@ -641,102 +610,21 @@ test('capture desktop and mobile design review artifacts', async ({ page }) => {
   }
 });
 
-test('v2 demo responds to its host while popup and customer preview stay mobile', async ({
-  page,
-}) => {
-  await page.goto('/');
-  await screen(page, `/template/${templateId}`);
-  const popup = page.getByRole('dialog');
-  await expect(
-    popup.getByText('Xác nhận tham dự', { exact: true }),
-  ).toBeVisible();
-  await expect(popup.locator('[data-invitation-host]')).toHaveAttribute(
-    'data-host-policy',
-    'mobile',
-  );
-  await expect(popup.locator('[data-section]').first()).toHaveAttribute(
-    'data-layout',
-    'mobile',
-  );
-  expect(
-    await popup
-      .locator('[data-invitation-root]')
-      .evaluate((e) => e.getBoundingClientRect().width),
-  ).toBeLessThanOrEqual(390);
-  await page.getByRole('button', { name: 'Xem demo', exact: true }).click();
-  await page.getByRole('button', { name: 'Mở thiệp', exact: true }).click();
-  const root = page.locator('[data-invitation-root]');
-  for (const width of [1440, 767, 768, 390, 430, 900]) {
-    await page.setViewportSize({ width, height: 1000 });
-    const desktop = width >= 768;
-    await expect(page.locator('[data-section]').first()).toHaveAttribute(
-      'data-layout',
-      desktop ? 'desktop' : 'mobile',
-    );
-    await expect
-      .poll(() => root.evaluate((e) => e.getBoundingClientRect().width))
-      .toBe(desktop ? Math.min(width, 900) : Math.min(width, 480));
-    const album = page.locator(
-      '[data-section="60000000-0000-4000-8000-000000000006"] [data-section-content]',
-    );
-    const columns = await album.evaluate(
-      (e) => getComputedStyle(e).gridTemplateColumns.split(' ').length,
-    );
-    expect(columns).toBe(desktop ? 2 : 1);
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-  }
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await screen(page, `/editor/${invitationId}`);
-  await page.getByRole('button', { name: 'Xem trước', exact: true }).click();
-  await expect(page.locator('[data-invitation-host]')).toHaveAttribute(
-    'data-host-policy',
-    'mobile',
-  );
-  await expect(page.locator('[data-section]').first()).toHaveAttribute(
-    'data-layout',
-    'mobile',
-  );
-});
-
-test('v2 guest preserves RSVP state across desktop and mobile layouts; v1 stays compatible', async ({
+test('guest uses one scaled canvas and preserves RSVP across viewport changes', async ({
   page,
 }) => {
   await page.goto(`/#/i/${invitationId}`);
-  await expect(page.locator('[data-invitation-root]')).toHaveCSS(
-    'max-width',
-    '900px',
-  );
+  const root = page.locator('[data-invitation-root]');
+  await expect(root).toHaveCSS('width', '500px');
   const name = page.getByLabel('Tên khách mời', { exact: true });
   await name.fill('Khách giữ trạng thái');
-  await page.setViewportSize({ width: 390, height: 900 });
-  await expect(page.locator('[data-section]').first()).toHaveAttribute(
-    'data-layout',
-    'mobile',
-  );
-  await expect(name).toHaveValue('Khách giữ trạng thái');
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await expect(page.locator('[data-section]').first()).toHaveAttribute(
-    'data-layout',
-    'desktop',
-  );
-  await expect(name).toHaveValue('Khách giữ trạng thái');
-  await screen(page, `/template/${templateId}`);
-  await page.getByRole('button', { name: 'Đóng', exact: true }).click();
-  await page.evaluate(() => {
-    location.hash = '/template/30000000-0000-4000-8000-000000000004';
-  });
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await page.getByRole('button', { name: 'Xem demo', exact: true }).click();
-  await page.getByRole('button', { name: 'Mở thiệp', exact: true }).click();
-  await expect(page.locator('[data-scene-version="2"]')).toHaveCount(0);
-  await expect(page.locator('[data-testid="workarea"]')).toHaveCSS(
-    'width',
-    '390px',
-  );
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect(name).toHaveValue('Khách giữ trạng thái');
+    expect(
+      await root.evaluate((e) => e.getBoundingClientRect().width),
+    ).toBeLessThanOrEqual(500);
+  }
 });
 
 test('account menu and personal workspace share profile, navigation and logout', async ({

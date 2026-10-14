@@ -2518,28 +2518,10 @@ svg {
   }
 }
 
-/* Host width decides responsive v2 layout; legacy canvases remain 390px. */
+/* The same500px canvas scales down to its preview host. */
 .live-preview-adaptive {
   width: 100%;
-  max-width: 900px;
-}
-
-.responsive-rule {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-}
-.responsive-authoring {
-  min-width: 0;
-}
-.responsive-authoring-scroll {
-  width: 100%;
-  overflow-x: auto;
-  padding-top: 24px;
+  max-width: 500px;
 }
 
 .demo-opening-card {

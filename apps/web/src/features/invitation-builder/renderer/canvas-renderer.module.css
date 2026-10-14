@@ -1,0 +1,286 @@
+.canvas {
+  isolation: isolate;
+  color: #29251f;
+  font-family: 'Invitation Noto Sans v1', sans-serif;
+}
+.canvas button,
+.canvas input,
+.canvas select,
+.canvas textarea {
+  font: inherit;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.canvas input,
+.canvas textarea,
+.canvas select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid #66584a;
+  border-radius: 8px;
+}
+.canvas button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #66584a;
+  background: #fdfbf7;
+  color: #29251f;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.canvas :focus-visible {
+  outline: 3px solid #66584a;
+  outline-offset: 3px;
+}
+.content[data-entrance='fade'] {
+  animation: editor-documentFade 800ms both;
+}
+.content[data-entrance='slide'] {
+  animation: editor-documentSlide 800ms both;
+}
+.content[data-entrance='scale'] {
+  animation: editor-documentScale 800ms both;
+}
+.content[data-entrance='flip'] {
+  animation: editor-documentFlip 800ms both;
+}
+.content[data-entrance='slide-down'] {
+  animation: editor-documentSlideDown 800ms both;
+}
+.content[data-entrance='slide-left'] {
+  animation: editor-documentSlideLeft 800ms both;
+}
+.content[data-entrance='slide-right'] {
+  animation: editor-documentSlideRight 800ms both;
+}
+.content[data-entrance='scale-out'] {
+  animation: editor-documentScaleOut 800ms both;
+}
+.content[data-entrance='rotate'] {
+  animation: editor-documentRotateIn 800ms both;
+}
+.content[data-entrance='bounce'] {
+  animation: editor-documentBounceIn 800ms both;
+}
+.content[data-entrance] {
+  animation-duration: var(--entrance-duration, 800ms);
+  animation-delay: var(--entrance-delay, 0s);
+  animation-timing-function: var(--entrance-easing, ease-out);
+}
+.content[data-continuous='float'] > div {
+  animation: editor-documentFloat 3s ease-in-out infinite;
+}
+.content[data-continuous='pulse'] > div {
+  animation: editor-documentPulse 3s ease-in-out infinite;
+}
+.content[data-continuous='bounce'] > div {
+  animation: editor-documentBounce 2s ease-in-out infinite;
+}
+.content[data-continuous='blink'] > div {
+  animation: editor-documentBlink 2s ease-in-out infinite;
+}
+.content[data-continuous='spin'] > div {
+  animation: editor-documentSpin 2s linear infinite;
+}
+.content[data-continuous='shake'] > div {
+  animation: editor-documentShake 2s ease-in-out infinite;
+}
+.content[data-continuous='swing'] > div {
+  animation: editor-documentSwing 2s ease-in-out infinite;
+}
+.content[data-continuous='wiggle'] > div {
+  animation: editor-documentWiggle 2s ease-in-out infinite;
+}
+.content[data-continuous] > div {
+  animation-duration: var(--continuous-duration, 2s);
+  animation-delay: var(--continuous-delay, 0s);
+}
+@keyframes editor-documentSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes editor-documentSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes editor-documentSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes editor-documentScaleOut {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes editor-documentRotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-180deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+@keyframes editor-documentBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes editor-documentBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+@keyframes editor-documentBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes editor-documentSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes editor-documentShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+@keyframes editor-documentSwing {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(8deg);
+  }
+  75% {
+    transform: rotate(-8deg);
+  }
+}
+@keyframes editor-documentWiggle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  25% {
+    transform: translateY(-8px) rotate(5deg);
+  }
+  75% {
+    transform: translateY(-8px) rotate(-5deg);
+  }
+}
+@keyframes editor-documentFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes editor-documentSlide {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes editor-documentScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes editor-documentFlip {
+  from {
+    opacity: 0;
+    transform: rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0);
+  }
+}
+@keyframes editor-documentFloat {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes editor-documentPulse {
+  50% {
+    transform: scale(1.02);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .content,
+  .content > div {
+    animation: none !important;
+  }
+}

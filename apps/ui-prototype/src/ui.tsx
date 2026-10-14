@@ -332,11 +332,16 @@ export function LivePreview({
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) =>
-      setWidth(Math.min(390, entry.contentRect.width)),
+      setWidth(
+        Math.min(
+          hostPolicy === 'adaptive' ? 500 : 390,
+          entry.contentRect.width,
+        ),
+      ),
     );
     observer.observe(ref.current!);
     return () => observer.disconnect();
-  }, []);
+  }, [hostPolicy]);
   const context = {
     mode: publicMode ? ('public' as const) : ('preview' as const),
     asOf: AS_OF,
@@ -348,32 +353,22 @@ export function LivePreview({
     data,
     context,
   );
-  if (resolved.scene.schemaVersion === 2)
-    return (
-      <div
-        className={`live-preview ${hostPolicy === 'adaptive' ? 'live-preview-adaptive' : ''}`}
-        ref={ref}
-      >
-        <InvitationRenderer
-          scene={resolved.scene}
-          context={context}
-          hostPolicy={hostPolicy}
-        />
-      </div>
-    );
   return (
-    <div className="live-preview" ref={ref}>
+    <div
+      className={`live-preview ${hostPolicy === 'adaptive' ? 'live-preview-adaptive' : ''}`}
+      ref={ref}
+    >
       <div
         style={{
-          height: (resolved.scene.canvas.height * width) / 390,
+          height: (resolved.scene.canvas.height * width) / 500,
           width: '100%',
           position: 'relative',
         }}
       >
         <div
           style={{
-            width: 390,
-            transform: `scale(${width / 390})`,
+            width: 500,
+            transform: `scale(${width / 500})`,
             transformOrigin: 'top left',
           }}
         >

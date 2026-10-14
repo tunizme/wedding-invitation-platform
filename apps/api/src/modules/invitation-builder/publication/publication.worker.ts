@@ -118,21 +118,29 @@ export class PublicationWorker implements OnModuleInit, OnModuleDestroy {
         ),
       };
       const entries: [string, RenderAsset][] = await Promise.all(
-        assets.map(async (asset): Promise<[string, RenderAsset]> => {
-          const object = await this.store.get(
-            asset.object_key,
-            asset.byte_size,
-            context,
-          );
-          if (
-            object.bytes.length !== asset.byte_size ||
-            object.contentType !== asset.mime_type ||
-            createHash('sha256').update(object.bytes).digest('hex') !==
-              asset.sha256
-          )
-            throw new TrustedRenderError('RENDER_UNAVAILABLE');
-          return [asset.id, { bytes: object.bytes, mimeType: asset.mime_type }];
-        }),
+        assets
+          .filter((asset) => asset.kind !== 'AUDIO')
+          .map(async (asset): Promise<[string, RenderAsset]> => {
+            const object = await this.store.get(
+              asset.object_key,
+              asset.byte_size,
+              context,
+            );
+            if (
+              object.bytes.length !== asset.byte_size ||
+              object.contentType !== asset.mime_type ||
+              createHash('sha256').update(object.bytes).digest('hex') !==
+                asset.sha256
+            )
+              throw new TrustedRenderError('RENDER_UNAVAILABLE');
+            return [
+              asset.id,
+              {
+                bytes: object.bytes,
+                mimeType: asset.mime_type as 'image/webp' | 'image/png',
+              },
+            ];
+          }),
       );
       const renderAssets: Record<string, RenderAsset> =
         Object.fromEntries(entries);

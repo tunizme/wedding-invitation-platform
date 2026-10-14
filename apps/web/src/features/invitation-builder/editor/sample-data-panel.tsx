@@ -137,9 +137,10 @@ export function SampleDataPanel({
       </label>
       {(['bride', 'groom', 'couple'] as const).map((person) => (
         <label key={person}>
-          Ảnh mẫu {person}
+          Ảnh mẫu{' '}
+          {{ bride: 'cô dâu', groom: 'chú rể', couple: 'cặp đôi' }[person]}
           <select
-            aria-label={`Ảnh mẫu ${person}`}
+            aria-label={`Ảnh mẫu ${{ bride: 'cô dâu', groom: 'chú rể', couple: 'cặp đôi' }[person]}`}
             value={data[person]?.photo ?? ''}
             onChange={(event) =>
               change((next) => {

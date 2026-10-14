@@ -1,4 +1,5 @@
 'use client';
+import { ContentFields } from '../invitation-builder/editor/content-fields';
 import {
   usePrivateOwner,
   scopedDelay,
@@ -811,369 +812,372 @@ function OwnedCustomerInvitationForm({ id }: { id: string }) {
           style={{ border: 0, padding: 0, minWidth: 0 }}
         >
           <legend>Dữ liệu đám cưới</legend>
-          {Object.entries(Object.groupBy(fields, fieldGroup)).map(
-            ([group, groupFields]) => (
-              <details key={group} className={styles.group} open>
-                <summary>{group}</summary>
-                <div className={styles.fields}>
-                  {groupFields!.map((field) => {
-                    const key = fieldIdentity(field),
-                      label =
-                        field.label +
-                        (field.eventKey ? ` · ${field.eventKey}` : '');
-                    if (field.type === 'asset')
-                      return (
-                        <fieldset key={key}>
-                          <legend>{label}</legend>
-                          <div className={styles.photoChoice}>
-                            {assetUrls[valueOf(data, field)] ? (
-                              <Image
-                                unoptimized
-                                width={140}
-                                height={170}
-                                src={assetUrls[valueOf(data, field)]}
-                                alt={`Ảnh đã chọn · ${field.label}`}
-                              />
-                            ) : (
-                              <div className={styles.photoPlaceholder}>
-                                <ImagePlus size={28} aria-hidden="true" />
-                                <span>
-                                  {valueOf(data, field)
-                                    ? 'Ảnh đang sử dụng'
-                                    : 'Chưa chọn ảnh'}
-                                </span>
-                              </div>
-                            )}
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              disabled={busy}
-                              onClick={(event) => {
-                                assetTrigger.current = event.currentTarget;
-                                setAssetField(field);
-                              }}
-                            >
-                              <ImagePlus size={18} aria-hidden="true" />
-                              Chọn ảnh từ thư viện
-                            </Button>
-                          </div>
-                          <label>
-                            Ảnh đã tải lên{' '}
-                            <select
-                              value={valueOf(data, field)}
-                              onChange={(event) =>
-                                edit(field, event.target.value)
-                              }
-                            >
-                              <option value="">Chọn ảnh</option>
-                              {valueOf(data, field) &&
-                                !assets.some(
-                                  (asset) => asset.id === valueOf(data, field),
-                                ) && (
-                                  <option value={valueOf(data, field)}>
-                                    Ảnh đang sử dụng
-                                  </option>
-                                )}
-                              {assets.map((asset) => (
-                                <option key={asset.id} value={asset.id}>
-                                  {asset.name}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            Tải ảnh mới{' '}
-                            <input
-                              type="file"
-                              accept="image/png,image/jpeg,image/webp"
-                              onChange={(event) => void upload(field, event)}
+          <ContentFields
+            fields={fields}
+            data={data}
+            disabled={busy}
+            onChange={(next) => {
+              setData(next);
+              setDirty(true);
+              setStatus('');
+            }}
+          />
+          {Object.entries(
+            Object.groupBy(
+              fields.filter((f) => !f.id.startsWith('fields.')),
+              fieldGroup,
+            ),
+          ).map(([group, groupFields]) => (
+            <details key={group} className={styles.group} open>
+              <summary>{group}</summary>
+              <div className={styles.fields}>
+                {groupFields!.map((field) => {
+                  const key = fieldIdentity(field),
+                    label =
+                      field.label +
+                      (field.eventKey ? ` · ${field.eventKey}` : '');
+                  if (field.type === 'asset')
+                    return (
+                      <fieldset key={key}>
+                        <legend>{label}</legend>
+                        <div className={styles.photoChoice}>
+                          {assetUrls[valueOf(data, field)] ? (
+                            <Image
+                              unoptimized
+                              width={140}
+                              height={170}
+                              src={assetUrls[valueOf(data, field)]}
+                              alt={`Ảnh đã chọn · ${field.label}`}
                             />
-                          </label>
-                          {assetCursor && (
-                            <button
-                              type="button"
-                              onClick={() => void moreAssets()}
-                            >
-                              Tải thêm ảnh của tôi
-                            </button>
-                          )}
-                        </fieldset>
-                      );
-                    if (field.id === 'bank')
-                      return (
-                        <fieldset key={key}>
-                          <legend>{label}</legend>
-                          {(
-                            [
-                              ['bin', 'Mã BIN ngân hàng'],
-                              ['account', 'Số tài khoản'],
-                              ['recipientName', 'Tên người nhận'],
-                              ['message', 'Nội dung chuyển khoản'],
-                            ] as const
-                          ).map(([prop, name]) => (
-                            <label key={prop}>
-                              {name}
-                              <input
-                                value={data.bank?.[prop] ?? ''}
-                                onChange={(event) =>
-                                  editBank(prop, event.target.value)
-                                }
-                              />
-                            </label>
-                          ))}
-                        </fieldset>
-                      );
-                    if (field.id === 'bank.message') return null;
-                    if (field.id === 'timeline')
-                      return (
-                        <fieldset key={key}>
-                          <legend>{label}</legend>
-                          {(data.timeline ?? []).map((entry, index) => (
-                            <div key={entry.id}>
-                              <label>
-                                Tiêu đề{' '}
-                                <input
-                                  value={entry.title}
-                                  onChange={(event) => {
-                                    const next = structuredClone(data);
-                                    next.timeline![index].title =
-                                      event.target.value;
-                                    setData(next);
-                                    setDirty(true);
-                                  }}
-                                />
-                              </label>
-                              <label>
-                                Mô tả{' '}
-                                <input
-                                  value={entry.description ?? ''}
-                                  onChange={(event) => {
-                                    const next = structuredClone(data);
-                                    next.timeline![index].description =
-                                      event.target.value;
-                                    setData(next);
-                                    setDirty(true);
-                                  }}
-                                />
-                              </label>
-                              <label>
-                                Thời gian mốc{' '}
-                                <input
-                                  maxLength={80}
-                                  value={entry.dateLabel ?? ''}
-                                  onChange={(event) => {
-                                    const next = structuredClone(data);
-                                    next.timeline![index].dateLabel =
-                                      event.target.value;
-                                    setData(next);
-                                    setDirty(true);
-                                  }}
-                                />
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setData({
-                                    ...data,
-                                    timeline: data.timeline?.filter(
-                                      (item) => item.id !== entry.id,
-                                    ),
-                                  });
-                                  setDirty(true);
-                                }}
-                              >
-                                Xóa mốc
-                              </button>
+                          ) : (
+                            <div className={styles.photoPlaceholder}>
+                              <ImagePlus size={28} aria-hidden="true" />
+                              <span>
+                                {valueOf(data, field)
+                                  ? 'Ảnh đang sử dụng'
+                                  : 'Chưa chọn ảnh'}
+                              </span>
                             </div>
-                          ))}
-                          <button
+                          )}
+                          <Button
                             type="button"
-                            disabled={(data.timeline?.length ?? 0) >= 20}
-                            onClick={() => {
-                              setData({
-                                ...data,
-                                timeline: [
-                                  ...(data.timeline ?? []),
-                                  { id: crypto.randomUUID(), title: '' },
-                                ],
-                              });
-                              setDirty(true);
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={(event) => {
+                              assetTrigger.current = event.currentTarget;
+                              setAssetField(field);
                             }}
                           >
-                            Thêm mốc
+                            <ImagePlus size={18} aria-hidden="true" />
+                            Chọn ảnh từ thư viện
+                          </Button>
+                        </div>
+                        <label>
+                          Ảnh đã tải lên{' '}
+                          <select
+                            value={valueOf(data, field)}
+                            onChange={(event) =>
+                              edit(field, event.target.value)
+                            }
+                          >
+                            <option value="">Chọn ảnh</option>
+                            {valueOf(data, field) &&
+                              !assets.some(
+                                (asset) => asset.id === valueOf(data, field),
+                              ) && (
+                                <option value={valueOf(data, field)}>
+                                  Ảnh đang sử dụng
+                                </option>
+                              )}
+                            {assets.map((asset) => (
+                              <option key={asset.id} value={asset.id}>
+                                {asset.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Tải ảnh mới{' '}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(event) => void upload(field, event)}
+                          />
+                        </label>
+                        {assetCursor && (
+                          <button
+                            type="button"
+                            onClick={() => void moreAssets()}
+                          >
+                            Tải thêm ảnh của tôi
                           </button>
-                        </fieldset>
-                      );
-                    if (field.id === 'venue')
-                      return (
-                        <fieldset key={key}>
-                          <legend>{label}</legend>
-                          {(
-                            [
-                              'name',
-                              'address',
-                              'latitude',
-                              'longitude',
-                            ] as const
-                          ).map((prop) => (
-                            <label
-                              key={prop}
-                              className={
-                                prop === 'address' ? styles.fullRow : undefined
+                        )}
+                      </fieldset>
+                    );
+                  if (field.id === 'bank')
+                    return (
+                      <fieldset key={key}>
+                        <legend>{label}</legend>
+                        {(
+                          [
+                            ['bin', 'Mã BIN ngân hàng'],
+                            ['account', 'Số tài khoản'],
+                            ['recipientName', 'Tên người nhận'],
+                            ['message', 'Nội dung chuyển khoản'],
+                          ] as const
+                        ).map(([prop, name]) => (
+                          <label key={prop}>
+                            {name}
+                            <input
+                              value={data.bank?.[prop] ?? ''}
+                              onChange={(event) =>
+                                editBank(prop, event.target.value)
                               }
-                            >
-                              {
-                                {
-                                  name: 'Tên địa điểm',
-                                  address: 'Địa chỉ',
-                                  latitude: 'Vĩ độ',
-                                  longitude: 'Kinh độ',
-                                }[prop]
-                              }
+                            />
+                          </label>
+                        ))}
+                      </fieldset>
+                    );
+                  if (field.id === 'bank.message') return null;
+                  if (field.id === 'timeline')
+                    return (
+                      <fieldset key={key}>
+                        <legend>{label}</legend>
+                        {(data.timeline ?? []).map((entry, index) => (
+                          <div key={entry.id}>
+                            <label>
+                              Tiêu đề{' '}
                               <input
-                                type={
-                                  prop === 'latitude' || prop === 'longitude'
-                                    ? 'number'
-                                    : 'text'
-                                }
-                                step="any"
-                                min={
-                                  prop === 'latitude'
-                                    ? -90
-                                    : prop === 'longitude'
-                                      ? -180
-                                      : undefined
-                                }
-                                max={
-                                  prop === 'latitude'
-                                    ? 90
-                                    : prop === 'longitude'
-                                      ? 180
-                                      : undefined
-                                }
-                                value={
-                                  data.events?.[eventKey(field)]?.venue?.[
-                                    prop
-                                  ] ?? ''
-                                }
-                                onChange={(event) =>
-                                  editEvent(field, prop, event.target.value)
-                                }
+                                value={entry.title}
+                                onChange={(event) => {
+                                  const next = structuredClone(data);
+                                  next.timeline![index].title =
+                                    event.target.value;
+                                  setData(next);
+                                  setDirty(true);
+                                }}
                               />
                             </label>
-                          ))}
-                        </fieldset>
-                      );
-                    if (field.type === 'date-time')
-                      return (
-                        <fieldset key={key} className={styles.eventTime}>
-                          <legend>{label}</legend>
-                          <label>
-                            Ngày và giờ tổ chức
-                            <input
-                              type="datetime-local"
-                              aria-label="Ngày và giờ tổ chức"
-                              step="1"
-                              value={eventLocalTime(
-                                valueOf(data, field),
-                                data.events?.[eventKey(field)]?.timeZone ??
-                                  'Asia/Ho_Chi_Minh',
-                              )}
-                              aria-invalid={!!localTimeError[key]}
-                              aria-describedby={`event-local-help-${key}`}
-                              onChange={(event) => {
-                                try {
-                                  const iso = eventIsoTime(
-                                    event.target.value,
-                                    data.events?.[eventKey(field)]?.timeZone ??
-                                      'Asia/Ho_Chi_Minh',
-                                  );
-                                  edit(field, iso);
-                                  setLocalTimeError((previous) => ({
-                                    ...previous,
-                                    [key]: '',
-                                  }));
-                                } catch (cause) {
-                                  setLocalTimeError((previous) => ({
-                                    ...previous,
-                                    [key]:
-                                      cause instanceof Error
-                                        ? cause.message
-                                        : 'Ngày giờ chưa hợp lệ.',
-                                  }));
-                                }
+                            <label>
+                              Mô tả{' '}
+                              <input
+                                value={entry.description ?? ''}
+                                onChange={(event) => {
+                                  const next = structuredClone(data);
+                                  next.timeline![index].description =
+                                    event.target.value;
+                                  setData(next);
+                                  setDirty(true);
+                                }}
+                              />
+                            </label>
+                            <label>
+                              Thời gian mốc{' '}
+                              <input
+                                maxLength={80}
+                                value={entry.dateLabel ?? ''}
+                                onChange={(event) => {
+                                  const next = structuredClone(data);
+                                  next.timeline![index].dateLabel =
+                                    event.target.value;
+                                  setData(next);
+                                  setDirty(true);
+                                }}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setData({
+                                  ...data,
+                                  timeline: data.timeline?.filter(
+                                    (item) => item.id !== entry.id,
+                                  ),
+                                });
+                                setDirty(true);
                               }}
-                            />
-                            <span
-                              id={`event-local-help-${key}`}
-                              className={styles.timeHelp}
                             >
-                              {localTimeError[key] ||
-                                `Múi giờ sự kiện · ${data.events?.[eventKey(field)]?.timeZone ?? 'Asia/Ho_Chi_Minh'}`}
-                            </span>
-                          </label>
-                          <label>
-                            Ngày giờ ISO{' '}
+                              Xóa mốc
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          disabled={(data.timeline?.length ?? 0) >= 20}
+                          onClick={() => {
+                            setData({
+                              ...data,
+                              timeline: [
+                                ...(data.timeline ?? []),
+                                { id: crypto.randomUUID(), title: '' },
+                              ],
+                            });
+                            setDirty(true);
+                          }}
+                        >
+                          Thêm mốc
+                        </button>
+                      </fieldset>
+                    );
+                  if (field.id === 'venue')
+                    return (
+                      <fieldset key={key}>
+                        <legend>{label}</legend>
+                        {(
+                          ['name', 'address', 'latitude', 'longitude'] as const
+                        ).map((prop) => (
+                          <label
+                            key={prop}
+                            className={
+                              prop === 'address' ? styles.fullRow : undefined
+                            }
+                          >
+                            {
+                              {
+                                name: 'Tên địa điểm',
+                                address: 'Địa chỉ',
+                                latitude: 'Vĩ độ',
+                                longitude: 'Kinh độ',
+                              }[prop]
+                            }
                             <input
-                              value={valueOf(data, field)}
-                              onChange={(event) => {
-                                edit(field, event.target.value);
+                              type={
+                                prop === 'latitude' || prop === 'longitude'
+                                  ? 'number'
+                                  : 'text'
+                              }
+                              step="any"
+                              min={
+                                prop === 'latitude'
+                                  ? -90
+                                  : prop === 'longitude'
+                                    ? -180
+                                    : undefined
+                              }
+                              max={
+                                prop === 'latitude'
+                                  ? 90
+                                  : prop === 'longitude'
+                                    ? 180
+                                    : undefined
+                              }
+                              value={
+                                data.events?.[eventKey(field)]?.venue?.[prop] ??
+                                ''
+                              }
+                              onChange={(event) =>
+                                editEvent(field, prop, event.target.value)
+                              }
+                            />
+                          </label>
+                        ))}
+                      </fieldset>
+                    );
+                  if (field.type === 'date-time')
+                    return (
+                      <fieldset key={key} className={styles.eventTime}>
+                        <legend>{label}</legend>
+                        <label>
+                          Ngày và giờ tổ chức
+                          <input
+                            type="datetime-local"
+                            aria-label="Ngày và giờ tổ chức"
+                            step="1"
+                            value={eventLocalTime(
+                              valueOf(data, field),
+                              data.events?.[eventKey(field)]?.timeZone ??
+                                'Asia/Ho_Chi_Minh',
+                            )}
+                            aria-invalid={!!localTimeError[key]}
+                            aria-describedby={`event-local-help-${key}`}
+                            onChange={(event) => {
+                              try {
+                                const iso = eventIsoTime(
+                                  event.target.value,
+                                  data.events?.[eventKey(field)]?.timeZone ??
+                                    'Asia/Ho_Chi_Minh',
+                                );
+                                edit(field, iso);
                                 setLocalTimeError((previous) => ({
                                   ...previous,
                                   [key]: '',
                                 }));
-                              }}
-                              aria-required={field.required}
-                            />
-                          </label>
-                          <label>
-                            Múi giờ IANA{' '}
-                            <input
-                              value={
-                                data.events?.[eventKey(field)]?.timeZone ??
-                                'Asia/Ho_Chi_Minh'
+                              } catch (cause) {
+                                setLocalTimeError((previous) => ({
+                                  ...previous,
+                                  [key]:
+                                    cause instanceof Error
+                                      ? cause.message
+                                      : 'Ngày giờ chưa hợp lệ.',
+                                }));
                               }
-                              onChange={(event) =>
-                                editEvent(field, 'timeZone', event.target.value)
-                              }
-                            />
-                          </label>
-                        </fieldset>
-                      );
-                    return (
-                      <label
-                        key={key}
-                        className={
-                          field.id === 'venue.address'
-                            ? styles.fullRow
-                            : undefined
-                        }
-                      >
-                        {label}
-                        {field.type === 'textarea' ? (
-                          <textarea
-                            value={valueOf(data, field)}
-                            onChange={(event) =>
-                              edit(field, event.target.value)
-                            }
-                            aria-required={field.required}
+                            }}
                           />
-                        ) : (
+                          <span
+                            id={`event-local-help-${key}`}
+                            className={styles.timeHelp}
+                          >
+                            {localTimeError[key] ||
+                              `Múi giờ sự kiện · ${data.events?.[eventKey(field)]?.timeZone ?? 'Asia/Ho_Chi_Minh'}`}
+                          </span>
+                        </label>
+                        <label>
+                          Ngày giờ ISO{' '}
                           <input
                             value={valueOf(data, field)}
-                            onChange={(event) =>
-                              edit(field, event.target.value)
-                            }
+                            onChange={(event) => {
+                              edit(field, event.target.value);
+                              setLocalTimeError((previous) => ({
+                                ...previous,
+                                [key]: '',
+                              }));
+                            }}
                             aria-required={field.required}
                           />
-                        )}
-                      </label>
+                        </label>
+                        <label>
+                          Múi giờ IANA{' '}
+                          <input
+                            value={
+                              data.events?.[eventKey(field)]?.timeZone ??
+                              'Asia/Ho_Chi_Minh'
+                            }
+                            onChange={(event) =>
+                              editEvent(field, 'timeZone', event.target.value)
+                            }
+                          />
+                        </label>
+                      </fieldset>
                     );
-                  })}
-                </div>
-              </details>
-            ),
-          )}
+                  return (
+                    <label
+                      key={key}
+                      className={
+                        field.id === 'venue.address'
+                          ? styles.fullRow
+                          : undefined
+                      }
+                    >
+                      {label}
+                      {field.type === 'textarea' ? (
+                        <textarea
+                          value={valueOf(data, field)}
+                          onChange={(event) => edit(field, event.target.value)}
+                          aria-required={field.required}
+                        />
+                      ) : (
+                        <input
+                          value={valueOf(data, field)}
+                          onChange={(event) => edit(field, event.target.value)}
+                          aria-required={field.required}
+                        />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </details>
+          ))}
         </fieldset>
         <button
           type="button"
@@ -1280,6 +1284,11 @@ function OwnedCustomerInvitationForm({ id }: { id: string }) {
         </ModalSurface>
       )}
       <Link href={`/invitations/${id}/rsvps`}>Phản hồi RSVP</Link>
+      {detail.document.schemaVersion === 3 && (
+        <Link href={`/invitations/${id}/interactions`}>
+          Lời chúc & phản hồi biểu mẫu
+        </Link>
+      )}
       {!successOpen && status && (
         <LocalStatus tone="neutral">{status}</LocalStatus>
       )}

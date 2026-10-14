@@ -9,10 +9,28 @@ import {
 import { Button } from './button';
 import styles from './modal-surface.module.css';
 
+// WebKit does not focus a button on mouse click, so document.activeElement is <body>
+// when a surface opens. Remember the last pointer-pressed control as the trigger.
+let lastPressedControl: HTMLElement | null = null;
+if (typeof document !== 'undefined')
+  document.addEventListener(
+    'pointerdown',
+    (event) => {
+      lastPressedControl =
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>(
+              'button,a[href],input,select,textarea,summary,[tabindex]',
+            )
+          : null;
+    },
+    true,
+  );
+
 export type ModalSurfaceProps = {
   /** Visible heading and the dialog's accessible name. */
   label: string;
   variant?: 'drawer' | 'centered';
+  className?: string;
   /** Called exactly once when the user closes the surface (Close or Escape). */
   onClose: () => void;
   closeLabel?: string;
@@ -34,6 +52,7 @@ export type ModalSurfaceProps = {
 export function ModalSurface({
   label,
   variant = 'drawer',
+  className,
   onClose,
   closeLabel = 'Đóng',
   initialFocusRef,
@@ -65,9 +84,10 @@ export function ModalSurface({
     if (!dialog) return;
     const trigger =
       focusRefs.current.returnFocusRef?.current ??
-      (document.activeElement instanceof HTMLElement
+      (document.activeElement instanceof HTMLElement &&
+      document.activeElement !== document.body
         ? document.activeElement
-        : null);
+        : lastPressedControl);
     let closed = false;
     const finish = () => {
       if (closed) return;
@@ -110,7 +130,11 @@ export function ModalSurface({
   return (
     <dialog
       ref={dialogRef}
-      className={[styles.dialog, variant === 'centered' && styles.centered]
+      className={[
+        styles.dialog,
+        variant === 'centered' && styles.centered,
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
       aria-labelledby={titleId}

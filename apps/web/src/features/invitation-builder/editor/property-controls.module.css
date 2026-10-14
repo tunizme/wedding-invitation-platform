@@ -1,0 +1,906 @@
+/* Right-hand customisation panel controls. Scoped; platform colours stay in the host module. */
+.section {
+  margin-bottom: 8px;
+  border: 1px solid var(--studio-border, #e5e7eb);
+  border-radius: 4px;
+  background: #fff;
+}
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text, #29251f);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.sectionHeader:hover {
+  background: #fafafa;
+}
+.sectionHeader:focus-visible,
+.iconToggle:focus-visible,
+.segmented button:focus-visible,
+.stepper button:focus-visible {
+  outline: 2px solid var(--studio-accent, #1670cf);
+  outline-offset: 2px;
+}
+.sectionBody {
+  display: grid;
+  gap: 14px;
+  padding: 4px 16px 16px;
+  border-top: 0;
+}
+.sectionBody::before {
+  content: '';
+  border-top: 1px solid var(--studio-border, #e5e7eb);
+}
+.sectionBody[hidden] {
+  display: none;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  color: var(--color-text, #29251f);
+  font-size: 14px;
+}
+.rowLabel {
+  flex: 0 0 auto;
+  font-weight: 500;
+}
+.rowControl {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.rowControl select,
+.rowControl input:not([type='checkbox']),
+.rowControl textarea,
+.numberInput,
+.hexInput {
+  box-sizing: border-box;
+  min-height: 36px;
+  width: 100%;
+  max-width: 200px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+.numberInput {
+  max-width: 96px;
+  text-align: right;
+}
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 0 2px;
+}
+.iconToggle {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #fafafa;
+  color: var(--color-text, #29251f);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.iconToggle:hover {
+  background: var(--studio-border, #e5e7eb);
+}
+.iconToggle[aria-pressed='true'] {
+  border-color: var(--studio-accent, #1670cf);
+  background: var(--color-beige, #eaf3ff);
+  color: var(--studio-accent, #1670cf);
+}
+.segmented {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+}
+.segmented button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 34px;
+  border: 0;
+  border-right: 1px solid var(--color-control-border, #c7cbd1);
+  background: #fff;
+  color: var(--color-text, #29251f);
+  cursor: pointer;
+}
+.segmented button:last-child {
+  border-right: 0;
+}
+.segmented button[aria-pressed='true'] {
+  background: var(--studio-accent, #1670cf);
+  color: #fff;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+}
+.stepper button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+}
+.stepper button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.stepper input {
+  width: 52px;
+  height: 34px;
+  border: 0;
+  border-right: 1px solid var(--color-control-border, #c7cbd1);
+  border-left: 1px solid var(--color-control-border, #c7cbd1);
+  background: #fff;
+  font: inherit;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+.colorControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hexInput {
+  max-width: 108px;
+  font-variant-numeric: tabular-nums;
+}
+.swatch {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+.sliderBlock {
+  display: grid;
+  gap: 4px;
+}
+.slider {
+  width: 100%;
+  accent-color: var(--studio-accent, #1670cf);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--color-text-muted, #756e65);
+  font-size: 15px;
+}
+.hint {
+  margin: 0 0 12px;
+  color: var(--color-text-muted, #756e65);
+  font-size: 13px;
+  font-style: italic;
+}
+.actionRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.actionRow button,
+.buttonGrid button,
+.wideButton {
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-text, #29251f);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.actionRow button:hover:not(:disabled),
+.buttonGrid button:hover:not(:disabled),
+.wideButton:hover:not(:disabled) {
+  border-color: var(--studio-accent, #1670cf);
+  color: var(--studio-accent, #1670cf);
+}
+.actionRow button:disabled,
+.buttonGrid button:disabled,
+.wideButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.wideButton {
+  width: 100%;
+}
+.buttonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+}
+
+/* Applies the same look to older label-wrapped inputs (widget settings, form composer, page settings). */
+.legacyForm {
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--color-text, #29251f);
+}
+.legacyForm label {
+  display: grid;
+  gap: 6px;
+  font-weight: 500;
+}
+.legacyForm label:has(> input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.legacyForm
+  input:not([type='checkbox']):not([type='range']):not([type='color']),
+.legacyForm select,
+.legacyForm textarea {
+  box-sizing: border-box;
+  min-height: 36px;
+  width: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+.legacyForm textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+.legacyForm button {
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-text, #29251f);
+  font: inherit;
+  cursor: pointer;
+}
+.legacyForm button:hover:not(:disabled) {
+  border-color: var(--studio-accent, #1670cf);
+  color: var(--studio-accent, #1670cf);
+}
+.legacyForm button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.legacyForm h3 {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+.legacyForm fieldset {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--studio-border, #e5e7eb);
+  border-radius: 8px;
+}
+
+/* Higher specificity so the host panel's generic button/label rules cannot override these. */
+.section .sectionHeader {
+  justify-content: flex-start;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+.section .sectionHeader:hover {
+  background: #fafafa;
+}
+.section .row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.section .rowControl {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+.section .iconToggle {
+  border: 1px solid var(--studio-border, #e5e7eb);
+}
+.section .iconToggle[aria-pressed='true'] {
+  border-color: var(--studio-accent, #1670cf);
+}
+.section .segmented button,
+.section .stepper button {
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+.section .stepper input {
+  border-top: 0;
+  border-bottom: 0;
+  border-radius: 0;
+}
+
+.section .hexInput {
+  width: 112px;
+  min-width: 112px;
+  max-width: 112px;
+  padding-inline: 8px;
+}
+
+/* Touch: >=44px targets on narrow screens (ui-ux-pro-max touch-target-size). */
+@media (max-width: 767px) {
+  .section .sectionHeader,
+  .iconToggle,
+  .stepper button,
+  .stepper input,
+  .segmented button,
+  .rowControl select,
+  .rowControl input:not([type='checkbox']),
+  .numberInput,
+  .hexInput,
+  .actionRow button,
+  .buttonGrid button,
+  .wideButton {
+    min-height: 44px;
+  }
+  .segmented button,
+  .stepper button {
+    width: 44px;
+    height: 44px;
+  }
+  .swatch {
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section *,
+  .section *::before,
+  .section *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+.section .swatch {
+  flex: 0 0 32px;
+  min-width: 32px;
+  width: 32px;
+}
+.section .hexInput {
+  flex: 0 0 112px;
+}
+.section .colorControl {
+  flex: 0 0 auto;
+}
+
+/* Radio-style option list (effects tab). */
+.optionList {
+  display: grid;
+  gap: 8px;
+}
+.optionList button {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-control-border, #c7cbd1);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-text, #29251f);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.optionList button span {
+  color: var(--color-text-muted, #756e65);
+  font-size: 12px;
+}
+.optionList button:hover {
+  border-color: var(--studio-accent, #1670cf);
+}
+.optionList button[aria-checked='true'] {
+  border-color: var(--studio-accent, #1670cf);
+  background: var(--color-beige, #eaf3ff);
+  box-shadow: inset 0 0 0 1px var(--studio-accent, #1670cf);
+}
+.optionList button:focus-visible {
+  outline: 2px solid var(--studio-accent, #1670cf);
+  outline-offset: 2px;
+}
+
+.legacyForm .optionList button {
+  justify-items: start;
+  text-align: left;
+}
+
+.section .toggleRow {
+  gap: 0;
+  padding: 0;
+}
+.section .sectionHeader {
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.section .segmented button,
+.section .stepper button {
+  min-height: 32px;
+  height: 32px;
+  width: 32px;
+}
+.section .row .stepper input {
+  min-height: 32px;
+  height: 32px;
+  width: 52px;
+  padding: 4px;
+}
+.section .rowControl select {
+  min-height: 32px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.section .sliderBlock .numberInput {
+  width: 70px;
+  min-height: 32px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.section .toggleRow .iconToggle {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 32px;
+  height: 32px;
+  max-width: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+}
+.section .toggleRow .iconToggle[aria-pressed='true'],
+.section .toggleRow .iconToggle[data-active='true'] {
+  background: #eaf3ff;
+  color: var(--studio-accent, #1670cf);
+}
+.colorPair {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.compactColor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+}
+.colorSwatch,
+.section .colorSwatch,
+.legacyForm .colorSwatch {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 1px solid var(--studio-border, #d1d5db);
+  border-radius: 4px;
+  overflow: hidden;
+  background: repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%) 0 / 8px 8px;
+}
+.colorSwatch > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.numberControl,
+.section .row .numberControl,
+.section .compactColor .numberControl,
+.section .paddingDiagram .numberControl,
+.section .cornerGrid .numberControl {
+  box-sizing: border-box;
+  width: 60px;
+  max-width: 70px;
+  min-width: 0;
+  height: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--studio-border, #d1d5db);
+  border-radius: 4px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  text-align: center;
+}
+.section .linkControl {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.linkControl[aria-pressed='true'] {
+  color: var(--studio-accent, #1670cf);
+}
+.paddingDiagram {
+  display: grid;
+  grid-template-columns: 60px minmax(60px, 1fr) 60px;
+  grid-template-rows: 32px 48px 32px;
+  align-items: center;
+  justify-items: center;
+  gap: 10px 6px;
+  padding: 6px 0 12px;
+}
+.paddingTop {
+  grid-area: 1 / 2;
+}
+.paddingLeft {
+  grid-area: 2 / 1;
+}
+.paddingRight {
+  grid-area: 2 / 3;
+}
+.paddingBottom {
+  grid-area: 3 / 2;
+}
+.paddingBlock {
+  display: grid;
+  place-items: center;
+  grid-area: 2 / 2;
+  width: 100%;
+  height: 48px;
+  background: #e5e5e5;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+.cornerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.cornerGrid > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cornerMark {
+  width: 16px;
+  height: 16px;
+  border-top: 2px dashed #333;
+  border-left: 2px dashed #333;
+  border-top-left-radius: 4px;
+}
+.cornerMark[data-corner='topRight'] {
+  transform: rotate(90deg);
+  order: 1;
+}
+.cornerMark[data-corner='bottomLeft'] {
+  transform: rotate(-90deg);
+}
+.cornerMark[data-corner='bottomRight'] {
+  transform: rotate(180deg);
+  order: 1;
+}
+.section .switch {
+  position: relative;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 24px;
+  min-height: 24px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  background: #bfbfbf;
+}
+.switch > span {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 2px;
+  top: 2px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px #0002;
+}
+.section .switch[aria-checked='true'] {
+  background: var(--studio-accent, #1670cf);
+}
+.switch[aria-checked='true'] > span {
+  left: 22px;
+}
+.shadowGroup {
+  display: grid;
+  gap: 12px;
+}
+.shadowGroup + .shadowGroup {
+  padding-top: 10px;
+  border-top: 1px solid var(--studio-border, #e5e7eb);
+}
+.propertyPopover {
+  position: fixed;
+  inset: auto;
+  z-index: 10050;
+  box-sizing: border-box;
+  margin: 0;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #222;
+  box-shadow: 0 6px 24px #0002;
+  font-family: var(--font-platform-sans), Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.propertyPopover :is(button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--studio-accent, #1670cf);
+  outline-offset: 2px;
+}
+.propertyPopover .row {
+  gap: 6px;
+}
+.propertyPopover .rowLabel {
+  font-size: 13px;
+}
+.propertyPopover input[type='range'] {
+  width: 100%;
+  accent-color: var(--studio-accent, #1670cf);
+  cursor: pointer;
+}
+.colorPicker {
+  display: grid;
+  gap: 12px;
+}
+.colorPicker > strong {
+  font-size: 14px;
+}
+.colorPlane {
+  position: relative;
+  height: 140px;
+  border-radius: 4px;
+  background-image:
+    linear-gradient(to top, black, transparent),
+    linear-gradient(to right, white, transparent);
+  cursor: crosshair;
+  touch-action: none;
+}
+.colorPointer {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 1px 1px #444;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.colorSliderLabel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 12px;
+}
+.propertyPopover .colorSliderLabel {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.propertyPopover .colorSliderLabel input[type='range'],
+.propertyPopover .sliderBlock input[type='range'],
+.section .sliderBlock input[type='range'] {
+  box-sizing: border-box;
+  min-height: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.propertyPopover .hueSlider {
+  appearance: none;
+}
+.propertyPopover .hueSlider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, red, #ff0, #0f0, #0ff, #00f, #f0f, red);
+}
+.propertyPopover .hueSlider::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -4px;
+  border: 1px solid #c7cbd1;
+  border-radius: 50%;
+  background: white;
+}
+.propertyPopover .hueSlider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, red, #ff0, #0f0, #0ff, #00f, #f0f, red);
+}
+.hueSlider {
+  background: linear-gradient(to right, red, #ff0, #0f0, #0ff, #00f, #f0f, red);
+}
+.colorPalette {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+.propertyPopover .colorPalette button {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.colorPalette .transparentColor {
+  background:
+    linear-gradient(135deg, transparent 46%, #ef4444 47% 53%, transparent 54%),
+    repeating-conic-gradient(#ddd 0% 25%, white 0% 50%) 0 / 8px 8px;
+}
+.bindingSettings fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.bindingSettings legend {
+  display: none;
+}
+.bindingSettings label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.bindingSettings select,
+.bindingSettings input,
+.bindingSettings textarea {
+  min-width: 0;
+  width: 100%;
+}
+.bindingSettings button {
+  font-size: 13px;
+}
+.section .stackField {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+.section .stackField select,
+.section .stackField input,
+.section .actionInput {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid var(--studio-border, #d1d5db);
+  border-radius: 4px;
+  background: white;
+  color: #222;
+  font: inherit;
+}
+.help {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bankCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--studio-border, #e5e7eb);
+  border-radius: 6px;
+}
+.emptyBank {
+  margin: 0;
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  background: #f8fafc;
+  color: #64748b;
+}
+.section .smallAction {
+  min-height: 28px;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--studio-accent, #1670cf);
+  font-size: 12px;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .section .toggleRow .iconToggle {
+    min-height: 40px;
+    height: 40px;
+  }
+  .propertyPopover input {
+    font-size: 16px;
+  }
+  .section .colorSwatch {
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+  }
+  .section .segmented button,
+  .section .stepper button {
+    min-height: 40px;
+    height: 40px;
+    width: 40px;
+  }
+}

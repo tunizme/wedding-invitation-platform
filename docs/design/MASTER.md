@@ -688,3 +688,7 @@ Checklist dùng cho future screen implementation; không yêu cầu triển khai
 - [ ] Routes, authentication/authorization và valid backend behavior được preserve trừ migration được approved.
 - [ ] Unsupported capabilities ghi `BLOCKED: Backend capability required`; technical conflicts ghi rõ, không giải bằng invented behavior.
 - [ ] Cả năm câu Final Design Check đã được review; không có prohibited anti-pattern chưa được override.
+
+## Approved editor layout refinement — 2026-10-12
+
+The user explicitly requested the Cinelove new-blank layout from four supplied screenshots. Feature008 therefore scopes a white/gray/blue studio skin to the single500 editor: compact64px header,84px rail,334px collapsible library,340px properties panel, gray workspace and floating zoom. Original platform brand assets/fonts remain; global platform tokens and all other product surfaces retain the Warm Ivory system. Mobile tools continue to use accessible drawers with focus restoration. This supersedes earlier editor layout guidance only within this workspace.

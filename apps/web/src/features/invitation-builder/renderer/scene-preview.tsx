@@ -61,8 +61,7 @@ export function ScenePreview({
             ]);
         });
     };
-    const observer =
-      scene.schemaVersion === 2 ? new ResizeObserver(measure) : undefined;
+    const observer = new ResizeObserver(measure);
     observer?.observe(element);
     element.addEventListener('load', measure, true);
     element.addEventListener('error', measure, true);

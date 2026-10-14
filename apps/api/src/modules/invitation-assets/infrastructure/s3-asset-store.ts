@@ -45,7 +45,7 @@ export class S3AssetStore implements AssetStore, OnModuleDestroy {
   }
   private key(relative: string): string {
     if (
-      !/^[a-z0-9-]+(?:\/[a-z0-9-]+)*\.(?:webp|png)$/.test(relative) ||
+      !/^[a-z0-9-]+(?:\/[a-z0-9-]+)*\.(?:webp|png|mp3)$/.test(relative) ||
       relative.length > 256
     )
       throw new StorageUnavailableError();
@@ -109,7 +109,7 @@ export class S3AssetStore implements AssetStore, OnModuleDestroy {
   ): Promise<void> {
     const objectKey = this.key(key);
     if (
-      !['image/webp', 'image/png'].includes(contentType) ||
+      !['image/webp', 'image/png', 'audio/mpeg'].includes(contentType) ||
       !/^[a-f0-9]{64}$/.test(sha256) ||
       bytes.length === 0
     )
