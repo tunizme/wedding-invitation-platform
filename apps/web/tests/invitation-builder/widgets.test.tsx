@@ -1,3 +1,5 @@
+import { DirectWidgetControls } from '../../src/features/invitation-builder/editor/direct-widget-controls';
+import { widgetNode } from '../../src/features/invitation-builder/editor/defaults';
 import {
   act,
   cleanup,
@@ -122,13 +124,65 @@ describe('wedding widget display states', () => {
     const { rerender, container } = render(
       <MapWidget venue={venue} mode="public" />,
     );
-    expect(screen.getByText('1 Đường Hoa')).toBeInTheDocument();
+    expect(screen.queryByText('1 Đường Hoa')).toBeNull();
     expect(screen.getByRole('link', { name: /chỉ đường/i })).toHaveAttribute(
       'href',
       expect.stringContaining('destination=10.7769%2C106.7009'),
     );
     rerender(<MapWidget venue={venue} mode="capture" />);
     expect(container.querySelector('iframe')).toBeNull();
+  });
+
+  it('offers only address and optional map coordinates without defaulting them to zero', () => {
+    const onChange = vi.fn();
+    const node = widgetNode('Map');
+    const { rerender } = render(
+      <DirectWidgetControls node={node} onChange={onChange} />,
+    );
+    expect(screen.queryByLabelText('Tên địa điểm')).toBeNull();
+    expect(screen.getByLabelText('Vĩ độ')).toHaveValue(null);
+    expect(screen.getByLabelText('Kinh độ')).toHaveValue(null);
+    fireEvent.change(screen.getByLabelText('Địa chỉ'), {
+      target: { value: 'Hà Nội' },
+    });
+    expect(onChange).toHaveBeenLastCalledWith({ venue: { address: 'Hà Nội' } });
+    fireEvent.change(screen.getByLabelText('Vĩ độ'), {
+      target: { value: '21' },
+    });
+    node.props.content = {
+      ...node.props.content,
+      ...onChange.mock.lastCall?.[0],
+    };
+    rerender(<DirectWidgetControls node={node} onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText('Vĩ độ'), { target: { value: '' } });
+    expect(onChange.mock.lastCall?.[0].venue.latitude).toBeUndefined();
+  });
+
+  it('finds an address without coordinates and lets an explicit coordinate pair override it', () => {
+    const address = '1 Đường Hoa, Hà Nội';
+    const { container, rerender } = render(
+      <MapWidget venue={{ address }} mode="editor" />,
+    );
+    expect(container.querySelector('iframe')).toHaveAttribute(
+      'src',
+      expect.stringContaining(`q=${encodeURIComponent(address)}`),
+    );
+    expect(screen.queryByText(address)).toBeNull();
+    rerender(
+      <MapWidget
+        venue={{ address, latitude: 0, longitude: 106 }}
+        mode="public"
+      />,
+    );
+    expect(container.querySelector('iframe')).toHaveAttribute(
+      'src',
+      expect.stringContaining('q=0%2C106'),
+    );
+    rerender(<MapWidget venue={{ address, latitude: 10 }} mode="public" />);
+    expect(container.querySelector('iframe')).toHaveAttribute(
+      'src',
+      expect.stringContaining(`q=${encodeURIComponent(address)}`),
+    );
   });
 
   it('preserves saved timeline order', () => {
@@ -201,7 +255,7 @@ describe('wedding widget display states', () => {
       screen.getByRole('option', { name: 'Ảnh đang sử dụng' }),
     ).toHaveValue(photo);
   });
-  it('renders map label, fits iframe and preserves inherited calendar color', () => {
+  it('hides map text, fits iframe and preserves inherited calendar color', () => {
     const { container } = render(
       <div style={{ color: '#123456' }}>
         <CalendarWidget
@@ -221,7 +275,9 @@ describe('wedding widget display states', () => {
         />
       </div>,
     );
-    expect(screen.getByText('Nhãn tùy chỉnh')).toBeInTheDocument();
+    expect(screen.queryByText('Nhãn tùy chỉnh')).toBeNull();
+    expect(screen.queryByText('Venue')).toBeNull();
+    expect(screen.queryByText('Address')).toBeNull();
     expect(container.querySelector('iframe')).toHaveStyle({
       width: '100%',
       height: '100%',

@@ -1,6 +1,7 @@
 // Web-owned Zod definitions for primitive projection validation; verify changes against the shared corpus.
 
 import { z } from 'zod';
+import { FONT_IDS } from './font-catalog';
 
 const text = (max: number, min = 0) =>
   z
@@ -144,7 +145,7 @@ const field_padding: z.ZodType = z.strictObject({
 });
 
 const field_textStyle: z.ZodType = z.strictObject({
-  fontId: z.enum(['noto-sans-v1', 'noto-serif-v1']),
+  fontId: z.enum(FONT_IDS),
   fontSize: z.number().min(8).max(160),
   fontWeight: z.union([z.literal(400), z.literal(700)]),
   italic: z.boolean(),
@@ -250,6 +251,8 @@ const field_Image: z.ZodType = z.strictObject({
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
       borderRadii: field_cornerRadii.optional(),
+      background: field_background.optional(),
+      padding: field_padding.optional(),
     }),
     content: z.strictObject({
       assetId: z.union([
@@ -310,6 +313,7 @@ const field_Decoration: z.ZodType = z.strictObject({
       shadow: field_shadow,
       borderRadius: z.number().min(0).max(600).optional(),
       borderRadii: field_cornerRadii.optional(),
+      background: field_background.optional(),
     }),
     content: z.strictObject({
       assetId: z.union([
@@ -423,7 +427,10 @@ const field_Calendar: z.ZodType = z.strictObject({
       padding: field_padding,
     }),
     content: z.strictObject({
-      variant: z.enum(['classic', 'minimal', 'filled']).optional(),
+      event: z.lazy(() => field_event).optional(),
+      variant: z
+        .enum(['classic', 'minimal', 'filled', 'plain', 'ribbon', 'notebook'])
+        .optional(),
       textStyle: field_textStyle,
       accentColor: z
         .string()
@@ -475,9 +482,11 @@ const field_Countdown: z.ZodType = z.strictObject({
       padding: field_padding,
     }),
     content: z.strictObject({
+      event: z.lazy(() => field_event).optional(),
       textStyle: field_textStyle,
       label: text(120, 0),
       endedLabel: text(120, 0),
+      design: z.literal('boxed').optional(),
       layout: z.enum(['horizontal', 'vertical']).optional(),
       gap: z.number().min(0).max(40).optional(),
       frameColor: z
@@ -531,6 +540,7 @@ const field_Map: z.ZodType = z.strictObject({
       padding: field_padding,
     }),
     content: z.strictObject({
+      venue: z.lazy(() => field_venue).optional(),
       textStyle: field_textStyle,
       label: text(120, 0),
     }),
@@ -581,6 +591,12 @@ const field_RSVP: z.ZodType = z.strictObject({
       title: text(120, 0),
       closedLabel: text(120, 0),
       successLabel: text(120, 0),
+      design: z.literal('invitation').optional(),
+      attendanceLabel: text(120, 0).optional(),
+      inputBorderColor: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{8}$/)
+        .optional(),
       nameLabel: text(120, 0).optional(),
       submitLabel: text(120, 0).optional(),
       buttonColor: z
@@ -691,6 +707,7 @@ const field_QRBank: z.ZodType = z.strictObject({
       padding: field_padding,
     }),
     content: z.strictObject({
+      bank: z.lazy(() => field_bank).optional(),
       textStyle: field_textStyle,
       label: text(120, 0),
     }),
@@ -748,6 +765,7 @@ const field_Timeline: z.ZodType = z.strictObject({
       padding: field_padding,
     }),
     content: z.strictObject({
+      entries: z.lazy(() => field_timeline).optional(),
       textStyle: field_textStyle,
       accentColor: z
         .string()

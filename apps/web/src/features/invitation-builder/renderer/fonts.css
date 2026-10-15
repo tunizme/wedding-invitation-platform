@@ -205,3 +205,660 @@
     U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
     U+2215, U+FEFF, U+FFFD;
 }
+
+@font-face {
+  font-family: 'Invitation Be Vietnam Pro v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/be-vietnam-pro-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Be Vietnam Pro v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/be-vietnam-pro-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Be Vietnam Pro v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/be-vietnam-pro-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Be Vietnam Pro v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/be-vietnam-pro-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Inter v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/inter-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Inter v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/inter-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Inter v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/inter-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Inter v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/inter-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Montserrat v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/montserrat-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Montserrat v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/montserrat-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Montserrat v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/montserrat-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Montserrat v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/montserrat-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito Sans v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-sans-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito Sans v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-sans-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito Sans v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-sans-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Nunito Sans v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/nunito-sans-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Quicksand v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/quicksand-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Quicksand v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/quicksand-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Raleway v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/raleway-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Raleway v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/raleway-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Raleway v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/raleway-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Raleway v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/raleway-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Oswald v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/oswald-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Oswald v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/oswald-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Merriweather v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/merriweather-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Merriweather v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/merriweather-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Merriweather v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/merriweather-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Merriweather v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/merriweather-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Lora v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/lora-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Lora v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/lora-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Lora v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/lora-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Lora v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/lora-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Cormorant Garamond v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/cormorant-garamond-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Cormorant Garamond v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/cormorant-garamond-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Cormorant Garamond v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/cormorant-garamond-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Cormorant Garamond v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/cormorant-garamond-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation EB Garamond v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/eb-garamond-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation EB Garamond v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/eb-garamond-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation EB Garamond v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/eb-garamond-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation EB Garamond v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/eb-garamond-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bitter v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bitter-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bitter v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bitter-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bitter v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bitter-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bitter v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bitter-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Crimson Pro v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/crimson-pro-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Crimson Pro v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/crimson-pro-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Crimson Pro v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/crimson-pro-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Crimson Pro v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/crimson-pro-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Dancing Script v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/dancing-script-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Dancing Script v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/dancing-script-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Great Vibes v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/great-vibes-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Allura v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/allura-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Moon Dance v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/moon-dance-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Style Script v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/style-script-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Charm v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/charm-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Charm v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/charm-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bai Jamjuree v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bai-jamjuree-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bai Jamjuree v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bai-jamjuree-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bai Jamjuree v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bai-jamjuree-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Bai Jamjuree v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/bai-jamjuree-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Mali v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/mali-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Mali v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/mali-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Mali v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/mali-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Mali v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/mali-v1-full-700-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation Sriracha v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/sriracha-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation IBM Plex Serif v1';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/ibm-plex-serif-v1-full-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation IBM Plex Serif v1';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/ibm-plex-serif-v1-full-700-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation IBM Plex Serif v1';
+  font-style: italic;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/invitation-builder/ibm-plex-serif-v1-full-400-italic.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Invitation IBM Plex Serif v1';
+  font-style: italic;
+  font-weight: 700;
+  font-display: block;
+  src: url('/fonts/invitation-builder/ibm-plex-serif-v1-full-700-italic.woff2')
+    format('woff2');
+}

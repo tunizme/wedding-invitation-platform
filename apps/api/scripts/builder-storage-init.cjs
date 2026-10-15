@@ -125,6 +125,7 @@ async function provision(env = process.env) {
   const hardDeadline = Date.now() + 60_000;
   const workDeadline = hardDeadline - 5_000;
   const config = configuration(env);
+  const nativeClient = env.BUILDER_MC_EXECUTABLE;
   const scratch = await mkdtemp(join(tmpdir(), 'builder-storage-init-'));
   const hostEnvFile = join(scratch, 'mc-host.env');
   const ownedContainers = new Set();
@@ -132,7 +133,12 @@ async function provision(env = process.env) {
   const interrupt = () => controller.abort();
   process.once('SIGINT', interrupt);
   process.once('SIGTERM', interrupt);
-  const execute = (args, deadline = workDeadline, signal = controller.signal) =>
+  const execute = (
+    args,
+    deadline = workDeadline,
+    signal = controller.signal,
+    native = false,
+  ) =>
     new Promise((resolve, reject) => {
       const remaining = deadline - Date.now();
       if (remaining <= 0 || signal?.aborted)
@@ -140,7 +146,11 @@ async function provision(env = process.env) {
           new Error('Storage provisioning interrupted or timed out.'),
         );
       // Do not forward mc output or command arguments: either can contain secrets.
-      const child = spawn('docker', args, { stdio: 'ignore', shell: false });
+      const child = spawn(native ? nativeClient : 'docker', args, {
+        stdio: 'ignore',
+        shell: false,
+        ...(native ? { env: { ...env, MC_HOST_builder: mcHostValue } } : {}),
+      });
       const abort = () => child.kill('SIGKILL');
       const timer = setTimeout(abort, remaining);
       signal?.addEventListener('abort', abort, { once: true });
@@ -150,7 +160,9 @@ async function provision(env = process.env) {
       };
       child.once('error', () => {
         cleanup();
-        reject(new Error('Storage provisioning could not start Docker.'));
+        reject(
+          new Error('Storage provisioning could not start the storage client.'),
+        );
       });
       child.once('close', (code) => {
         cleanup();
@@ -163,7 +175,17 @@ async function provision(env = process.env) {
             );
       });
     });
+  let mcHostValue;
   const mc = async (...args) => {
+    if (nativeClient) {
+      await execute(
+        ['--config-dir', scratch, '--json', ...args],
+        workDeadline,
+        controller.signal,
+        true,
+      );
+      return;
+    }
     const name = `builder-storage-init-${randomUUID()}`;
     ownedContainers.add(name);
     await execute([
@@ -191,6 +213,7 @@ async function provision(env = process.env) {
     const mcHost = new URL(config.accounts[0].endpoint);
     mcHost.username = config.rootUser;
     mcHost.password = config.rootPassword;
+    mcHostValue = mcHost.href.replace(/\/$/, '');
     // MC_HOST takes precedence over persisted aliases. The pinned mc image
     // may ignore a prewritten config.json alias when creating buckets.
     await writeFile(
@@ -224,7 +247,7 @@ async function provision(env = process.env) {
         'create',
         'builder',
         name,
-        `/config/${policyFile}`,
+        nativeClient ? join(scratch, policyFile) : `/config/${policyFile}`,
       );
       await mc(
         'admin',

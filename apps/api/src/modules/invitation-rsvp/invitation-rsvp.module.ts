@@ -7,6 +7,7 @@ import { RsvpControlService } from './application/rsvp-control.service';
 import { RsvpRetentionWorker } from './infrastructure/rsvp-retention.worker';
 import {
   OwnerRsvpController,
+  AdminRsvpController,
   PublicRsvpController,
 } from './http/rsvp.controller';
 @Module({
@@ -14,7 +15,7 @@ import {
     InvitationBuilderConfigModule,
     TypeOrmModule.forFeature(rsvpEntities),
   ],
-  controllers: [OwnerRsvpController, PublicRsvpController],
+  controllers: [OwnerRsvpController, PublicRsvpController, AdminRsvpController],
   providers: [RsvpService, RsvpControlService, RsvpRetentionWorker],
   exports: [RsvpService, RsvpControlService],
 })

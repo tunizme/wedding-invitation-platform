@@ -4,7 +4,10 @@ import { isEmail } from 'class-validator';
 
 export interface VerificationEmail {
   purpose?:
-    'LOCAL_EMAIL_VERIFICATION' | 'PASSWORD_RESET' | 'SOCIAL_EMAIL_VERIFICATION';
+    | 'LOCAL_EMAIL_VERIFICATION'
+    | 'PASSWORD_RESET'
+    | 'SOCIAL_EMAIL_VERIFICATION'
+    | 'CUSTOMER_INVITATION';
   to: string;
   link: string;
   idempotencyKey: string;
@@ -13,6 +16,11 @@ export interface EmailSender {
   send(message: VerificationEmail): Promise<string>;
 }
 function content(message: VerificationEmail) {
+  if (message.purpose === 'CUSTOMER_INVITATION')
+    return {
+      subject: 'Kích hoạt tài khoản quản lý thiệp',
+      text: `Bạn được mời quản lý thiệp và khách mời. Đặt mật khẩu bằng liên kết sau:\n${message.link}\nLiên kết có hiệu lực trong 24 giờ.`,
+    };
   if (message.purpose === 'PASSWORD_RESET')
     return {
       subject: 'Đặt lại mật khẩu của bạn',

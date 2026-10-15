@@ -261,7 +261,7 @@ describe.sequential(
         }),
       );
       await expect(
-        f.refs.delete(pendingAsset.id, admin.principal, budget()),
+        f.refs.assertUnreferenced(f.db.manager, pendingAsset.id),
       ).rejects.toMatchObject({ problemCode: 'ASSET_IN_USE' });
       await expect(insert(template.id)).rejects.toMatchObject({
         code: '23505',
@@ -427,9 +427,9 @@ describe.sequential(
           owner.principal,
         );
       });
-      // No visible photo in emptyScene, but retained data still protects deletion.
+      // Retained data is indexed even when emptyScene has no visible photo.
       await expect(
-        f.refs.delete(photo.id, owner.principal, budget()),
+        f.refs.assertUnreferenced(f.db.manager, photo.id),
       ).rejects.toMatchObject({ problemCode: 'ASSET_IN_USE' });
       const scope = {
         kind: 'invitation' as const,
@@ -489,11 +489,9 @@ describe.sequential(
           [template.id, cover.id],
         );
       });
+      await f.refs.delete(cover.id, admin.principal, budget());
       await expect(
-        f.refs.delete(cover.id, admin.principal, budget()),
-      ).rejects.toMatchObject({ problemCode: 'ASSET_IN_USE' });
-      await expect(
-        f.refs.assertUnreferenced(f.db.manager, revision.thumbnail_asset_id),
+        f.refs.assertUnreferenced(f.db.manager, revision.thumbnail_asset_id!),
       ).rejects.toMatchObject({ problemCode: 'ASSET_IN_USE' });
       const reusable = await f.asset(admin.principal);
       expect(
@@ -551,9 +549,14 @@ describe.sequential(
             );
             await waitForBlocked(f.db, deleting);
             await saving.commitTransaction();
-            expect((await deletion).error).toMatchObject({
-              problemCode: 'ASSET_IN_USE',
-            });
+            expect((await deletion).error).toBeUndefined();
+            await deleting.commitTransaction();
+            expect(
+              await f.db.query(
+                'SELECT asset_id FROM template_draft_asset_refs WHERE asset_id=$1',
+                [asset.id],
+              ),
+            ).toEqual([]);
           } else {
             await f.refs.beginDelete(
               deleting.manager,

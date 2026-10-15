@@ -1,3 +1,4 @@
+import { FONT_CATALOG } from '../domain/font-catalog';
 import { Inject } from '@nestjs/common';
 import { chromium, type Browser, type BrowserContext } from 'playwright';
 import type { InvitationBuilderEnvironment } from '../../../config/invitation-builder.environment';
@@ -37,6 +38,19 @@ type RenderReport = {
   captureRect: { x: number; y: number; width: number; height: number };
   hasVisibleRsvp: boolean;
 };
+
+const renderFontPaths = new Set(
+  FONT_CATALOG.flatMap((font) =>
+    font.faces.flatMap((face) =>
+      (font.id.startsWith('noto-') ? ['vietnamese', 'latin'] : ['full']).map(
+        (subset) =>
+          `/fonts/invitation-builder/${font.id}-${subset}-${face.weight}-${face.style}.woff2`,
+      ),
+    ),
+  ),
+);
+export const approvedRenderFontPath = (path: string) =>
+  renderFontPaths.has(path);
 
 export class ChromiumRenderer {
   constructor(
@@ -103,9 +117,13 @@ export class ChromiumRenderer {
         if (
           !requestUrl.search &&
           !requestUrl.hash &&
-          /^\/fonts\/invitation-builder\/noto-(sans|serif)-v1-(vietnamese|latin)-(400|700)-(normal|italic)\.woff2$/.test(
-            requestUrl.pathname,
-          )
+          approvedRenderFontPath(requestUrl.pathname)
+        )
+          return route.continue();
+        if (
+          process.env.NODE_ENV !== 'production' &&
+          !requestUrl.search &&
+          requestUrl.pathname === '/__nextjs_font/geist-latin.woff2'
         )
           return route.continue();
         const match = /^\/__render-assets\/([0-9a-f-]{36})$/i.exec(

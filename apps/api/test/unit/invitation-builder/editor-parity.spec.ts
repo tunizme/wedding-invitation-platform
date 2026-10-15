@@ -27,7 +27,8 @@ it('serializes the native 500px document and optional presentation fields consis
   document.settings.pageAnimation = 'fade-mix';
   for (const id of document.nodes.ROOT.nodes) {
     const content = (document.nodes[id] as CanvasNode).props.content;
-    if ('textStyle' in content) content.textStyle.strike = true;
+    if ('textStyle' in content && content.textStyle)
+      content.textStyle.strike = true;
     if (document.nodes[id].type.resolvedName === 'Countdown')
       Object.assign(content, {
         layout: 'vertical',
@@ -55,4 +56,37 @@ it('serializes the native 500px document and optional presentation fields consis
       process.env.RESPONSIVE_PARITY_OUTPUT,
       JSON.stringify(results),
     );
+});
+
+it('validates persisted stack and feature carousel layouts and rejects unknown layouts', () => {
+  const fixtures = resolve(
+    __dirname,
+    '../../../../../specs/004-invitation-builder/contracts/fixtures',
+  );
+  const document = scalePrimitiveDocument(
+    JSON.parse(
+      readFileSync(resolve(fixtures, 'all-elements.json'), 'utf8'),
+    ) as TemplateDesign,
+  );
+  const id = document.nodes.ROOT.nodes[0];
+  const node = document.nodes[id] as CanvasNode;
+  Object.assign(node, {
+    type: { resolvedName: 'Carousel' },
+    displayName: 'Carousel',
+  });
+  node.props.bindings = [];
+  node.props.content = {
+    label: 'Ảnh cưới',
+    field: null,
+    assetIds: [],
+    carouselLayout: 'stack',
+  };
+  for (const carouselLayout of ['classic', 'stack', 'feature']) {
+    Object.assign(node.props.content, { carouselLayout });
+    expect(
+      validateEditorDocument(JSON.parse(JSON.stringify(document))).valid,
+    ).toBe(true);
+  }
+  Object.assign(node.props.content, { carouselLayout: 'unknown' });
+  expect(validateEditorDocument(document).valid).toBe(false);
 });

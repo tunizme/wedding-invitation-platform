@@ -19,6 +19,7 @@ export function PropertyPopover({
   style,
   width = 240,
   pressed = false,
+  disabled = false,
 }: {
   label: string;
   trigger: ReactNode;
@@ -27,6 +28,7 @@ export function PropertyPopover({
   style?: React.CSSProperties;
   width?: number;
   pressed?: boolean;
+  disabled?: boolean;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -117,6 +119,7 @@ export function PropertyPopover({
       <button
         ref={triggerRef}
         type="button"
+        disabled={disabled}
         aria-label={label}
         title={label}
         aria-expanded={open}

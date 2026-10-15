@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
   Controller,
+  Body,
   Get,
   HttpCode,
   Inject,
@@ -16,6 +17,7 @@ import {
   CustomerQueryService,
   type CustomerListInput,
 } from './customer-query.service';
+import { CustomerInvitationService } from './customer-invitation.service';
 import { CustomerStatusService } from './customer-status.service';
 
 const uuid =
@@ -69,8 +71,19 @@ export class CustomerController {
     private readonly customers: CustomerQueryService,
     @Inject(CustomerStatusService)
     private readonly statuses: CustomerStatusService,
+    @Inject(CustomerInvitationService)
+    private readonly invitations: CustomerInvitationService,
   ) {}
 
+  @Post('invite')
+  invite(
+    @Req() request: AuthenticatedRequest,
+    @Body() body: { email?: unknown },
+  ) {
+    if (!body || Object.keys(body).some((key) => key !== 'email'))
+      throw new UnprocessableEntityException();
+    return this.invitations.invite(request.principal.userId, body.email);
+  }
   @Get()
   list(@Query() query: Record<string, unknown>) {
     return this.customers.list(listInput(query));

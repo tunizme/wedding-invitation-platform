@@ -1,5 +1,6 @@
 import {
   validateEditorDocument,
+  isAdvanced,
   type EditorDocument,
   type CanvasNode,
   type NodeOptions,
@@ -14,7 +15,12 @@ import type {
 export type EditorCommand =
   | { type: 'box'; id: string; value: Partial<Box> }
   | { type: 'appearance'; id: string; value: Partial<Appearance> }
-  | { type: 'content'; id: string; value: Record<string, unknown> }
+  | {
+      type: 'content';
+      id: string;
+      value: Record<string, unknown>;
+      box?: Partial<Box>;
+    }
   | { type: 'rename'; id: string; value: string }
   | { type: 'binding'; id: string; value: Binding[] }
   | { type: 'optional'; id: string; value: boolean }
@@ -43,7 +49,11 @@ export type DocumentCommand =
       sourceIds?: string[];
     }
   | { type: 'settings'; value: EditorDocument['settings'] }
-  | { type: 'replace'; value: EditorDocument };
+  | { type: 'replace'; value: EditorDocument }
+  /** Crop confirmation: options and the matching frame size in one undo step. */
+  | { type: 'crop'; id: string; options: NodeOptions; box?: Partial<Box> }
+  /** Removes elements together, e.g. those using a deleted library asset. */
+  | { type: 'delete-many'; ids: string[] };
 export interface DocumentHistory {
   past: EditorDocument[];
   present: EditorDocument;
@@ -157,6 +167,17 @@ export function applyDocumentCommand(
       b[a] = p;
       p += b[size] + gap;
     }
+  } else if (c.type === 'delete-many') {
+    const gone = new Set(c.ids);
+    for (const id of gone) {
+      require(id);
+      delete d.nodes[id];
+      delete d.nodeOptions[id];
+    }
+    for (const option of Object.values(d.nodeOptions))
+      if (option.action?.kind === 'scroll' && gone.has(option.action.value))
+        delete option.action;
+    d.nodes.ROOT.nodes = ordered.filter((id) => !gone.has(id));
   } else if ('id' in c) {
     const n = require(c.id);
     if (n.custom.locked && !(c.type === 'lock' && !c.value))
@@ -197,16 +218,28 @@ export function applyDocumentCommand(
         n.props.appearance = { ...n.props.appearance, ...c.value };
         break;
       case 'content':
+        if (
+          ['text', 'assetId', 'event', 'venue', 'bank', 'entries'].some((key) =>
+            Object.hasOwn(c.value, key),
+          )
+        )
+          n.props.bindings = [];
         n.props.content = {
           ...n.props.content,
           ...c.value,
         } as CanvasNode['props']['content'];
+        if (isAdvanced(n)) n.props.content.field = null;
+        if (c.box) n.props.box = { ...n.props.box, ...c.box };
         break;
       case 'binding':
         n.props.bindings = c.value as typeof n.props.bindings;
         break;
       case 'options':
         d.nodeOptions[c.id] = c.value;
+        break;
+      case 'crop':
+        d.nodeOptions[c.id] = structuredClone(c.options);
+        if (c.box) n.props.box = { ...n.props.box, ...c.box };
         break;
       case 'rename':
         n.custom.layerName = c.value.trim();
@@ -304,4 +337,28 @@ export class GestureSession {
     this.ended = true;
     return { ...this.initial };
   }
+}
+/** Elements whose authored content or frame references a library asset. */
+export function nodesUsingAsset(
+  document: EditorDocument,
+  assetId: string,
+): string[] {
+  return document.nodes.ROOT.nodes.filter((id) => {
+    const node = document.nodes[id] as CanvasNode;
+    const content = node.props.content as {
+      assetId?: string | null;
+      posterId?: string | null;
+      assetIds?: string[];
+    };
+    const background = node.props.appearance.background;
+    return (
+      content.assetId === assetId ||
+      content.posterId === assetId ||
+      !!content.assetIds?.includes(assetId) ||
+      (background?.kind === 'asset' && background.assetId === assetId) ||
+      node.props.bindings.some(
+        (binding) => 'fallback' in binding && binding.fallback === assetId,
+      )
+    );
+  });
 }

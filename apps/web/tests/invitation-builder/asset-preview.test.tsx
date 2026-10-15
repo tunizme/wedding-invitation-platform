@@ -101,4 +101,56 @@ describe('protected asset preview lifecycle', () => {
       expect(revoke).toHaveBeenCalledWith('blob:asset-preview'),
     );
   });
+  it('renders a valid image without waiting for another image that later fails', async () => {
+    sessionStore.set(privateSession());
+    const missing = {
+      ...asset,
+      id: 'missing',
+      previewUrl: '/api/v1/assets/missing/content',
+    };
+    let fail!: (error: Error) => void;
+    builderRequest.mockImplementation((path: string) =>
+      path.includes('/missing/')
+        ? new Promise<Blob>((_, reject) => {
+            fail = reject;
+          })
+        : Promise.resolve(new Blob(['valid pixels'])),
+    );
+    const create = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValue('blob:valid');
+    const revoke = vi
+      .spyOn(URL, 'revokeObjectURL')
+      .mockImplementation(() => {});
+    const view = render(<Harness assets={[asset, missing]} />);
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('blob:valid'),
+    );
+    await act(async () => fail(new Error('404 Not Found')));
+    expect(screen.getByRole('status')).toHaveTextContent('blob:valid');
+    expect(create).toHaveBeenCalledOnce();
+    view.unmount();
+    expect(revoke).toHaveBeenCalledWith('blob:valid');
+  });
+  it('keeps late successful images after another image in the same batch fails first', async () => {
+    sessionStore.set(privateSession());
+    const missing = {
+      ...asset,
+      id: 'missing',
+      previewUrl: '/api/v1/assets/missing/content',
+    };
+    let finish!: (value: Blob) => void;
+    builderRequest.mockImplementation((path: string) =>
+      path.includes('/missing/')
+        ? Promise.reject(new Error('404 Not Found'))
+        : new Promise<Blob>((resolve) => {
+            finish = resolve;
+          }),
+    );
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:late-valid');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    render(<Harness assets={[missing, asset]} />);
+    await act(async () => finish(new Blob(['valid pixels'])));
+    expect(screen.getByRole('status')).toHaveTextContent('blob:late-valid');
+  });
 });

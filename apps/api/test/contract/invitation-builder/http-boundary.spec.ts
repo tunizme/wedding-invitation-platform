@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   type INestApplication,
 } from '@nestjs/common';
@@ -27,8 +28,14 @@ class BoundaryProbe {
     'invitations/example/data',
     'public/invitations/example/rsvps',
     'auth/login',
+    'invitations/example/guests/import',
+    'admin/invitations/example/guests/import',
   ])
   echo(@Body() body: unknown) {
+    return { parsed: !!body };
+  }
+  @Patch('admin/invitations/example/draft')
+  draft(@Body() body: unknown) {
     return { parsed: !!body };
   }
   @Get('probe/issues')
@@ -87,6 +94,33 @@ describe('builder HTTP boundaries alongside IAM', () => {
         .send({ data: 'a'.repeat(rejected) })
         .expect(413);
       expect(problem(response).code).toBe('PAYLOAD_TOO_LARGE');
+    }
+  });
+  it('accepts managed drafts near 1 MiB and large guest imports on both role routes', async () => {
+    await request(app.getHttpServer())
+      .patch('/api/v1/admin/invitations/example/draft')
+      .send({ data: 'a'.repeat(1024 * 1024 - 100) })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch('/api/v1/admin/invitations/example/draft')
+      .send({ data: 'a'.repeat(1536 * 1024) })
+      .expect(413);
+    const guests = Array.from({ length: 1000 }, (_, index) => ({
+      name: `Khách ${index} ${'Á'.repeat(90)}`,
+      group: 'Nhóm gia đình '.repeat(6),
+    }));
+    expect(Buffer.byteLength(JSON.stringify({ guests }))).toBeGreaterThan(
+      272 * 1024,
+    );
+    for (const prefix of ['invitations', 'admin/invitations']) {
+      await request(app.getHttpServer())
+        .post(`/api/v1/${prefix}/example/guests/import`)
+        .send({ guests })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/${prefix}/example/guests/import`)
+        .send({ data: 'a'.repeat(1536 * 1024) })
+        .expect(413);
     }
   });
   it('rejects malformed JSON and unsupported encoding without reflecting input', async () => {

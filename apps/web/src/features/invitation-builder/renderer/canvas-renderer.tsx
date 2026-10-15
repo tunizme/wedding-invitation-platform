@@ -11,7 +11,15 @@ import { frameStyle, backgroundStyle } from './primitives';
 import { RenderElement } from './render-element';
 import { AdvancedWidget } from './content-widgets';
 import { InvitationPresentation } from './invitation-presentation';
+import { cropShapeStyle } from './crop-shapes';
 import styles from './canvas-renderer.module.css';
+
+const LEGACY_MASKS: readonly NonNullable<NodeOptions['mask']>[] = [
+  'none',
+  'circle',
+  'arch',
+  'heart',
+];
 
 type PageAnimation = NonNullable<EditorScene['settings']['pageAnimation']>;
 // Entrance applied to elements that do not set their own (FR-014 whole-page presets).
@@ -125,6 +133,10 @@ export function CanvasElement({
               options.mask === 'heart'
                 ? 'polygon(50% 95%,0 35%,5% 10%,25% 0,50% 20%,75% 0,95% 10%,100% 35%)'
                 : undefined,
+            // Legacy masks keep their CSS geometry; newer shapes use SVG masks.
+            ...(options.mask && !LEGACY_MASKS.includes(options.mask)
+              ? cropShapeStyle(options.mask)
+              : {}),
           } as CSSProperties
         }
       >

@@ -1,4 +1,6 @@
 'use client';
+import { directEditorDocument } from '../document/direct-editor-document';
+import { ManagedAssetsContext } from './managed-assets-context';
 import { ElementContextMenu, type ContextAction } from './element-context-menu';
 import { canonicalJson } from '../document/validation-helpers';
 import { useRouter } from 'next/navigation';
@@ -23,7 +25,6 @@ import {
   Music2,
   CalendarDays,
   Layers,
-  Settings2,
   Sparkles,
   Copy,
   Menu,
@@ -104,8 +105,6 @@ import {
   type AdvancedKind,
   type EditorDocument,
 } from '../document/editor-document';
-import type { WeddingData } from '../document/types';
-import { formFieldsForDesign } from '../document/binding-catalog';
 import { resolveEditorDocument } from '../document/editor-document';
 import { CanvasElement } from '../renderer/canvas-renderer';
 import { PublicInvitationView } from '../../invitations/public-invitation-view';
@@ -117,8 +116,11 @@ import {
   NumberProperty,
 } from './editor-properties';
 import { AssetLibrary, type Preset } from './asset-library';
-import { ContentFields } from './content-fields';
-import { SampleDataPanel } from './sample-data-panel';
+import { EffectsPanel } from './effects-panel';
+import { FallingEffects } from '../renderer/falling-effects';
+import { MusicSettingsPanel } from './music-settings-panel';
+import { EditorMusicButton } from './editor-music-button';
+import { selectAudioTrack } from './audio-trim';
 import {
   applyDocumentCommand,
   commitDocument,
@@ -126,6 +128,7 @@ import {
   undoDocument,
   redoDocument,
   duplicateSelection,
+  nodesUsingAsset,
   type DocumentCommand,
   type DocumentHistory,
 } from './editor-commands';
@@ -182,11 +185,8 @@ const tabs = [
   ['music', 'Âm nhạc', Music2],
   ['widgets', 'Tiện ích', CalendarDays],
   ['preset', 'Preset', Copy],
-  ['templates', 'Mẫu', Layers],
   ['effects', 'Hiệu ứng', Sparkles],
   ['layers', 'Lớp', Layers],
-  ['settings', 'Cài đặt', Settings2],
-  ['data', 'Dữ liệu mẫu', Settings2],
 ] as const;
 type Tab = (typeof tabs)[number][0];
 function subscribeNarrow(callback: () => void) {
@@ -260,20 +260,61 @@ function newNode(kind: NodeKind): CanvasNode {
       box: {
         x: 30,
         y: 40,
-        width: 440,
-        height: type === 'CustomForm' ? 440 : type === 'Album' ? 360 : 240,
+        width:
+          type === 'GuestName'
+            ? base.props.box.width
+            : type === 'Contact'
+              ? 130
+              : type === 'Reminder'
+                ? 180
+                : 440,
+        height:
+          type === 'GuestName'
+            ? base.props.box.height
+            : type === 'Contact' || type === 'Reminder'
+              ? 40
+              : type === 'CustomForm'
+                ? 440
+                : type === 'Carousel'
+                  ? 480
+                  : type === 'Album'
+                    ? 360
+                    : 240,
         rotation: 0,
       },
       bindings: [],
       content: {
         label: componentNames[kind],
+        ...(kind === 'GuestName' && 'textStyle' in base.props.content
+          ? { textStyle: base.props.content.textStyle }
+          : {}),
         field: ['Album', 'Carousel', 'YouTube', 'Contact'].includes(kind)
           ? kind.toLowerCase() + '_' + crypto.randomUUID().slice(0, 8)
           : null,
         ...(kind === 'Album' || kind === 'Carousel' ? { assetIds: [] } : {}),
+        ...(kind === 'Carousel' ? { carouselLayout: 'stack' as const } : {}),
         ...(kind === 'YouTube' ? { videoId: '', posterId: null } : {}),
-        ...(kind === 'Contact' ? { phone: '' } : {}),
-        ...(kind === 'Reminder' ? { eventKey: 'ceremony' as const } : {}),
+        ...(kind === 'Contact'
+          ? {
+              phone: '',
+              label: 'Gọi ngay',
+              showIcon: true,
+              iconSize: 16,
+              iconColor: '#FFFFFFFF',
+              fontSize: 16,
+              buttonColor: '#FF5057FF',
+              textColor: '#FFFFFFFF',
+            }
+          : {}),
+        ...(kind === 'Reminder'
+          ? {
+              eventKey: 'ceremony' as const,
+              label: 'Thêm lời nhắc',
+              fontSize: 14,
+              buttonColor: '#FF5057FF',
+              textColor: '#FFFFFFFF',
+            }
+          : {}),
         ...(kind === 'CustomForm'
           ? {
               fields: [
@@ -301,11 +342,19 @@ export default function InvitationEditor(props: {
   );
   if (!owner || props.initial.draftDocument.schemaVersion !== 3) return null;
   return (
-    <OwnedInvitationEditor
-      key={owner}
-      initial={props.initial as EditorDetail}
-      onSaved={props.onSaved}
-    />
+    <ManagedAssetsContext.Provider
+      value={
+        props.initial.resourceKind === 'INVITATION'
+          ? props.initial.id
+          : undefined
+      }
+    >
+      <OwnedInvitationEditor
+        key={owner}
+        initial={props.initial as EditorDetail}
+        onSaved={props.onSaved}
+      />
+    </ManagedAssetsContext.Provider>
   );
 }
 function OwnedInvitationEditor({
@@ -315,11 +364,20 @@ function OwnedInvitationEditor({
   initial: EditorDetail;
   onSaved: (v: TemplateDetail) => void;
 }) {
+  const managed = initial.resourceKind === 'INVITATION';
+  const [previewAsOf] = useState(() => new Date().toISOString());
+  const resourcePath = managed
+    ? `/admin/invitations/${initial.id}`
+    : `/admin/templates/${initial.id}`;
+  const listPath = managed ? '/admin/invitations' : '/admin/templates';
   const lifetime = useOperationLifetime(`InvitationEditor:${initial.id}`),
     owner = sessionStore.get()!.user.id;
   const [history, setHistory] = useState<DocumentHistory>({
       past: [],
-      present: initial.draftDocument,
+      present: directEditorDocument(
+        initial.draftDocument,
+        initial.draftSampleData,
+      ),
       future: [],
     }),
     historyRef = useRef(history),
@@ -348,7 +406,8 @@ function OwnedInvitationEditor({
     [status, setStatus] = useState('Đã lưu'),
     [saving, setSaving] = useState(false),
     [conflict, setConflict] = useState(false),
-    [publishing, setPublishing] = useState(false),
+    [publicationBusy, setPublishing] = useState(false),
+    [deletingAsset, setDeletingAsset] = useState(false),
     [backup, setBackup] = useState<Backup | null>(null),
     [library, setLibrary] = useState<{
       kind: 'IMAGE' | 'BACKGROUND';
@@ -363,6 +422,7 @@ function OwnedInvitationEditor({
     [layerQuery, setLayerQuery] = useState('');
   const [presetName, setPresetName] = useState(''),
     [presetCategory, setPresetCategory] = useState('Lời mời');
+  const publishing = publicationBusy || deletingAsset;
   const pending = useRef<Promise<TemplateDetail | null> | null>(null),
     clipboard = useRef<ReturnType<typeof duplicateSelection> | null>(null),
     canvas = useRef<HTMLDivElement>(null),
@@ -392,7 +452,10 @@ function OwnedInvitationEditor({
         if (c.type === 'appearance') {
           const candidate = structuredClone(historyRef.current.present);
           const edited = candidate.nodes[c.id] as CanvasNode;
-          if (edited.type.resolvedName === 'Text' && !edited.custom.locked) {
+          if (
+            ['Text', 'GuestName'].includes(edited.type.resolvedName) &&
+            !edited.custom.locked
+          ) {
             edited.props.appearance = {
               ...edited.props.appearance,
               ...c.value,
@@ -436,11 +499,7 @@ function OwnedInvitationEditor({
     },
     [lifetime, publishing],
   );
-  const dataChange = (value: WeddingData) => {
-    sampleRef.current = value;
-    setSample(value);
-    setStatus('Chưa lưu');
-  };
+
   useEffect(() => {
     installRecoveryLifecycle();
     const scope = lifetime.capture();
@@ -485,14 +544,14 @@ function OwnedInvitationEditor({
     const operation = (async () => {
       try {
         const value = await builderRequest<TemplateDetail>(
-          `/admin/templates/${initial.id}/draft`,
+          `${resourcePath}/draft`,
           {
             scope,
             method: 'PATCH',
             body: {
               expectedVersion: version.current,
               document: snapshot,
-              sampleData: data,
+              ...(managed ? { weddingData: data } : { sampleData: data }),
             },
           },
         );
@@ -533,7 +592,17 @@ function OwnedInvitationEditor({
     })();
     pending.current = operation;
     return operation;
-  }, [conflict, publishing, lifetime, initial.id, owner, onSaved, saved]);
+  }, [
+    conflict,
+    publishing,
+    lifetime,
+    initial.id,
+    owner,
+    onSaved,
+    saved,
+    managed,
+    resourcePath,
+  ]);
   useEffect(() => {
     if (!dirty || conflict || publishing) return;
     const scope = lifetime.capture();
@@ -607,9 +676,9 @@ function OwnedInvitationEditor({
       () =>
         resolveEditorDocument(document, sample, {
           mode: 'preview',
-          asOf: '2026-10-12T00:00:00Z',
+          asOf: previewAsOf,
         }),
-      [document, sample],
+      [document, sample, previewAsOf],
     );
   const primary = selected[0],
     node = primary ? (document.nodes[primary] as CanvasNode) : undefined;
@@ -722,7 +791,7 @@ function OwnedInvitationEditor({
     const keys = (e: KeyboardEvent) => {
       if (
         (e.target as HTMLElement)?.closest(
-          'input,textarea,select,[contenteditable="true"]',
+          'input,textarea,select,dialog,[contenteditable="true"]',
         ) ||
         publishing ||
         preview
@@ -816,17 +885,67 @@ function OwnedInvitationEditor({
         (id) => p.document.nodeOptions[id] ?? {},
       ),
     });
-  const replaceTemplate = (value: TemplateDetail) => {
-    if (value.draftDocument.schemaVersion !== 3) {
-      setError('Mẫu không hợp lệ. Vui lòng tạo mẫu mới.');
-      return;
+  const assetUsage = (assetId: string) =>
+    nodesUsingAsset(historyRef.current.present, assetId).length;
+  const deleteLibraryAsset = async (assetId: string) => {
+    // Save authored work first. The API removes references from every resource
+    // in one transaction; deleting from local state beforehand would lose edits
+    // even if authorization or validation rejects the delete request.
+    if (!(await save()))
+      throw new Error('Không lưu được bản nháp trước khi xóa ảnh.');
+    const scope = lifetime.capture();
+    setDeletingAsset(true);
+    try {
+      try {
+        await builderRequest(`/assets/${assetId}`, { scope, method: 'DELETE' });
+      } finally {
+        // Storage may fail after the database transaction has committed. Always
+        // reconcile the new version so retrying cannot resurrect old references.
+        if (scope.isActive()) {
+          try {
+            const current = await builderRequest<TemplateDetail>(resourcePath, {
+              scope,
+            });
+            if (scope.isActive()) {
+              const next = {
+                past: [],
+                present: checkedDocument(current.draftDocument),
+                future: [],
+              };
+              historyRef.current = next;
+              sampleRef.current = current.draftSampleData;
+              version.current = current.editVersion;
+              ack.current = canonicalJson([
+                current.draftDocument,
+                current.draftSampleData,
+              ]);
+              setHistory(next);
+              setSample(current.draftSampleData);
+              setSaved(current);
+              setSelected((ids) =>
+                ids.filter((id) => Object.hasOwn(next.present.nodes, id)),
+              );
+              clipboard.current = null;
+              setCanPaste(false);
+              setBackup(null);
+              setShareDraft((value) => ({
+                ...value,
+                imageId: value.imageId === assetId ? null : value.imageId,
+              }));
+              onSaved(current);
+              setStatus('Đã lưu');
+              await removeBackup(owner, initial.id).catch(() => {});
+            }
+          } catch (cause) {
+            if (scope.isActive()) setConflict(true);
+            throw cause;
+          }
+        }
+      }
+    } finally {
+      if (scope.isActive()) setDeletingAsset(false);
+      scope.dispose();
     }
-    if (!window.confirm('Thay toàn bộ thiết kế bản nháp bằng mẫu này?')) return;
-    command({
-      type: 'replace',
-      value: value.draftDocument,
-    });
-    setSelected([]);
   };
   const selectedImage = (asset: AssetSummary) => {
     if (!library) return;
@@ -855,6 +974,26 @@ function OwnedInvitationEditor({
               : { assetId: asset.id },
         });
     }
+    setLibrary(null);
+  };
+  const selectedAlbumImages = (assets: AssetSummary[]) => {
+    const current = historyRef.current.present.nodes[primary] as
+      CanvasNode | undefined;
+    if (
+      !current ||
+      !isAdvanced(current) ||
+      !['Album', 'Carousel'].includes(current.type.resolvedName)
+    )
+      return;
+    const assetIds = [
+      ...(current.props.content.assetIds ?? []),
+      ...assets.map((a) => a.id),
+    ];
+    if (assetIds.length > 50) {
+      setError('Album/carousel chứa tối đa 50 ảnh.');
+      return;
+    }
+    command({ type: 'content', id: primary, value: { assetIds } });
     setLibrary(null);
   };
   const copyConflict = async () => {
@@ -891,6 +1030,7 @@ function OwnedInvitationEditor({
   };
   const updateCategory = async (category: string) => {
     if (
+      managed ||
       publishing ||
       conflict ||
       !category.trim() ||
@@ -905,17 +1045,14 @@ function OwnedInvitationEditor({
     setSaving(true);
     const operation = (async () => {
       try {
-        const value = await builderRequest<TemplateDetail>(
-          `/admin/templates/${initial.id}`,
-          {
-            scope,
-            method: 'PATCH',
-            body: {
-              expectedVersion: version.current,
-              category: category.trim(),
-            },
+        const value = await builderRequest<TemplateDetail>(resourcePath, {
+          scope,
+          method: 'PATCH',
+          body: {
+            expectedVersion: version.current,
+            category: category.trim(),
           },
-        );
+        });
         if (!scope.isActive()) return null;
         version.current = value.editVersion;
         setSaved(value);
@@ -942,7 +1079,7 @@ function OwnedInvitationEditor({
   };
   const context = {
     mode: 'editor' as const,
-    asOf: '2026-10-12T00:00:00Z',
+    asOf: previewAsOf,
     assetUrls: urls,
   };
   return (
@@ -950,12 +1087,12 @@ function OwnedInvitationEditor({
       <header className={styles.toolbar}>
         <a
           className={styles.menuLink}
-          href="/admin/templates"
+          href={listPath}
           aria-label="Danh sách mẫu"
         >
           <Menu size={24} />
         </a>
-        <a className={styles.brand} href="/admin/templates">
+        <a className={styles.brand} href={listPath}>
           <PenLine size={24} />
           <span>Tiệm Làm Thiệp</span>
         </a>
@@ -1015,7 +1152,7 @@ function OwnedInvitationEditor({
                 onSaved(baseline);
               }
               const current = await builderRequest<TemplateDetail>(
-                `/admin/templates/${initial.id}`,
+                resourcePath,
                 { scope },
               );
               if (!scope.isActive()) return;
@@ -1039,7 +1176,11 @@ function OwnedInvitationEditor({
       {conflict && (
         <div role="alert">
           <p>Phiên bản đã đổi. Bản sửa của bạn vẫn được giữ.</p>
-          <button type="button" onClick={() => void copyConflict()}>
+          <button
+            type="button"
+            disabled={managed}
+            onClick={() => void copyConflict()}
+          >
             Lưu thành mẫu mới
           </button>
           <button
@@ -1062,7 +1203,8 @@ function OwnedInvitationEditor({
               const h = { past: [], present: backup.document, future: [] };
               historyRef.current = h;
               setHistory(h);
-              dataChange(backup.sampleData);
+              sampleRef.current = backup.sampleData;
+              setSample(backup.sampleData);
               if (backup.baseVersion !== version.current) setConflict(true);
               setBackup(null);
             }}
@@ -1082,6 +1224,7 @@ function OwnedInvitationEditor({
       )}
       <div
         className={styles.layout}
+        data-effects={tab === 'effects'}
         data-preview={preview}
         data-library-open={libraryOpen}
       >
@@ -1111,7 +1254,9 @@ function OwnedInvitationEditor({
             </nav>
             {libraryOpen && (
               <ToolPanel className={styles.library} label="Thư viện công cụ">
-                <h2>{tabs.find((t) => t[0] === tab)?.[1]}</h2>
+                {tab !== 'effects' && (
+                  <h2>{tabs.find((t) => t[0] === tab)?.[1]}</h2>
+                )}
                 {tab === 'shape' && (
                   <div className={styles.toolGrid}>
                     {SHAPE_CARDS.map(([primitive, label, Icon]) => (
@@ -1162,6 +1307,25 @@ function OwnedInvitationEditor({
                     {(tab !== 'background' || backgroundTab === 'image') && (
                       <AssetLibrary
                         key={tab}
+                        usage={assetUsage}
+                        onDelete={deleteLibraryAsset}
+                        audioSettings={document.settings.audio}
+                        onTrimAudio={
+                          tab === 'music'
+                            ? (asset, selection) =>
+                                command({
+                                  type: 'settings',
+                                  value: {
+                                    ...document.settings,
+                                    audio: selectAudioTrack(
+                                      document.settings.audio,
+                                      asset.id,
+                                      selection,
+                                    ),
+                                  },
+                                })
+                            : undefined
+                        }
                         kind={
                           tab === 'music'
                             ? 'AUDIO'
@@ -1177,10 +1341,10 @@ function OwnedInvitationEditor({
                               type: 'settings',
                               value: {
                                 ...document.settings,
-                                audio: {
-                                  ...document.settings.audio,
-                                  assetId: asset.id,
-                                },
+                                audio: selectAudioTrack(
+                                  document.settings.audio,
+                                  asset.id,
+                                ),
                               },
                             });
                           else if (tab === 'background')
@@ -1312,182 +1476,16 @@ function OwnedInvitationEditor({
                       </>
                     )}
                     {tab === 'music' && (
-                      <>
-                        <NumberProperty
-                          label="Âm lượng"
-                          min={0}
-                          max={1}
-                          step={0.1}
-                          value={document.settings.audio.volume}
-                          onChange={(volume) =>
-                            command({
-                              type: 'settings',
-                              value: {
-                                ...document.settings,
-                                audio: { ...document.settings.audio, volume },
-                              },
-                            })
-                          }
-                        />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={document.settings.audio.loop}
-                            onChange={(e) =>
-                              command({
-                                type: 'settings',
-                                value: {
-                                  ...document.settings,
-                                  audio: {
-                                    ...document.settings.audio,
-                                    loop: e.target.checked,
-                                  },
-                                },
-                              })
-                            }
-                          />
-                          Lặp lại
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={!!document.settings.audio.field}
-                            onChange={(e) =>
-                              command({
-                                type: 'settings',
-                                value: {
-                                  ...document.settings,
-                                  audio: {
-                                    ...document.settings.audio,
-                                    field: e.target.checked ? 'music' : null,
-                                  },
-                                },
-                              })
-                            }
-                          />
-                          Cho khách chọn nhạc qua form
-                        </label>
-                        <NumberProperty
-                          label="Bắt đầu phát (giây)"
-                          min={0}
-                          max={600}
-                          step={1}
-                          value={
-                            (document.settings.audio.trimStartMs ?? 0) / 1000
-                          }
-                          onChange={(seconds) => {
-                            const trimStartMs = Math.round(seconds * 1000);
-                            const { trimEndMs } = document.settings.audio;
-                            if (
-                              trimEndMs !== undefined &&
-                              trimEndMs <= trimStartMs
-                            )
-                              return;
-                            const audio = { ...document.settings.audio };
-                            if (trimStartMs) audio.trimStartMs = trimStartMs;
-                            else delete audio.trimStartMs;
-                            command({
-                              type: 'settings',
-                              value: { ...document.settings, audio },
-                            });
-                          }}
-                        />
-                        <NumberProperty
-                          label="Kết thúc (giây, 0 = hết bài)"
-                          min={0}
-                          max={600}
-                          step={1}
-                          value={
-                            (document.settings.audio.trimEndMs ?? 0) / 1000
-                          }
-                          onChange={(seconds) => {
-                            const trimEndMs = Math.round(seconds * 1000);
-                            if (
-                              trimEndMs &&
-                              trimEndMs <=
-                                (document.settings.audio.trimStartMs ?? 0)
-                            )
-                              return;
-                            const audio = { ...document.settings.audio };
-                            if (trimEndMs) audio.trimEndMs = trimEndMs;
-                            else delete audio.trimEndMs;
-                            command({
-                              type: 'settings',
-                              value: { ...document.settings, audio },
-                            });
-                          }}
-                        />
-                        <label>
-                          Kiểu biểu tượng nhạc
-                          <select
-                            value={document.settings.audio.iconStyle ?? 0}
-                            onChange={(e) =>
-                              command({
-                                type: 'settings',
-                                value: {
-                                  ...document.settings,
-                                  audio: {
-                                    ...document.settings.audio,
-                                    iconStyle: Number(e.target.value),
-                                  },
-                                },
-                              })
-                            }
-                          >
-                            {[
-                              'Nốt nhạc đôi',
-                              'Nốt nhạc',
-                              'Nốt nhạc ba',
-                              'Nốt nhạc bốn',
-                              'Đĩa nhạc',
-                              'Loa',
-                            ].map((label, index) => (
-                              <option key={label} value={index}>
-                                {label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          Màu biểu tượng nhạc
-                          <input
-                            type="color"
-                            value={(
-                              document.settings.audio.iconColor ?? '#000000FF'
-                            ).slice(0, 7)}
-                            onChange={(e) =>
-                              command({
-                                type: 'settings',
-                                value: {
-                                  ...document.settings,
-                                  audio: {
-                                    ...document.settings.audio,
-                                    iconColor:
-                                      e.target.value.toUpperCase() + 'FF',
-                                  },
-                                },
-                              })
-                            }
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            command({
-                              type: 'settings',
-                              value: {
-                                ...document.settings,
-                                audio: {
-                                  ...document.settings.audio,
-                                  assetId: null,
-                                },
-                              },
-                            })
-                          }
-                        >
-                          Bỏ nhạc
-                        </button>
-                      </>
+                      <MusicSettingsPanel
+                        value={document.settings.audio}
+                        disabled={publishing}
+                        onChange={(audio) =>
+                          command({
+                            type: 'settings',
+                            value: { ...document.settings, audio },
+                          })
+                        }
+                      />
                     )}
                   </>
                 )}
@@ -1498,18 +1496,43 @@ function OwnedInvitationEditor({
                         (k) =>
                           !['Text', 'Image', 'Decoration', 'Shape'].includes(k),
                       )
+                      .sort((a, b) => {
+                        const order: NodeKind[] = [
+                          'Calendar',
+                          'Countdown',
+                          'Map',
+                          'Contact',
+                          'Reminder',
+                          'RSVP',
+                          'CustomForm',
+                          'GuestName',
+                          'QRBank',
+                          'Album',
+                          'Carousel',
+                          'YouTube',
+                          'Timeline',
+                        ];
+                        return order.indexOf(a) - order.indexOf(b);
+                      })
                       .map((kind) => {
                         const Icon = WIDGET_ICONS[kind] ?? CalendarDays;
                         return (
                           <button
                             type="button"
                             key={kind}
-                            className={styles.toolCard}
+                            className={`${styles.toolCard} ${styles.widgetCard}`}
+                            disabled={publishing}
                             onClick={() => {
                               add(kind);
                             }}
                           >
-                            <Icon size={26} aria-hidden="true" />
+                            <span className={styles.widgetGlyph}>
+                              <Icon
+                                size={36}
+                                strokeWidth={1.6}
+                                aria-hidden="true"
+                              />
+                            </span>
                             <span>{componentNames[kind]}</span>
                           </button>
                         );
@@ -1548,38 +1571,13 @@ function OwnedInvitationEditor({
                     />
                   </>
                 )}
-                {tab === 'templates' && (
-                  <AssetLibrary
-                    kind="TEMPLATE"
-                    onAsset={() => {}}
-                    onTemplate={replaceTemplate}
-                  />
-                )}
-                {(tab === 'settings' || tab === 'effects') && (
-                  <EditorSettingsPanel
-                    view={tab === 'effects' ? 'effects' : 'settings'}
+                {tab === 'effects' && (
+                  <EffectsPanel
                     document={document}
-                    onChange={(value) => command({ type: 'settings', value })}
-                    onShareImage={() =>
-                      setLibrary({ kind: 'IMAGE', target: 'share' })
-                    }
+                    scene={resolution.scene}
+                    assetUrls={urls}
+                    onChange={(value) => command({ type: 'replace', value })}
                   />
-                )}
-                {tab === 'data' && (
-                  <>
-                    <SampleDataPanel
-                      selected="A"
-                      data={sample}
-                      onSelect={() => {}}
-                      onChange={dataChange}
-                    />
-                    <ContentFields
-                      role="ADMIN"
-                      fields={formFieldsForDesign(document)}
-                      data={sample}
-                      onChange={dataChange}
-                    />
-                  </>
                 )}
                 {tab === 'layers' && (
                   <>
@@ -1860,6 +1858,13 @@ function OwnedInvitationEditor({
                   if (e.target === e.currentTarget) setSelected([]);
                 }}
               >
+                {!preview && document.settings.audio.assetId && (
+                  <EditorMusicButton
+                    key={`${document.settings.audio.assetId}:${document.settings.audio.trimStartMs}:${document.settings.audio.trimEndMs}:${urls[document.settings.audio.assetId]}`}
+                    value={document.settings.audio}
+                    source={urls[document.settings.audio.assetId]}
+                  />
+                )}
                 {document.nodes.ROOT.nodes.map((id) => {
                   const n = document.nodes[id] as CanvasNode;
                   if (n.hidden) return null;
@@ -1876,6 +1881,7 @@ function OwnedInvitationEditor({
                       data-kind={n.type.resolvedName}
                       data-locked={n.custom.locked}
                       data-selected={selected.includes(id)}
+                      data-primary={primary === id}
                       className={styles.node}
                       style={{
                         position: 'absolute',
@@ -1914,17 +1920,31 @@ function OwnedInvitationEditor({
                         setContextMenu({ x: e.clientX, y: e.clientY });
                       }}
                       onDoubleClick={() => {
-                        if (n.type.resolvedName === 'Text' && !n.custom.locked)
+                        if (
+                          ['Text', 'GuestName'].includes(n.type.resolvedName) &&
+                          !n.custom.locked
+                        )
                           setInline(id);
                       }}
                     >
-                      {inline === id && 'text' in n.props.content ? (
+                      {inline === id &&
+                      ('text' in n.props.content ||
+                        n.type.resolvedName === 'GuestName') ? (
                         <textarea
                           autoFocus
                           aria-label="Sửa văn bản trực tiếp"
-                          value={n.props.content.text}
+                          value={
+                            'text' in n.props.content
+                              ? n.props.content.text
+                              : 'label' in n.props.content
+                                ? n.props.content.label
+                                : ''
+                          }
                           style={{
-                            ...textStyle(n.props.content.textStyle),
+                            ...('textStyle' in n.props.content &&
+                            n.props.content.textStyle
+                              ? textStyle(n.props.content.textStyle)
+                              : {}),
                             width: '100%',
                             height: '100%',
                             boxSizing: 'border-box',
@@ -1933,7 +1953,10 @@ function OwnedInvitationEditor({
                             command({
                               type: 'content',
                               id,
-                              value: { text: e.target.value },
+                              value:
+                                n.type.resolvedName === 'GuestName'
+                                  ? { label: e.target.value }
+                                  : { text: e.target.value },
                             })
                           }
                           onBlur={() => setInline(null)}
@@ -1964,12 +1987,17 @@ function OwnedInvitationEditor({
                     </div>
                   );
                 })}
+                <FallingEffects kind={document.settings.particles} />
                 {node && !node.custom.locked && !inline && (
                   <GeometryControls
                     target={target}
-                    text={node.type.resolvedName === 'Text'}
+                    text={['Text', 'GuestName'].includes(
+                      node.type.resolvedName,
+                    )}
                     textNode={
-                      node.type.resolvedName === 'Text' ? node : undefined
+                      ['Text', 'GuestName'].includes(node.type.resolvedName)
+                        ? node
+                        : undefined
                     }
                     box={node.props.box}
                     zoom={zoom}
@@ -2058,28 +2086,6 @@ function OwnedInvitationEditor({
               )}
             </div>
           )}
-          {!preview && (
-            <div className={styles.quickImages} aria-label="Thay ảnh nhanh">
-              {document.nodes.ROOT.nodes
-                .filter(
-                  (id) =>
-                    (document.nodes[id] as CanvasNode).type.resolvedName ===
-                    'Image',
-                )
-                .map((id) => (
-                  <button
-                    type="button"
-                    key={id}
-                    onClick={() => {
-                      setSelected([id]);
-                      setLibrary({ kind: 'IMAGE', target: 'replace' });
-                    }}
-                  >
-                    {(document.nodes[id] as CanvasNode).custom.layerName}
-                  </button>
-                ))}
-            </div>
-          )}
         </div>
         {!preview && (
           <ToolPanel className={styles.properties} label="Thuộc tính">
@@ -2152,6 +2158,7 @@ function OwnedInvitationEditor({
                 count={document.nodes.ROOT.nodes.length}
                 command={command}
                 disabled={publishing}
+                assetUrls={urls}
                 targets={document.nodes.ROOT.nodes.map((id) => ({
                   id,
                   label: (document.nodes[id] as CanvasNode).custom.layerName,
@@ -2180,7 +2187,7 @@ function OwnedInvitationEditor({
                     aria-label="Danh mục"
                     required
                     value={saved.category}
-                    disabled={saving || publishing || conflict}
+                    disabled={managed || saving || publishing || conflict}
                     onChange={(e) => void updateCategory(e.target.value)}
                   >
                     <option value="" disabled>
@@ -2260,6 +2267,16 @@ function OwnedInvitationEditor({
                   Tiêu đề và hình ảnh hiển thị khi chia sẻ thiệp lên Facebook,
                   Zalo hoặc mạng xã hội.
                 </p>
+                <EditorSettingsPanel
+                  view="settings"
+                  document={document}
+                  onChange={(value) => command({ type: 'settings', value })}
+                />
+                <EditorSettingsPanel
+                  view="customize"
+                  document={document}
+                  onChange={(value) => command({ type: 'settings', value })}
+                />
                 <h2>Kích thước thiệp</h2>
                 <NumberProperty
                   label="Chiều cao"
@@ -2421,7 +2438,20 @@ function OwnedInvitationEditor({
             setLibrary(null);
           }}
         >
-          <AssetLibrary kind={library.kind} onAsset={selectedImage} />
+          <AssetLibrary
+            kind={library.kind}
+            onAsset={selectedImage}
+            onAssets={
+              library.target === 'album' ? selectedAlbumImages : undefined
+            }
+            selectionLimit={
+              library.target === 'album' && node && isAdvanced(node)
+                ? Math.max(0, 50 - (node.props.content.assetIds?.length ?? 0))
+                : 50
+            }
+            usage={assetUsage}
+            onDelete={deleteLibraryAsset}
+          />
         </ModalSurface>
       )}
     </section>

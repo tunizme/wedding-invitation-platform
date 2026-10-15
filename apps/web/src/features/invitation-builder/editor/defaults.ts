@@ -89,66 +89,74 @@ export function widgetNode(
     'Calendar' | 'Countdown' | 'Map' | 'RSVP' | 'QRBank' | 'Timeline'
   >,
 ): ElementNode {
-  const common = { textStyle: { ...defaultTextStyle } };
+  const common = {
+    textStyle: {
+      ...defaultTextStyle,
+      ...(['Calendar', 'Countdown', 'RSVP'].includes(type)
+        ? { fontSize: 14, color: '#999999FF' }
+        : {}),
+    },
+  };
   const content =
     type === 'Calendar'
-      ? { ...common, accentColor: '#AABBCCFF' }
+      ? { ...common, event: {}, accentColor: '#F396A1FF', variant: 'ribbon' }
       : type === 'Countdown'
         ? {
             ...common,
+            textStyle: { ...common.textStyle, color: '#FFFFFFFF' },
+            event: {},
             label: 'Đếm ngược đến ngày cưới',
+            design: 'boxed',
+            layout: 'horizontal',
+            gap: 20,
+            frameColor: '#000000FF',
             endedLabel: 'Ngày vui đã đến',
           }
         : type === 'Map'
-          ? { ...common, label: 'Địa điểm tổ chức' }
+          ? { ...common, venue: {}, label: 'Địa điểm tổ chức' }
           : type === 'RSVP'
             ? {
                 ...common,
+                textStyle: { ...common.textStyle, color: '#333333FF' },
+                design: 'invitation',
+                nameLabel: 'Họ và tên',
+                attendanceLabel: 'Bạn sẽ tham dự chứ?',
+                submitLabel: 'Gửi xác nhận',
+                inputBorderColor: '#DEDEDEFF',
+                buttonColor: '#FF5057FF',
+                buttonTextColor: '#FFFFFFFF',
                 title: 'Xác nhận tham dự',
                 closedLabel: 'Đã đóng xác nhận',
                 successLabel: 'Cảm ơn bạn đã phản hồi',
               }
             : type === 'QRBank'
-              ? { ...common, label: 'Mừng cưới' }
-              : { ...common, accentColor: '#AABBCCFF' };
-  const binding =
-    type === 'Calendar' || type === 'Countdown'
-      ? {
-          target: 'event' as const,
-          source: 'wedding.event' as const,
-          eventKey: 'ceremony' as const,
-        }
-      : type === 'Map'
-        ? {
-            target: 'venue' as const,
-            source: 'venue' as const,
-            eventKey: 'ceremony' as const,
-          }
-        : type === 'QRBank'
-          ? { target: 'bank' as const, source: 'bank' as const }
-          : type === 'Timeline'
-            ? { target: 'entries' as const, source: 'timeline' as const }
-            : undefined;
+              ? { ...common, bank: {}, label: 'Mừng cưới' }
+              : { ...common, entries: [], accentColor: '#AABBCCFF' };
   const appearance = {
     opacity: 1,
     border: { width: 0, color: '#000000FF', style: 'solid' as const },
     shadow: null,
     background: { kind: 'solid' as const, color: '#FFFFFF00' },
     borderRadius: 0,
-    padding: { top: 8, right: 8, bottom: 8, left: 8 },
+    padding:
+      type === 'Calendar' || type === 'Countdown'
+        ? { top: 0, right: 0, bottom: 0, left: 0 }
+        : type === 'RSVP'
+          ? { top: 24, right: 24, bottom: 24, left: 24 }
+          : { top: 8, right: 8, bottom: 8, left: 8 },
   };
   const dimension =
     type === 'Calendar'
-      ? [350, 320]
+      ? [300, 280]
       : type === 'Countdown'
-        ? [350, 120]
+        ? [340, 55]
         : type === 'Map'
           ? [350, 320]
           : type === 'QRBank'
             ? [300, 360]
             : type === 'Timeline'
               ? [350, 480]
-              : [350, 640];
+              : [300, 500];
   return {
     type: { resolvedName: type },
     isCanvas: false,
@@ -162,7 +170,7 @@ export function widgetNode(
       },
       appearance,
       content,
-      bindings: binding ? [binding] : [],
+      bindings: [],
     },
     displayName: type,
     custom: { layerName: type, locked: false, optional: false },

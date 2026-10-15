@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { sessionStore } from '../../src/features/identity-access/session/store';
 import { privateSession } from '../identity-access/private-session-fixture';
 import type { OperationScope } from '../../src/features/identity-access/session/operation-scope';
+import { BuilderApiError } from '../../src/features/invitation-builder/api/client';
 const mocks = vi.hoisted(() => ({ request: vi.fn(), push: vi.fn() }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock(
@@ -50,6 +51,99 @@ afterEach(() => {
   sessionStore.clear();
 });
 describe('template pages owner lifetime (005 US1)', () => {
+  it('requires list reconciliation before retrying an uncertain deletion', async () => {
+    mocks.request.mockImplementation(
+      (_path: string, options?: { method?: string }) =>
+        options?.method === 'DELETE'
+          ? Promise.reject(new BuilderApiError(0, 'NETWORK_ERROR'))
+          : Promise.resolve({
+              items: [
+                {
+                  id: 'draft-A',
+                  name: 'Mẫu nháp',
+                  status: 'DRAFT',
+                  editVersion: 3,
+                },
+              ],
+              nextCursor: null,
+            }),
+    );
+    render(<TemplateList />);
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Xóa bản nháp Mẫu nháp' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa bản nháp' }));
+    await screen.findByText(/Chưa xác định kết quả xóa/);
+    expect(screen.getByRole('button', { name: 'Xóa bản nháp' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lại danh sách' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(
+      mocks.request.mock.calls.filter(
+        ([, options]) => options?.method === 'DELETE',
+      ),
+    ).toHaveLength(1);
+  });
+  it('requires confirmation, supports cancel and reloads after deleting a draft', async () => {
+    mocks.request.mockImplementation(
+      (_path: string, options?: { method?: string }) =>
+        Promise.resolve(
+          options?.method === 'DELETE'
+            ? undefined
+            : {
+                items: [
+                  {
+                    id: 'draft-A',
+                    name: 'Mẫu nháp',
+                    status: 'DRAFT',
+                    editVersion: 3,
+                  },
+                ],
+                nextCursor: null,
+              },
+        ),
+    );
+    render(<TemplateList />);
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Xóa bản nháp Mẫu nháp' }),
+    );
+    expect(
+      mocks.request.mock.calls.some(
+        ([, options]) => options?.method === 'DELETE',
+      ),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Xóa bản nháp Mẫu nháp' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa bản nháp' }));
+    await waitFor(() =>
+      expect(mocks.request).toHaveBeenCalledWith(
+        '/admin/templates/draft-A',
+        expect.objectContaining({
+          method: 'DELETE',
+          body: { expectedVersion: 3 },
+        }),
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+  it('does not offer deletion for published templates', async () => {
+    mocks.request.mockResolvedValue({
+      items: [
+        {
+          id: 'published-A',
+          name: 'Mẫu công khai',
+          status: 'PUBLISHED',
+          editVersion: 1,
+        },
+      ],
+      nextCursor: null,
+    });
+    render(<TemplateList />);
+    await screen.findByRole('button', { name: 'Nhân bản Mẫu công khai' });
+    expect(screen.queryByRole('button', { name: /Xóa bản nháp/ })).toBeNull();
+  });
   it('does not reload B after a duplicate requested by A completes', async () => {
     let finish!: (value: unknown) => void;
     mocks.request.mockImplementation(

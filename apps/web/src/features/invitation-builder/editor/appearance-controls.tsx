@@ -13,11 +13,17 @@ import styles from './property-controls.module.css';
 export function PaddingControl({
   value,
   onChange,
+  defaultLinked = false,
+  max = 100,
+  emptyValue,
 }: {
   value: Padding;
   onChange: (value: Padding) => void;
+  defaultLinked?: boolean;
+  max?: number;
+  emptyValue?: number;
 }) {
-  const [linked, setLinked] = useState(false);
+  const [linked, setLinked] = useState(defaultLinked);
   const sides = [
     ['top', 'Trên'],
     ['left', 'Trái'],
@@ -56,6 +62,8 @@ export function PaddingControl({
             <NumberControl
               label={`Khoảng đệm ${name.toLowerCase()}`}
               value={value[side]}
+              max={max}
+              emptyValue={emptyValue}
               onChange={(next) =>
                 onChange(
                   linked
@@ -69,6 +77,39 @@ export function PaddingControl({
         <div className={styles.paddingBlock}>Block</div>
       </div>
     </>
+  );
+}
+
+/** Horizontal and vertical flip switches shown side by side. */
+export function FlipControls({
+  flipX,
+  flipY,
+  onChange,
+}: {
+  flipX: boolean;
+  flipY: boolean;
+  onChange: (value: { flipX: boolean; flipY: boolean }) => void;
+}) {
+  const item = (label: string, checked: boolean, next: () => void) => (
+    <span className={styles.flipItem}>
+      <span>{label}:</span>
+      <button
+        type="button"
+        className={styles.switch}
+        role="switch"
+        aria-label={label}
+        aria-checked={checked}
+        onClick={next}
+      >
+        <span />
+      </button>
+    </span>
+  );
+  return (
+    <div className={styles.flipRow}>
+      {item('Lật ngang', flipX, () => onChange({ flipX: !flipX, flipY }))}
+      {item('Lật dọc', flipY, () => onChange({ flipX, flipY: !flipY }))}
+    </div>
   );
 }
 

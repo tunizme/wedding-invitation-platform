@@ -1,4 +1,5 @@
-﻿'use client';
+'use client';
+import { vietnameseLocalDateTime } from './direct-widget-controls';
 import type {
   CanvasNode,
   NodeOptions,
@@ -8,15 +9,11 @@ import type {
 import { isAdvanced } from '../document/editor-document';
 import type { ElementNode } from '../document/types';
 import type { DocumentCommand } from './editor-commands';
+import { defaultTextStyle } from './defaults';
 import { PropertiesPanel } from './properties-panel';
 import { MotionControls } from './motion-controls';
 import { ClickActionControls } from './click-action-controls';
-import {
-  ColorField,
-  FieldRow,
-  NumberRow,
-  PropertySection,
-} from './property-controls';
+import { ColorField, PropertySection, NumberRow } from './property-controls';
 import styles from './property-controls.module.css';
 
 export function NumberProperty({
@@ -63,6 +60,7 @@ export function EditorProperties({
   command,
   onChoose,
   disabled,
+  assetUrls,
   targets = [],
   onPickTarget,
   onLocateTarget,
@@ -75,6 +73,7 @@ export function EditorProperties({
   command: (c: DocumentCommand) => void;
   onChoose: (target: 'image' | 'album' | 'poster') => void;
   disabled: boolean;
+  assetUrls: Record<string, string>;
   targets?: { id: string; label: string }[];
   onPickTarget?: () => void;
   onLocateTarget?: (id: string) => void;
@@ -85,10 +84,57 @@ export function EditorProperties({
     command({ type: 'options', id, value: { ...options, ...value } });
   return (
     <section aria-label="Thuộc tính phần tử">
-      {!isAdvanced(node) ? (
+      {node.type.resolvedName === 'GuestName' &&
+      'label' in node.props.content ? (
+        <>
+          <label>
+            Tên hiển thị mẫu
+            <input
+              value={node.props.content.label}
+              maxLength={120}
+              disabled={disabled || node.custom.locked}
+              onChange={(e) => content({ label: e.target.value })}
+            />
+          </label>
+          <PropertiesPanel
+            id={id}
+            node={
+              {
+                ...node,
+                type: { resolvedName: 'Text' },
+                displayName: 'Text',
+                props: {
+                  ...node.props,
+                  content: {
+                    text: node.props.content.label,
+                    textStyle: node.props.content.textStyle ?? {
+                      ...defaultTextStyle,
+                      fontSize: 13,
+                    },
+                  },
+                },
+              } as ElementNode
+            }
+            options={options}
+            assetUrls={assetUrls}
+            index={index}
+            count={count}
+            onCommand={(value) => {
+              if (value.type === 'content' && 'text' in value.value) {
+                const { text, ...rest } = value.value;
+                command({ ...value, value: { ...rest, label: text } });
+              } else command(value);
+            }}
+            onReplace={() => onChoose('image')}
+            disabled={disabled}
+          />
+        </>
+      ) : !isAdvanced(node) ? (
         <PropertiesPanel
           id={id}
           node={node as ElementNode}
+          options={options}
+          assetUrls={assetUrls}
           index={index}
           count={count}
           onCommand={command}
@@ -111,37 +157,22 @@ export function EditorProperties({
             disabled={disabled || node.custom.locked}
             style={{ border: 0, padding: 0 }}
           >
-            <label>
-              Nhãn hiển thị
-              <input
-                key={node.props.content.label}
-                defaultValue={node.props.content.label}
-                maxLength={120}
-                onBlur={(e) => content({ label: e.target.value })}
-              />
-            </label>
-            {['Album', 'Carousel', 'YouTube', 'Contact'].includes(
-              node.type.resolvedName,
-            ) && (
+            {node.type.resolvedName !== 'Carousel' && (
               <label>
-                Trường nội dung cho khách
+                Nhãn hiển thị
                 <input
-                  key={node.props.content.field ?? ''}
-                  defaultValue={node.props.content.field ?? ''}
-                  placeholder="album, video, contact…"
-                  maxLength={60}
-                  onBlur={(e) =>
-                    content({ field: e.target.value.trim() || null })
-                  }
+                  key={node.props.content.label}
+                  defaultValue={node.props.content.label}
+                  maxLength={120}
+                  onBlur={(e) => content({ label: e.target.value })}
                 />
-                <small>Để trống để dùng nội dung cố định của mẫu.</small>
               </label>
             )}
             {(node.type.resolvedName === 'Album' ||
               node.type.resolvedName === 'Carousel') && (
               <>
                 <button type="button" onClick={() => onChoose('album')}>
-                  Thêm ảnh vào album
+                  Thêm ảnh
                 </button>
                 <ol>
                   {(node.props.content.assetIds ?? []).map((a, i) => (
@@ -176,18 +207,19 @@ export function EditorProperties({
                 {node.type.resolvedName === 'Carousel' && (
                   <>
                     <label>
-                      Hiệu ứng chuyển ảnh
+                      Kiểu carousel
                       <select
-                        value={node.props.content.transition ?? ''}
+                        value={
+                          node.props.content.carouselLayout === 'feature'
+                            ? 'feature'
+                            : 'stack'
+                        }
                         onChange={(e) =>
-                          content({ transition: e.target.value || undefined })
+                          content({ carouselLayout: e.target.value })
                         }
                       >
-                        <option value="">Không</option>
-                        <option value="zoom">Zoom</option>
-                        <option value="switch">Switch</option>
-                        <option value="overlap">Overlap</option>
-                        <option value="fade">Fade</option>
+                        <option value="stack">Stack — Xếp chồng</option>
+                        <option value="feature">Feature — Ảnh nổi bật</option>
                       </select>
                     </label>
                     <NumberProperty
@@ -249,71 +281,76 @@ export function EditorProperties({
               </label>
             )}
             {node.type.resolvedName === 'Contact' && (
-              <>
+              <PropertySection title="Biểu tượng điện thoại" defaultOpen>
                 <label>
                   <input
                     type="checkbox"
                     checked={node.props.content.showIcon !== false}
                     onChange={(e) => content({ showIcon: e.target.checked })}
                   />
-                  Hiển thị biểu tượng điện thoại
+                  Hiển thị icon điện thoại
                 </label>
+                {node.props.content.showIcon !== false && (
+                  <>
+                    <NumberRow
+                      label="Icon size"
+                      min={8}
+                      max={80}
+                      value={node.props.content.iconSize ?? 18}
+                      onChange={(iconSize) => content({ iconSize })}
+                    />
+                    <ColorField
+                      label="Màu icon"
+                      value={
+                        node.props.content.iconColor ??
+                        node.props.content.textColor ??
+                        '#000000FF'
+                      }
+                      onPick={(iconColor) => content({ iconColor })}
+                    />
+                  </>
+                )}
+              </PropertySection>
+            )}
+            {['Contact', 'Reminder'].includes(node.type.resolvedName) && (
+              <PropertySection title="Giao diện nút" defaultOpen>
                 <ColorField
-                  label="Màu nút"
-                  value={node.props.content.buttonColor ?? '#FFFFFFFF'}
+                  label="Màu nền nút"
+                  value={node.props.content.buttonColor ?? '#FFFFFF00'}
                   onPick={(buttonColor) => content({ buttonColor })}
                 />
                 <ColorField
-                  label="Màu chữ"
+                  label="Màu chữ nút"
                   value={node.props.content.textColor ?? '#000000FF'}
                   onPick={(textColor) => content({ textColor })}
                 />
-              </>
-            )}
-            {node.type.resolvedName === 'Reminder' && (
-              <>
-                <label>
-                  Mô tả sự kiện
-                  <textarea
-                    key={node.props.content.description ?? ''}
-                    defaultValue={node.props.content.description ?? ''}
-                    maxLength={500}
-                    onBlur={(e) => content({ description: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Địa điểm
-                  <input
-                    key={node.props.content.location ?? ''}
-                    defaultValue={node.props.content.location ?? ''}
-                    maxLength={200}
-                    placeholder="Để trống để dùng địa chỉ của sự kiện"
-                    onBlur={(e) => content({ location: e.target.value })}
-                  />
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={node.props.content.allDay ?? false}
-                    onChange={(e) => content({ allDay: e.target.checked })}
-                  />
-                  Sự kiện cả ngày
-                </label>
-              </>
+                <NumberRow
+                  label="Cỡ chữ nút"
+                  min={8}
+                  max={160}
+                  value={node.props.content.fontSize ?? 16}
+                  onChange={(fontSize) => content({ fontSize })}
+                />
+              </PropertySection>
             )}
             {node.type.resolvedName === 'Reminder' && (
               <label>
-                Sự kiện
-                <select
-                  value={node.props.content.eventKey}
-                  onChange={(e) => content({ eventKey: e.target.value })}
-                >
-                  {['ceremony', 'reception', 'engagement', 'afterParty'].map(
-                    (v) => (
-                      <option key={v}>{v}</option>
-                    ),
+                Ngày giờ nhắc lịch
+                <input
+                  type="datetime-local"
+                  value={vietnameseLocalDateTime(
+                    node.props.content.event?.datetime,
                   )}
-                </select>
+                  onChange={(e) => {
+                    if (e.target.value)
+                      content({
+                        event: {
+                          datetime: e.target.value + ':00+07:00',
+                          timeZone: 'Asia/Ho_Chi_Minh',
+                        },
+                      });
+                  }}
+                />
               </label>
             )}
             {node.type.resolvedName === 'CustomForm' && (
@@ -339,81 +376,6 @@ export function EditorProperties({
         disabled={disabled || node.custom.locked}
         className={styles.fieldset}
       >
-        {(node.type.resolvedName === 'Image' ||
-          node.type.resolvedName === 'Decoration') && (
-          <PropertySection title="Cắt & tạo hình">
-            <FieldRow label="Lật ngang">
-              <input
-                type="checkbox"
-                aria-label="Lật ngang"
-                checked={!!options.flipX}
-                onChange={(e) => option({ flipX: e.target.checked })}
-              />
-            </FieldRow>
-            <FieldRow label="Lật dọc">
-              <input
-                type="checkbox"
-                aria-label="Lật dọc"
-                checked={!!options.flipY}
-                onChange={(e) => option({ flipY: e.target.checked })}
-              />
-            </FieldRow>
-            <FieldRow label="Khung ảnh">
-              <select
-                value={options.mask ?? 'none'}
-                onChange={(e) =>
-                  option({ mask: e.target.value as NodeOptions['mask'] })
-                }
-              >
-                {[
-                  ['none', 'Gốc'],
-                  ['circle', 'Tròn'],
-                  ['arch', 'Vòm'],
-                  ['heart', 'Trái tim'],
-                ].map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </FieldRow>
-            <FieldRow label="Cắt ảnh không phá bản gốc">
-              <input
-                type="checkbox"
-                aria-label="Cắt ảnh không phá bản gốc"
-                checked={!!options.crop}
-                onChange={(e) =>
-                  option(
-                    e.target.checked
-                      ? { crop: { x: 0, y: 0, width: 1, height: 1 } }
-                      : { crop: undefined },
-                  )
-                }
-              />
-            </FieldRow>
-            {options.crop &&
-              (
-                [
-                  ['x', 'Cắt trái (0–1)'],
-                  ['y', 'Cắt trên (0–1)'],
-                  ['width', 'Cắt rộng (0–1)'],
-                  ['height', 'Cắt cao (0–1)'],
-                ] as const
-              ).map(([k, label]) => (
-                <NumberRow
-                  key={k}
-                  label={label}
-                  value={options.crop![k]}
-                  min={k === 'width' || k === 'height' ? 0.01 : 0}
-                  max={1}
-                  step={0.01}
-                  onChange={(v) =>
-                    option({ crop: { ...options.crop!, [k]: v } })
-                  }
-                />
-              ))}
-          </PropertySection>
-        )}
         {['Text', 'Image', 'Decoration', 'Shape'].includes(
           node.type.resolvedName,
         ) && (
@@ -537,137 +499,58 @@ function FormComposer({
     </section>
   );
 }
-const PAGE_ANIMATIONS = [
-  ['none', 'Không', 'Giữ nguyên, không hiệu ứng'],
-  ['fade-all', 'Mờ dần toàn bộ', 'Mọi phần tử hiện dần'],
-  ['slide-all', 'Trượt lên toàn bộ', 'Mọi phần tử trượt từ dưới lên'],
-  ['scale-all', 'Phóng to toàn bộ', 'Mọi phần tử phóng to khi hiện'],
-  ['flip-all', 'Lật toàn bộ', 'Mọi phần tử lật khi hiện'],
-  ['slide-mix', 'Trượt lên xen kẽ', 'Trượt và mờ dần xen kẽ'],
-  ['fade-mix', 'Mờ dần xen kẽ', 'Mờ dần và phóng to xen kẽ'],
-] as const;
-const PARTICLES = [
-  ['none', 'Không'],
-  ['petals', 'Cánh hoa'],
-  ['hearts', 'Trái tim'],
-] as const;
 export function EditorSettingsPanel({
   document,
   onChange,
-  onShareImage,
   view = 'settings',
 }: {
   document: EditorDocument;
   onChange: (value: EditorDocument['settings']) => void;
-  onShareImage: () => void;
-  /** `effects` = motion presets; `settings` = sharing, language, toolbar, background. */
-  view?: 'effects' | 'settings';
+  /** `settings` keeps description/language/scroll; `customize` controls toolbar/background. */
+  view?: 'settings' | 'customize';
 }) {
   const s = document.settings,
     update = (value: Partial<typeof s>) => onChange({ ...s, ...value });
-  if (view === 'effects')
+  if (view === 'settings')
     return (
-      <section aria-label="Hiệu ứng thiệp" className={styles.legacyForm}>
-        <p className={styles.hint}>
-          Hiệu ứng áp dụng khi khách mở thiệp; tự tắt nếu thiết bị bật giảm
-          chuyển động.
-        </p>
-        <h3>Hiệu ứng động toàn trang</h3>
-        <div
-          role="radiogroup"
-          aria-label="Hiệu ứng động toàn trang"
-          className={styles.optionList}
-        >
-          {PAGE_ANIMATIONS.map(([value, label, hint]) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={(s.pageAnimation ?? 'none') === value}
-              onClick={() => update({ pageAnimation: value })}
-            >
-              <strong>{label}</strong>
-              <span>{hint}</span>
-            </button>
-          ))}
-        </div>
-        <small>
-          Áp dụng cho phần tử chưa tự chọn hiệu ứng xuất hiện riêng.
-        </small>
-        <h3>Hiệu ứng mở màn</h3>
+      <section aria-label="Cài đặt thiệp" className={styles.legacyForm}>
+        <h3>Chia sẻ</h3>
         <label>
-          <input
-            type="checkbox"
-            checked={s.envelope}
-            onChange={(e) => update({ envelope: e.target.checked })}
+          Mô tả
+          <textarea
+            maxLength={500}
+            value={s.description}
+            onChange={(e) => update({ description: e.target.value })}
           />
-          Mở bằng phong bì
         </label>
-        <h3>Hiệu ứng rơi</h3>
-        <div
-          role="radiogroup"
-          aria-label="Hiệu ứng rơi"
-          className={styles.optionList}
-        >
-          {PARTICLES.map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={s.particles === value}
-              onClick={() => update({ particles: value })}
-            >
-              <strong>{label}</strong>
-            </button>
-          ))}
-        </div>
+        <h3>Ngôn ngữ & cuộn trang</h3>
+        <label>
+          Ngôn ngữ nhãn
+          <select
+            value={s.locale}
+            onChange={(e) => update({ locale: e.target.value as 'vi' | 'en' })}
+          >
+            <option value="vi">Tiếng Việt</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <NumberProperty
+          label="Tự cuộn (px/giây,0=tắt)"
+          value={s.autoScroll}
+          min={0}
+          max={100}
+          onChange={(autoScroll) => update({ autoScroll })}
+        />
       </section>
     );
   return (
-    <section aria-label="Cài đặt thiệp" className={styles.legacyForm}>
-      <h3>Chia sẻ</h3>
-      <label>
-        Tiêu đề
-        <input
-          maxLength={120}
-          value={s.title}
-          onChange={(e) => update({ title: e.target.value })}
-        />
-      </label>
-      <label>
-        Mô tả
-        <textarea
-          maxLength={500}
-          value={s.description}
-          onChange={(e) => update({ description: e.target.value })}
-        />
-      </label>
-      <button type="button" onClick={onShareImage}>
-        Chọn ảnh chia sẻ
-      </button>
-      <h3>Ngôn ngữ & cuộn trang</h3>
-      <label>
-        Ngôn ngữ nhãn
-        <select
-          value={s.locale}
-          onChange={(e) => update({ locale: e.target.value as 'vi' | 'en' })}
-        >
-          <option value="vi">Tiếng Việt</option>
-          <option value="en">English</option>
-        </select>
-      </label>
-      <NumberProperty
-        label="Tự cuộn (px/giây,0=tắt)"
-        value={s.autoScroll}
-        min={0}
-        max={100}
-        onChange={(autoScroll) => update({ autoScroll })}
-      />
+    <section
+      aria-label="Thanh tiện ích và nền thiệp"
+      className={styles.legacyForm}
+    >
       <h3>Thanh tiện ích</h3>
       {(
         [
-          ['wishes', 'Lời chúc'],
-          ['likes', 'Lượt thích'],
           ['gift', 'QR mừng cưới'],
           ['share', 'Chia sẻ'],
         ] as const

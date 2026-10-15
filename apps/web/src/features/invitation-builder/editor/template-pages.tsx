@@ -12,6 +12,7 @@ import {
   Plus,
   ArrowRight,
   Pencil,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '../../../ui/platform/button';
 import { Field, SelectField } from '../../../ui/platform/field';
@@ -63,6 +64,12 @@ function OwnedTemplateList() {
   const [copyName, setCopyName] = useState('');
   const [copyError, setCopyError] = useState('');
   const [copyUncertain, setCopyUncertain] = useState(false);
+  const [deleting, setDeleting] = useState<TemplateSummary | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteUncertain, setDeleteUncertain] = useState(false);
+  const deletePending = useRef(false);
+  const cancelDelete = useRef<HTMLButtonElement>(null);
   const [coverState, setCovers] = useState<{
     page: ListPage<TemplateSummary> | null;
     urls: Record<string, string>;
@@ -187,6 +194,40 @@ function OwnedTemplateList() {
       if (scope.isActive()) {
         duplicating.current = false;
         setLoading(false);
+      }
+      scope.dispose();
+    }
+  }
+  async function removeDraft() {
+    if (!deleting || deletePending.current || deleteUncertain) return;
+    const scope = lifetime.capture();
+    deletePending.current = true;
+    setDeleteBusy(true);
+    setDeleteError('');
+    try {
+      await builderRequest(`/admin/templates/${deleting.id}`, {
+        scope,
+        method: 'DELETE',
+        body: { expectedVersion: deleting.editVersion },
+      });
+      if (!scope.isActive()) return;
+      setDeleting(null);
+      load(currentRequest.current.query);
+    } catch (cause) {
+      if (!scope.isActive()) return;
+      const uncertain =
+        cause instanceof BuilderApiError &&
+        (cause.status === 0 || cause.status >= 500);
+      setDeleteUncertain(uncertain);
+      setDeleteError(
+        uncertain
+          ? 'Chưa xác định kết quả xóa. Tải lại danh sách để kiểm tra trước khi thử lại.'
+          : message(cause),
+      );
+    } finally {
+      if (scope.isActive()) {
+        setDeleteBusy(false);
+        deletePending.current = false;
       }
       scope.dispose();
     }
@@ -327,6 +368,20 @@ function OwnedTemplateList() {
                 <Copy size={16} aria-hidden="true" />
                 Nhân bản {template.name}
               </Button>
+              {template.status === 'DRAFT' && (
+                <Button
+                  variant="destructive"
+                  disabled={deleteBusy}
+                  onClick={() => {
+                    setDeleting(template);
+                    setDeleteError('');
+                    setDeleteUncertain(false);
+                  }}
+                  aria-label={`Xóa bản nháp ${template.name}`}
+                >
+                  <Trash2 size={16} aria-hidden="true" /> Xóa bản nháp
+                </Button>
+              )}
             </div>
           </li>
         ))}
@@ -344,6 +399,57 @@ function OwnedTemplateList() {
         >
           Trang tiếp
         </Button>
+      )}
+      {deleting && (
+        <ModalSurface
+          label="Xóa mẫu bản nháp"
+          variant="centered"
+          fallbackFocusRef={workspace}
+          initialFocusRef={cancelDelete}
+          onClose={() => {
+            if (!deletePending.current) setDeleting(null);
+          }}
+        >
+          <div className={styles.copyForm}>
+            <p>
+              Bạn muốn xóa mẫu “{deleting.name}”? Thao tác này không thể hoàn
+              tác. Ảnh và nhạc trong thư viện vẫn được giữ lại.
+            </p>
+            {deleteError && (
+              <InlineAlert tone="error">{deleteError}</InlineAlert>
+            )}
+            <div className={styles.actions}>
+              <Button
+                ref={cancelDelete}
+                variant="secondary"
+                disabled={deleteBusy}
+                onClick={() => setDeleting(null)}
+              >
+                Hủy
+              </Button>
+              <Button
+                variant="destructive"
+                busy={deleteBusy}
+                disabled={deleteUncertain}
+                onClick={() => void removeDraft()}
+              >
+                Xóa bản nháp
+              </Button>
+              {deleteError && (
+                <Button
+                  variant="secondary"
+                  disabled={deleteBusy}
+                  onClick={() => {
+                    setDeleting(null);
+                    load(currentRequest.current.query);
+                  }}
+                >
+                  Tải lại danh sách
+                </Button>
+              )}
+            </div>
+          </div>
+        </ModalSurface>
       )}
       {copy && (
         <ModalSurface

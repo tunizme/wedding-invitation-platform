@@ -1,10 +1,11 @@
+import { openingAssetIds } from '../../invitation-builder/domain/effects';
 import type { SupportedResolvedScene } from '../../invitation-builder/domain/document.types';
 
 /** Public byte delivery is limited to assets present in the committed scene. */
 export function visibleSceneAssetIds(scene: SupportedResolvedScene): string[] {
   if (scene.schemaVersion !== 3 || scene.rendererContractVersion !== 3)
     return [];
-  const ids = new Set<string>();
+  const ids = new Set<string>(openingAssetIds(scene.settings.openingEffect));
   if (scene.schemaVersion === 3) {
     if (scene.settings.audio.assetId) ids.add(scene.settings.audio.assetId);
     if (scene.settings.shareImageId) ids.add(scene.settings.shareImageId);

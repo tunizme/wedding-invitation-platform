@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  HttpCode,
   Get,
   Inject,
   Param,
@@ -39,6 +41,15 @@ export class TemplateDraftController {
     @Param('id') id: string,
   ) {
     return this.drafts.get(request.principal, id);
+  }
+  @Delete(':id')
+  @HttpCode(204)
+  remove(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.drafts.remove(request.principal, id, body);
   }
   @Patch(':id') update(
     @Req() request: AuthenticatedRequest,

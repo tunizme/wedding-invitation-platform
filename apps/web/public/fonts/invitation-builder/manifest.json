@@ -176,6 +176,1745 @@
           "bytes": 15812
         }
       ]
+    },
+    {
+      "fontId": "be-vietnam-pro-v1",
+      "family": "Invitation Be Vietnam Pro v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bevietnampro/BeVietnamPro-Regular.ttf",
+      "sourceBlobSHA": "dfa34c09fe2bae0626e00aa3265af2119345c27b",
+      "sourceSha256": "cd1ef6e9d7db28ad5cdb88a65ccbe693870e60d340b791f349d248342b4fe4c3",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/be-vietnam-pro-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "36a4cf288877979fe3f169ea30c889fa21f0aff503bf1ca8fc8d7bb6e4e55820",
+          "bytes": 38144
+        }
+      ]
+    },
+    {
+      "fontId": "be-vietnam-pro-v1",
+      "family": "Invitation Be Vietnam Pro v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bevietnampro/BeVietnamPro-Bold.ttf",
+      "sourceBlobSHA": "52aadc6da089ed8ae647b5e0c8cac4f8b3e24750",
+      "sourceSha256": "7f738fe5c43c8872807b20e2d30d42163618de8a4daf7f48a939adac32c16847",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/be-vietnam-pro-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "543f1a8d278029d4afc977e301b12f87a5cb94f2268b831019bcfd77d7628340",
+          "bytes": 41200
+        }
+      ]
+    },
+    {
+      "fontId": "be-vietnam-pro-v1",
+      "family": "Invitation Be Vietnam Pro v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bevietnampro/BeVietnamPro-Italic.ttf",
+      "sourceBlobSHA": "d9d0134f4120078d3c815bc20cd7e9dfc5ff66c2",
+      "sourceSha256": "a33ebb3f68e0e260a7d3874d64259ad309971a2daf969e7ce5f444d70bce535f",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/be-vietnam-pro-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "c76e1b1a82fa9bfab8fb8516115e706ff39705ad7211a2105e25620e28d9edf2",
+          "bytes": 38760
+        }
+      ]
+    },
+    {
+      "fontId": "be-vietnam-pro-v1",
+      "family": "Invitation Be Vietnam Pro v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bevietnampro/BeVietnamPro-BoldItalic.ttf",
+      "sourceBlobSHA": "7e22a2d7e115780ad7f044548b4cbd745b52d969",
+      "sourceSha256": "a2a65bdf9b251beb3d658ae691889d71ce63c0290940c87ca60b449ceb0bdaee",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/be-vietnam-pro-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "3bd6f75822387fc0c22115747702773baf8d740fba45e13a0cb883217cf09663",
+          "bytes": 40772
+        }
+      ]
+    },
+    {
+      "fontId": "inter-v1",
+      "family": "Invitation Inter v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+      "sourceBlobSHA": "047c92f6e2212473dc436020afed689527076d44",
+      "sourceSha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/inter-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "84120ed969353b0e014fc78257fb693c0d7a70b35f4e4a04b721b8fe7500f7b3",
+          "bytes": 113756
+        }
+      ]
+    },
+    {
+      "fontId": "inter-v1",
+      "family": "Invitation Inter v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+      "sourceBlobSHA": "047c92f6e2212473dc436020afed689527076d44",
+      "sourceSha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/inter-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "0b19482e322d539596b7e8fe1d355929bac8c5e6cf4998e78feb73cc52047241",
+          "bytes": 117872
+        }
+      ]
+    },
+    {
+      "fontId": "inter-v1",
+      "family": "Invitation Inter v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Italic%5Bopsz%2Cwght%5D.ttf",
+      "sourceBlobSHA": "c177578428248f08eedcc60e292acc6f414c2167",
+      "sourceSha256": "acd98e64795781b2058f07b18475e0ecee2a0fe2b42a49e2f9e37d0d6bf66ce6",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/inter-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "a698284ae4b575493e9ae4a38c2f960e3e9ff301ec001ff797b2f7788970c1a5",
+          "bytes": 120392
+        }
+      ]
+    },
+    {
+      "fontId": "inter-v1",
+      "family": "Invitation Inter v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Italic%5Bopsz%2Cwght%5D.ttf",
+      "sourceBlobSHA": "c177578428248f08eedcc60e292acc6f414c2167",
+      "sourceSha256": "acd98e64795781b2058f07b18475e0ecee2a0fe2b42a49e2f9e37d0d6bf66ce6",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/inter-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "1a37a0eb3f9aec122830bd4fd5e1c821d9092cee5c27ebc15835fb844f9040be",
+          "bytes": 124332
+        }
+      ]
+    },
+    {
+      "fontId": "montserrat-v1",
+      "family": "Invitation Montserrat v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf",
+      "sourceBlobSHA": "c97aca18592834d8706549c279cb8d5ac5d85f69",
+      "sourceSha256": "0f7b311b2f3279e4eef9b2f968bcdbab6e28f4daeb1f049f4f278a902bcd82f7",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/montserrat-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "602f01f58eb6817b9693e1e5c13f681b321be82fc9d2fe601e804ea171c3e9f7",
+          "bytes": 104072
+        }
+      ]
+    },
+    {
+      "fontId": "montserrat-v1",
+      "family": "Invitation Montserrat v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat%5Bwght%5D.ttf",
+      "sourceBlobSHA": "c97aca18592834d8706549c279cb8d5ac5d85f69",
+      "sourceSha256": "0f7b311b2f3279e4eef9b2f968bcdbab6e28f4daeb1f049f4f278a902bcd82f7",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/montserrat-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "ed8de84cf027da16f83a8298107cc1af1d2bafdd1e5e09fd49294fe0ace48f56",
+          "bytes": 106304
+        }
+      ]
+    },
+    {
+      "fontId": "montserrat-v1",
+      "family": "Invitation Montserrat v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "c8b8441744f2092ea8cbeb7b6f881e53bfe9c623",
+      "sourceSha256": "51607f316bc020e59f03cbf51543eecffbea501c0b31d73e5b82927c5cca442c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/montserrat-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "44896b29f521f444653f7bcd813c7bc95f1a10bece7288490133d5d12acdef36",
+          "bytes": 110008
+        }
+      ]
+    },
+    {
+      "fontId": "montserrat-v1",
+      "family": "Invitation Montserrat v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/Montserrat-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "c8b8441744f2092ea8cbeb7b6f881e53bfe9c623",
+      "sourceSha256": "51607f316bc020e59f03cbf51543eecffbea501c0b31d73e5b82927c5cca442c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/montserrat-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "a1130e52fd84bbe8a067a02da3302646e04482f25051fe83fb81a151ec4e9e15",
+          "bytes": 112064
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-v1",
+      "family": "Invitation Nunito v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito%5Bwght%5D.ttf",
+      "sourceBlobSHA": "2ec1f4b0676c83ef33049db87b311171699e9192",
+      "sourceSha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "83832a87d2adada8520ce3a784723ade668ed24c2d991a03e039811d996f5e75",
+          "bytes": 44556
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-v1",
+      "family": "Invitation Nunito v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito%5Bwght%5D.ttf",
+      "sourceBlobSHA": "2ec1f4b0676c83ef33049db87b311171699e9192",
+      "sourceSha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "586e670f09876d7b1ac58d2232f86f870a1ddb1c9259e9dd406e13fe687e53fe",
+          "bytes": 44148
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-v1",
+      "family": "Invitation Nunito v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "e63b7a6b390495bfe2ec827b723b51679022b61e",
+      "sourceSha256": "b520cc871868b0acfca1beda875df7f4a44ebce914f8a89f83977fc9c09529c8",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "55402619ab66f46d1f174d33248a38b8b49885335d18ea254f80e790fd5498b0",
+          "bytes": 47344
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-v1",
+      "family": "Invitation Nunito v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "e63b7a6b390495bfe2ec827b723b51679022b61e",
+      "sourceSha256": "b520cc871868b0acfca1beda875df7f4a44ebce914f8a89f83977fc9c09529c8",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "26db070ef44dafa1ccf4769fef961609bad8fe24d54814407414cad32036f1eb",
+          "bytes": 46804
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-sans-v1",
+      "family": "Invitation Nunito Sans v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "ccc8565733e7d037ede2c9cc971ceb6375e28733",
+      "sourceSha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-sans-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "d096a3b797fae4df70ad023e4199ac1c3db0bc6ca9eb970ed4a340281597151d",
+          "bytes": 38156
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-sans-v1",
+      "family": "Invitation Nunito Sans v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "ccc8565733e7d037ede2c9cc971ceb6375e28733",
+      "sourceSha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-sans-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "bb392829bc0bc5526100b29531bc02024fdfef31de00699c1323d9b9aba5a404",
+          "bytes": 37888
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-sans-v1",
+      "family": "Invitation Nunito Sans v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans-Italic%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "5b325adf55fe1e0e99b10a4ef74a205b322e3cd5",
+      "sourceSha256": "d9d5db18f3c11221a4fbb553cbc709391c1179964c7eaa4466ef43c78aa4492f",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-sans-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "047b16fece630f54ab5137bc394883313c6556e48607f7b14b98dcbb4846dfd3",
+          "bytes": 40456
+        }
+      ]
+    },
+    {
+      "fontId": "nunito-sans-v1",
+      "family": "Invitation Nunito Sans v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans-Italic%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "5b325adf55fe1e0e99b10a4ef74a205b322e3cd5",
+      "sourceSha256": "d9d5db18f3c11221a4fbb553cbc709391c1179964c7eaa4466ef43c78aa4492f",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/nunito-sans-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "9161732e58656933aa4496710180be9ea20a36a7bcdb57e87915acb112197a40",
+          "bytes": 40112
+        }
+      ]
+    },
+    {
+      "fontId": "quicksand-v1",
+      "family": "Invitation Quicksand v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/quicksand/Quicksand%5Bwght%5D.ttf",
+      "sourceBlobSHA": "8cd9133bc8b152573b581a3f788346be2d30adb4",
+      "sourceSha256": "39c9b64223561f56aaff6062a6f04063c4fc86809ad6768722c06614d977e1cc",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/quicksand-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "d0bf030661528cb80f8496c8b20ad9de0c1f77c89e38248d69e3a8e7dadb1bc5",
+          "bytes": 31140
+        }
+      ]
+    },
+    {
+      "fontId": "quicksand-v1",
+      "family": "Invitation Quicksand v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/quicksand/Quicksand%5Bwght%5D.ttf",
+      "sourceBlobSHA": "8cd9133bc8b152573b581a3f788346be2d30adb4",
+      "sourceSha256": "39c9b64223561f56aaff6062a6f04063c4fc86809ad6768722c06614d977e1cc",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/quicksand-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "cc898243b6028f8c76f996ea074f672c2f055109ec84489444bba0e23b7dbba1",
+          "bytes": 29816
+        }
+      ]
+    },
+    {
+      "fontId": "raleway-v1",
+      "family": "Invitation Raleway v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/raleway/Raleway%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d81d42f537c7dc1bbde81b54e4c52a92977a8fde",
+      "sourceSha256": "8bbcc3eb8275c388f4bcd998832f8a4b943eadbaf6a595205312774b5951aefb",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/raleway-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "43798658d444eb32ddf5404ca2ec09c07cb2031b54d1e3b0542867ddc825da0d",
+          "bytes": 62320
+        }
+      ]
+    },
+    {
+      "fontId": "raleway-v1",
+      "family": "Invitation Raleway v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/raleway/Raleway%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d81d42f537c7dc1bbde81b54e4c52a92977a8fde",
+      "sourceSha256": "8bbcc3eb8275c388f4bcd998832f8a4b943eadbaf6a595205312774b5951aefb",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/raleway-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "7cf9fe9a992a7809262b4482567b1c823aef85c347d8b140625757e5e392d833",
+          "bytes": 63360
+        }
+      ]
+    },
+    {
+      "fontId": "raleway-v1",
+      "family": "Invitation Raleway v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/raleway/Raleway-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "62d9e8480909eb2df71e230a67a4013490d0d5f3",
+      "sourceSha256": "96629caf2202183fab46c70237055a7d67e6a5400b85413d45a77ed6f2a0770c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/raleway-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "fd4bb0f20c52ced17922f9e5cf6de0c4200ef89d53adf8094b6ad82fb7478731",
+          "bytes": 64492
+        }
+      ]
+    },
+    {
+      "fontId": "raleway-v1",
+      "family": "Invitation Raleway v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/raleway/Raleway-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "62d9e8480909eb2df71e230a67a4013490d0d5f3",
+      "sourceSha256": "96629caf2202183fab46c70237055a7d67e6a5400b85413d45a77ed6f2a0770c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/raleway-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "245343a42163e554d3acf9c4eface5c080264d577226d240df9c1c05758aed6b",
+          "bytes": 65764
+        }
+      ]
+    },
+    {
+      "fontId": "oswald-v1",
+      "family": "Invitation Oswald v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d1a3b9cb1325bf20b3a06ef9849d21c411212a3b",
+      "sourceSha256": "5b38c246e255a12f5712d640d56bcced0472466fc68983d2d0410ec0457c2817",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/oswald-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "5cf506ac6e38c2fa1ac84fa64ab45fa853b3c12142bc8f924ac9bb68c4d1c6d6",
+          "bytes": 32980
+        }
+      ]
+    },
+    {
+      "fontId": "oswald-v1",
+      "family": "Invitation Oswald v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/oswald/Oswald%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d1a3b9cb1325bf20b3a06ef9849d21c411212a3b",
+      "sourceSha256": "5b38c246e255a12f5712d640d56bcced0472466fc68983d2d0410ec0457c2817",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/oswald-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "addf0983d8d6c6f7aec6cef4c305f7249a57d2c58d5db058e9c76dd1bfef69f9",
+          "bytes": 34112
+        }
+      ]
+    },
+    {
+      "fontId": "merriweather-v1",
+      "family": "Invitation Merriweather v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/merriweather/Merriweather%5Bopsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "cb775b80fa0a6f3b2aea114869a7171695b50a62",
+      "sourceSha256": "d0ed0e359e396af7ad05e73dffd11a3a4c326ea0d0283c56bd9361cb2cc86a96",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/merriweather-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "b7b86095e8c046e3acb45d4f6f15948f2f5c2fab69c257855e076ecc16be3782",
+          "bytes": 379872
+        }
+      ]
+    },
+    {
+      "fontId": "merriweather-v1",
+      "family": "Invitation Merriweather v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/merriweather/Merriweather%5Bopsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "cb775b80fa0a6f3b2aea114869a7171695b50a62",
+      "sourceSha256": "d0ed0e359e396af7ad05e73dffd11a3a4c326ea0d0283c56bd9361cb2cc86a96",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/merriweather-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "4f863bc2779f8f5247e55512ab7530ce389807da88501f82faffb784d6e81064",
+          "bytes": 378480
+        }
+      ]
+    },
+    {
+      "fontId": "merriweather-v1",
+      "family": "Invitation Merriweather v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/merriweather/Merriweather-Italic%5Bopsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "f16120757a8a92cfa12a5fc9a7dcbaa2f8297ab6",
+      "sourceSha256": "f68a8f4989258679e4fbaf50aa42400132b5373c2d9d2514ba82ef6e85947a0b",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/merriweather-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "f958296d938a3d902c8ce5fd228f89867193b7e9c27499032710d6416cbdb6d6",
+          "bytes": 388556
+        }
+      ]
+    },
+    {
+      "fontId": "merriweather-v1",
+      "family": "Invitation Merriweather v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/merriweather/Merriweather-Italic%5Bopsz%2Cwdth%2Cwght%5D.ttf",
+      "sourceBlobSHA": "f16120757a8a92cfa12a5fc9a7dcbaa2f8297ab6",
+      "sourceSha256": "f68a8f4989258679e4fbaf50aa42400132b5373c2d9d2514ba82ef6e85947a0b",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/merriweather-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "ad1472476e520ba3bb17ef585badc3d6853d676ba1a015a65367e72bf5831b94",
+          "bytes": 388176
+        }
+      ]
+    },
+    {
+      "fontId": "lora-v1",
+      "family": "Invitation Lora v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora%5Bwght%5D.ttf",
+      "sourceBlobSHA": "ee1914c3746140523de2940d267ec2215bd85d5b",
+      "sourceSha256": "822a6621ccbe8d97d20ac88c1c41f5615c9c2c202eaa75f272cd452aac6475a7",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/lora-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "b2294407c905b76246afe063f4a14b2c07f35756691591dbb948166b199306c2",
+          "bytes": 48508
+        }
+      ]
+    },
+    {
+      "fontId": "lora-v1",
+      "family": "Invitation Lora v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora%5Bwght%5D.ttf",
+      "sourceBlobSHA": "ee1914c3746140523de2940d267ec2215bd85d5b",
+      "sourceSha256": "822a6621ccbe8d97d20ac88c1c41f5615c9c2c202eaa75f272cd452aac6475a7",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/lora-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "0ab5727dacb26618fe1991d3ac4a767882ab7d1141aafa739277bff6a60eaf24",
+          "bytes": 48856
+        }
+      ]
+    },
+    {
+      "fontId": "lora-v1",
+      "family": "Invitation Lora v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "e973ccf7e5c69a831090c729a0dc2c592f42f4cc",
+      "sourceSha256": "22d8d8854b53807aa664ca34f2031a9ed57a1d0dea296b8b96cdd3aad937a2b3",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/lora-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "0e847d2e4f9f2a1e45c22dbe2b341f64409547f5f025ebbabf0437a12412284b",
+          "bytes": 52364
+        }
+      ]
+    },
+    {
+      "fontId": "lora-v1",
+      "family": "Invitation Lora v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "e973ccf7e5c69a831090c729a0dc2c592f42f4cc",
+      "sourceSha256": "22d8d8854b53807aa664ca34f2031a9ed57a1d0dea296b8b96cdd3aad937a2b3",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/lora-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "3f1e5db52f3e3394f99122c1990a46676a3b691d2351eea7a35abdbefcde4007",
+          "bytes": 51712
+        }
+      ]
+    },
+    {
+      "fontId": "cormorant-garamond-v1",
+      "family": "Invitation Cormorant Garamond v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d992a83ce525c330fad3a19087746bcb2dc038ee",
+      "sourceSha256": "b20b7d9626dd956b2c5e558692ad328b1f19e3275e2782db4fa07670d83f35e0",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/cormorant-garamond-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "a68becd4f15f5316f790d59f71d8e1cf45d83d845099e16bee7dd15a133f5da9",
+          "bytes": 127556
+        }
+      ]
+    },
+    {
+      "fontId": "cormorant-garamond-v1",
+      "family": "Invitation Cormorant Garamond v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d992a83ce525c330fad3a19087746bcb2dc038ee",
+      "sourceSha256": "b20b7d9626dd956b2c5e558692ad328b1f19e3275e2782db4fa07670d83f35e0",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/cormorant-garamond-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "d9bbd2b5488307ec64e7081f1d50c821f66cd560ea8e10ff5c2649c4e3cc9456",
+          "bytes": 122832
+        }
+      ]
+    },
+    {
+      "fontId": "cormorant-garamond-v1",
+      "family": "Invitation Cormorant Garamond v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "0d914e7663b7a1429d06ec60a5c5bb026031a2ef",
+      "sourceSha256": "0f48ea6abb2084537854f7174c470991a463b13036309e3b50a81511611c530d",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/cormorant-garamond-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "cd9bc399bcc9b88c3553b4eac01e3e1c4f07768e147d93bfa57107043195f713",
+          "bytes": 86412
+        }
+      ]
+    },
+    {
+      "fontId": "cormorant-garamond-v1",
+      "family": "Invitation Cormorant Garamond v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "0d914e7663b7a1429d06ec60a5c5bb026031a2ef",
+      "sourceSha256": "0f48ea6abb2084537854f7174c470991a463b13036309e3b50a81511611c530d",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/cormorant-garamond-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "2e615853ede1a51cec3bf2fc6cad8b2db917ac4acae44f468695f689e7eb0d39",
+          "bytes": 81484
+        }
+      ]
+    },
+    {
+      "fontId": "eb-garamond-v1",
+      "family": "Invitation EB Garamond v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ebgaramond/EBGaramond%5Bwght%5D.ttf",
+      "sourceBlobSHA": "52d34b86ec20977f222ce37e8158e6b3002c0a31",
+      "sourceSha256": "ef9512f92f6d579e5dc75af59a5a4b1b8b47d2eda89e00b954d44520e5369027",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/eb-garamond-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "c4c99f37427b4c7703c4f8cd487e62d5b6187b20e7be17a2dd798e241e9ab407",
+          "bytes": 158552
+        }
+      ]
+    },
+    {
+      "fontId": "eb-garamond-v1",
+      "family": "Invitation EB Garamond v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ebgaramond/EBGaramond%5Bwght%5D.ttf",
+      "sourceBlobSHA": "52d34b86ec20977f222ce37e8158e6b3002c0a31",
+      "sourceSha256": "ef9512f92f6d579e5dc75af59a5a4b1b8b47d2eda89e00b954d44520e5369027",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/eb-garamond-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "32119cc38248b10591ef847eaf35a39d9011dd9bf8c321b725d8ce84815e4fd4",
+          "bytes": 177636
+        }
+      ]
+    },
+    {
+      "fontId": "eb-garamond-v1",
+      "family": "Invitation EB Garamond v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ebgaramond/EBGaramond-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "f9ad996001c8ee72fd43b4b8e67c8924b7f615b1",
+      "sourceSha256": "bba2c4499c93c9612b90b9825d32b07da52fce2fe57562a1eb6b833553f93c4e",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/eb-garamond-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "e6c723d38524da41691dda909b56e7acd9e8f99f84d118470f4c4235c7ac78a1",
+          "bytes": 154416
+        }
+      ]
+    },
+    {
+      "fontId": "eb-garamond-v1",
+      "family": "Invitation EB Garamond v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ebgaramond/EBGaramond-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "f9ad996001c8ee72fd43b4b8e67c8924b7f615b1",
+      "sourceSha256": "bba2c4499c93c9612b90b9825d32b07da52fce2fe57562a1eb6b833553f93c4e",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/eb-garamond-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "dbfc2ea005cf7c931f9423e9fe2e36126f52546ea2db89f2382f65dcb87e4dce",
+          "bytes": 170452
+        }
+      ]
+    },
+    {
+      "fontId": "bitter-v1",
+      "family": "Invitation Bitter v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bitter/Bitter%5Bwght%5D.ttf",
+      "sourceBlobSHA": "7f6d58e633e22ab99597e0c0c17bd21c11630d99",
+      "sourceSha256": "ef2b9a711fb02f1e5823b34da1b7450e0fc76793b7d733a8b41006e24916d4a7",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bitter-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "6afe9f6540c8380a2d7fed9b386ad97937a4b43183ceaf850c2ebb6e003a78d3",
+          "bytes": 68000
+        }
+      ]
+    },
+    {
+      "fontId": "bitter-v1",
+      "family": "Invitation Bitter v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bitter/Bitter%5Bwght%5D.ttf",
+      "sourceBlobSHA": "7f6d58e633e22ab99597e0c0c17bd21c11630d99",
+      "sourceSha256": "ef2b9a711fb02f1e5823b34da1b7450e0fc76793b7d733a8b41006e24916d4a7",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bitter-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "2e63ce4a0451a7f727fca419c9ce09d90ac64464dc1e1446acc414638e30aa81",
+          "bytes": 68272
+        }
+      ]
+    },
+    {
+      "fontId": "bitter-v1",
+      "family": "Invitation Bitter v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bitter/Bitter-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "39180c778f100c7d378198d7d570b4cea8c1d829",
+      "sourceSha256": "5e6e0af503171c9d7b4be7a22c16f474d7a638cf83a80051d825bcc58d664bc3",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bitter-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "5d25303a9778505a474dcd8cab1bbed20b295651efd4691a59679914673a962d",
+          "bytes": 68852
+        }
+      ]
+    },
+    {
+      "fontId": "bitter-v1",
+      "family": "Invitation Bitter v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/bitter/Bitter-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "39180c778f100c7d378198d7d570b4cea8c1d829",
+      "sourceSha256": "5e6e0af503171c9d7b4be7a22c16f474d7a638cf83a80051d825bcc58d664bc3",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bitter-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "799340068685bbfb91b61e4025cdc9dc438f326638e105b2471cf62ea3584810",
+          "bytes": 69432
+        }
+      ]
+    },
+    {
+      "fontId": "crimson-pro-v1",
+      "family": "Invitation Crimson Pro v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/crimsonpro/CrimsonPro%5Bwght%5D.ttf",
+      "sourceBlobSHA": "b8c1f6da0acbf2cb6d0af49ce89557288c829daa",
+      "sourceSha256": "16aa9fb7300a93637da51fac03a071b2ff08b6bbf65f99c794c25f040b58af6a",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/crimson-pro-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "47ce981eab9c3516cd8bd20f39bbe5e052ed1a14b6cfd722b3f9ee1f60b0b414",
+          "bytes": 37024
+        }
+      ]
+    },
+    {
+      "fontId": "crimson-pro-v1",
+      "family": "Invitation Crimson Pro v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/crimsonpro/CrimsonPro%5Bwght%5D.ttf",
+      "sourceBlobSHA": "b8c1f6da0acbf2cb6d0af49ce89557288c829daa",
+      "sourceSha256": "16aa9fb7300a93637da51fac03a071b2ff08b6bbf65f99c794c25f040b58af6a",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/crimson-pro-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "cd5cad84a5b79eab4f96bb356615faf8a321165f09f75f60c8cc243409097a72",
+          "bytes": 37880
+        }
+      ]
+    },
+    {
+      "fontId": "crimson-pro-v1",
+      "family": "Invitation Crimson Pro v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/crimsonpro/CrimsonPro-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d8fb3a3c3ad32ca5608969654feb002df9dd78f9",
+      "sourceSha256": "a74dc11dcf2fbb1452064e42395a40a907ca630b49cff86012223785e52b2559",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/crimson-pro-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "b5366bbf4d92bef4779411b82ddac1227656da8cef2539fa347bcae28f68cf63",
+          "bytes": 38276
+        }
+      ]
+    },
+    {
+      "fontId": "crimson-pro-v1",
+      "family": "Invitation Crimson Pro v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/crimsonpro/CrimsonPro-Italic%5Bwght%5D.ttf",
+      "sourceBlobSHA": "d8fb3a3c3ad32ca5608969654feb002df9dd78f9",
+      "sourceSha256": "a74dc11dcf2fbb1452064e42395a40a907ca630b49cff86012223785e52b2559",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/crimson-pro-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "80943672369ba62bf891044023f6bb9521f91852c79b58a2389c4ac9839bf99c",
+          "bytes": 39020
+        }
+      ]
+    },
+    {
+      "fontId": "dancing-script-v1",
+      "family": "Invitation Dancing Script v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/dancingscript/DancingScript%5Bwght%5D.ttf",
+      "sourceBlobSHA": "9f521e7fb357ec9ea9820ebd36a9d7b1f72f2935",
+      "sourceSha256": "21808625578fe8d8cd10cb684be546dca077b27cd03a53a2f1ec11dc743c924c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/dancing-script-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "30039cea07499c35877fec7376b4a17bd42ad27075807b41f68e0c20b9870ae6",
+          "bytes": 34852
+        }
+      ]
+    },
+    {
+      "fontId": "dancing-script-v1",
+      "family": "Invitation Dancing Script v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/dancingscript/DancingScript%5Bwght%5D.ttf",
+      "sourceBlobSHA": "9f521e7fb357ec9ea9820ebd36a9d7b1f72f2935",
+      "sourceSha256": "21808625578fe8d8cd10cb684be546dca077b27cd03a53a2f1ec11dc743c924c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/dancing-script-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "d6468b45bb7f8afe4b26d08242ab5d425ae866c6c1dd775c284eb01ec8bc0354",
+          "bytes": 36600
+        }
+      ]
+    },
+    {
+      "fontId": "great-vibes-v1",
+      "family": "Invitation Great Vibes v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/greatvibes/GreatVibes-Regular.ttf",
+      "sourceBlobSHA": "a1327ff3b862246f1f253639040edcc473e5f3a9",
+      "sourceSha256": "8d509802186f1b51572531ecf313e8098f9a5bfdfaca93f0c9b34467f9982d15",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/great-vibes-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "c20f94e3cae93dbf50697ef2ea01dfb9a925360d924554561ed5145bda9a8b25",
+          "bytes": 162012
+        }
+      ]
+    },
+    {
+      "fontId": "allura-v1",
+      "family": "Invitation Allura v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/allura/Allura-Regular.ttf",
+      "sourceBlobSHA": "dd197a26fb5d836bedb73aead3c6fc6f4c9ca864",
+      "sourceSha256": "9c142b2e515832c0dfc4ff8b8ea18f40314943bf937b72e2b23c4661bac14cc6",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/allura-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "9595f05bfacf9b837e5af3726befa1119dd30a7ce186f47656e16f315ef49b59",
+          "bytes": 87196
+        }
+      ]
+    },
+    {
+      "fontId": "moon-dance-v1",
+      "family": "Invitation Moon Dance v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/moondance/MoonDance-Regular.ttf",
+      "sourceBlobSHA": "f1ae0b69624d956947896c37e770172aa9d3f861",
+      "sourceSha256": "f25e6830b0c1b95df85446fc064cc0bc8db1588600a260a441b03011189e8335",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/moon-dance-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "76af4b6e3e21304dc6a504bcd7695bdffde5e5d11a174f1ad28e266491937c02",
+          "bytes": 93340
+        }
+      ]
+    },
+    {
+      "fontId": "style-script-v1",
+      "family": "Invitation Style Script v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/stylescript/StyleScript-Regular.ttf",
+      "sourceBlobSHA": "b3fb6dc2735669c5b87d237e7c89d77b8b8a21d1",
+      "sourceSha256": "4f285aa7b2e87de9ea8fc3d3a571cc428257c42ac77b5f786d99d9949ac4ed9a",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/style-script-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "8a3cd3c214926b700ec067090067c68fde457665887d2faeb8b16d0fe95daf87",
+          "bytes": 197852
+        }
+      ]
+    },
+    {
+      "fontId": "charm-v1",
+      "family": "Invitation Charm v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/charm/Charm-Regular.ttf",
+      "sourceBlobSHA": "91423910d8845d658a97574da803a60d36dcfbfe",
+      "sourceSha256": "daae102e411243377016dbeb8cb9d53087d13074064fe79658afa966a9ac330e",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/charm-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "4d240c7909047fac99651c7e3530cc394c0d0447f33acf18c93f2fff9902054e",
+          "bytes": 55948
+        }
+      ]
+    },
+    {
+      "fontId": "charm-v1",
+      "family": "Invitation Charm v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/charm/Charm-Bold.ttf",
+      "sourceBlobSHA": "975aa923642c830f2fddfd9d5d7ba7e4f80659ed",
+      "sourceSha256": "6e1fa92fda7ab74fcce8ed5d7a9de10a0fb43d777590e8ef9f6931da6e932481",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/charm-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "f925635ccb9bcce14e6b8743388e1ce959cce4a23577b3f0d98fec2052c106f1",
+          "bytes": 56912
+        }
+      ]
+    },
+    {
+      "fontId": "bai-jamjuree-v1",
+      "family": "Invitation Bai Jamjuree v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/baijamjuree/BaiJamjuree-Regular.ttf",
+      "sourceBlobSHA": "679cfb42f02d92562a5bf9806063f51914999937",
+      "sourceSha256": "72b5a30cb78966823eb326c09b9004b0d03b4bddcdfcfd1b8cdbffb6c414547d",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bai-jamjuree-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "5e6572787cec1a455485872b14da1210d6863675b5f41e079ee8e6e2635ebb23",
+          "bytes": 29492
+        }
+      ]
+    },
+    {
+      "fontId": "bai-jamjuree-v1",
+      "family": "Invitation Bai Jamjuree v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/baijamjuree/BaiJamjuree-Bold.ttf",
+      "sourceBlobSHA": "c080abfd0de8bd1fd344f72cc3f6cf50b625b2da",
+      "sourceSha256": "74784411504a295a5255e736e0a8389892af2c8a14e914d3e194329b59279223",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bai-jamjuree-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "378c15de2e2653f16199fffddd0b6c47a8a799cd15d323ca34996b6e12cf7010",
+          "bytes": 30128
+        }
+      ]
+    },
+    {
+      "fontId": "bai-jamjuree-v1",
+      "family": "Invitation Bai Jamjuree v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/baijamjuree/BaiJamjuree-Italic.ttf",
+      "sourceBlobSHA": "01a5f42c374d4dc9d4d5e764e275697fb30e53e4",
+      "sourceSha256": "96e5f86f49442f60fd72cfc7728fde740870cccd3b8bc8a30e75dd8d9fc4b3b4",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bai-jamjuree-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "7d693ce127625ce34441286481a5782b68309f70eb87c3d72c94046d4e8b575c",
+          "bytes": 32508
+        }
+      ]
+    },
+    {
+      "fontId": "bai-jamjuree-v1",
+      "family": "Invitation Bai Jamjuree v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/baijamjuree/BaiJamjuree-BoldItalic.ttf",
+      "sourceBlobSHA": "fb94ad0911ca06a3c8e94e28778ff00426ba2eb8",
+      "sourceSha256": "afeefa87666738ec8689bb018dfc971a532c8fd9e8cba649d1be0176759d93c1",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/bai-jamjuree-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "2ecbc753495c819f20f04957b07d384e7c3032d860c55e0df63919cb7e3823ce",
+          "bytes": 33020
+        }
+      ]
+    },
+    {
+      "fontId": "mali-v1",
+      "family": "Invitation Mali v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-Regular.ttf",
+      "sourceBlobSHA": "243a12a772b40009436eca7ba923a8c93eb65f6d",
+      "sourceSha256": "e3212f0f9be130743d32a4f174b7d79628daa5db0d72ca4c63c799ae465597bb",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/mali-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "eab5c03a52d8ed2b466bac8a8f41620f611380f74a206428e5508c1ea16d4410",
+          "bytes": 46876
+        }
+      ]
+    },
+    {
+      "fontId": "mali-v1",
+      "family": "Invitation Mali v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-Bold.ttf",
+      "sourceBlobSHA": "4f1d5a3af6883a5530361a11030d7b66130072d4",
+      "sourceSha256": "3e2f421036c3f91eb5ef34650a5cd2116c737a542147769437a9856a455d4462",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/mali-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "de5b3ddb8d4cefd4d085c04332c63a3ce0d88b7a48ec732ba2216396e9edd27f",
+          "bytes": 45940
+        }
+      ]
+    },
+    {
+      "fontId": "mali-v1",
+      "family": "Invitation Mali v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-Italic.ttf",
+      "sourceBlobSHA": "a459a7bac373d78684c715f318451529e317855d",
+      "sourceSha256": "feb2808bbd3827949b5eda93179d5820b0fbbb2bfd6154866b0d05e1b8f25f8c",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/mali-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "aadbb27693a0b2d52e011986d123c2a65eddb7fb88d785aa6d2a9104cd3ed48a",
+          "bytes": 48880
+        }
+      ]
+    },
+    {
+      "fontId": "mali-v1",
+      "family": "Invitation Mali v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/mali/Mali-BoldItalic.ttf",
+      "sourceBlobSHA": "34125396af62dd8e4fb9f65cb788c547c7699cd4",
+      "sourceSha256": "ed51d1fa721e4dc4a43dba34926442a007f8a300543c1171887810a547e5b23b",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/mali-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "8accdd8621d723351780d7ce2c0f11bf3cc432a3a6f002d991698947cb182fab",
+          "bytes": 49268
+        }
+      ]
+    },
+    {
+      "fontId": "sriracha-v1",
+      "family": "Invitation Sriracha v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/sriracha/Sriracha-Regular.ttf",
+      "sourceBlobSHA": "ada2b01c981b0de76b7d621ce93f0df32de708d9",
+      "sourceSha256": "c3128c30cb21e8724b792586c87059d1b5eceae10d9957ba2ab26c80bbed3669",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/sriracha-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "f7153b413ca852d70174a62465508f3d8355c9b9cd00899ed7d78d3b552b0d3d",
+          "bytes": 87144
+        }
+      ]
+    },
+    {
+      "fontId": "ibm-plex-serif-v1",
+      "family": "Invitation IBM Plex Serif v1",
+      "weight": 400,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexserif/IBMPlexSerif-Regular.ttf",
+      "sourceBlobSHA": "069d26a6c7951cd60811dcd100bdf2e6f39cfcc4",
+      "sourceSha256": "e882efa9c41949a528ac2369079ec5ef050c1c996bbd0bacce3c3326d44cf80d",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/ibm-plex-serif-v1-full-400-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "7c181d274794ccfafb27722bc12b5041da737e2ed7097794af767b2d24d424b0",
+          "bytes": 51072
+        }
+      ]
+    },
+    {
+      "fontId": "ibm-plex-serif-v1",
+      "family": "Invitation IBM Plex Serif v1",
+      "weight": 700,
+      "style": "normal",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexserif/IBMPlexSerif-Bold.ttf",
+      "sourceBlobSHA": "e78e43ee5d830a0696c538ff035ea8662725a0a9",
+      "sourceSha256": "534c02c295999dd86e770457ece1d43db0de9256dd98bf741426f63ae904209e",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/ibm-plex-serif-v1-full-700-normal.woff2",
+          "unicodeRange": "",
+          "sha256": "467389316bdf24b842065a059295cfa2d6d2680377e640c1a7eab6e4b4d6d2af",
+          "bytes": 50532
+        }
+      ]
+    },
+    {
+      "fontId": "ibm-plex-serif-v1",
+      "family": "Invitation IBM Plex Serif v1",
+      "weight": 400,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexserif/IBMPlexSerif-Italic.ttf",
+      "sourceBlobSHA": "977ec6c4522dcd714bf51e49ec484e096e4f8d7c",
+      "sourceSha256": "4b75b38be4673527231f49c48818d090c913d5042dd5c747b525bf6185d29ecb",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/ibm-plex-serif-v1-full-400-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "0cf473de9170fbd343880d93d596decdaa3a2a84ffcd0bce21bc3b537d4c6a63",
+          "bytes": 55844
+        }
+      ]
+    },
+    {
+      "fontId": "ibm-plex-serif-v1",
+      "family": "Invitation IBM Plex Serif v1",
+      "weight": 700,
+      "style": "italic",
+      "sourcePackage": "google/fonts (full TTF; pinned blob; static instance)",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexserif/IBMPlexSerif-BoldItalic.ttf",
+      "sourceBlobSHA": "ad8070edc567b984b00cf70f1490806cbca046fc",
+      "sourceSha256": "2a32b76ac19c1942bf5942dbbd2a1566e5f1ae9833e421ebcf36d3522715e153",
+      "license": "OFL-1.1",
+      "sources": [
+        {
+          "url": "/fonts/invitation-builder/ibm-plex-serif-v1-full-700-italic.woff2",
+          "unicodeRange": "",
+          "sha256": "2354df9365b5cf29690a240891f018a676a3f9e70765fe02c21cab888a8412d1",
+          "bytes": 55828
+        }
+      ]
+    }
+  ],
+  "families": [
+    {
+      "id": "noto-sans-v1",
+      "label": "Noto Sans",
+      "family": "Invitation Noto Sans v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal",
+        "italic"
+      ]
+    },
+    {
+      "id": "noto-serif-v1",
+      "label": "Noto Serif",
+      "family": "Invitation Noto Serif v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal",
+        "italic"
+      ]
+    },
+    {
+      "id": "be-vietnam-pro-v1",
+      "label": "Be Vietnam Pro",
+      "family": "Invitation Be Vietnam Pro v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "inter-v1",
+      "label": "Inter",
+      "family": "Invitation Inter v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "montserrat-v1",
+      "label": "Montserrat",
+      "family": "Invitation Montserrat v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "nunito-v1",
+      "label": "Nunito",
+      "family": "Invitation Nunito v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "nunito-sans-v1",
+      "label": "Nunito Sans",
+      "family": "Invitation Nunito Sans v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "quicksand-v1",
+      "label": "Quicksand",
+      "family": "Invitation Quicksand v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "raleway-v1",
+      "label": "Raleway",
+      "family": "Invitation Raleway v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "oswald-v1",
+      "label": "Oswald",
+      "family": "Invitation Oswald v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "merriweather-v1",
+      "label": "Merriweather",
+      "family": "Invitation Merriweather v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "lora-v1",
+      "label": "Lora",
+      "family": "Invitation Lora v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "cormorant-garamond-v1",
+      "label": "Cormorant Garamond",
+      "family": "Invitation Cormorant Garamond v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "eb-garamond-v1",
+      "label": "EB Garamond",
+      "family": "Invitation EB Garamond v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "bitter-v1",
+      "label": "Bitter",
+      "family": "Invitation Bitter v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "crimson-pro-v1",
+      "label": "Crimson Pro",
+      "family": "Invitation Crimson Pro v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "dancing-script-v1",
+      "label": "Dancing Script",
+      "family": "Invitation Dancing Script v1",
+      "category": "handwriting",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "great-vibes-v1",
+      "label": "Great Vibes",
+      "family": "Invitation Great Vibes v1",
+      "category": "handwriting",
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "allura-v1",
+      "label": "Allura",
+      "family": "Invitation Allura v1",
+      "category": "handwriting",
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "moon-dance-v1",
+      "label": "Moon Dance",
+      "family": "Invitation Moon Dance v1",
+      "category": "handwriting",
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "style-script-v1",
+      "label": "Style Script",
+      "family": "Invitation Style Script v1",
+      "category": "handwriting",
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "charm-v1",
+      "label": "Charm",
+      "family": "Invitation Charm v1",
+      "category": "handwriting",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "bai-jamjuree-v1",
+      "label": "Bai Jamjuree",
+      "family": "Invitation Bai Jamjuree v1",
+      "category": "sans-serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "mali-v1",
+      "label": "Mali",
+      "family": "Invitation Mali v1",
+      "category": "handwriting",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
+    },
+    {
+      "id": "sriracha-v1",
+      "label": "Sriracha",
+      "family": "Invitation Sriracha v1",
+      "category": "handwriting",
+      "weights": [
+        400
+      ],
+      "styles": [
+        "normal"
+      ]
+    },
+    {
+      "id": "ibm-plex-serif-v1",
+      "label": "IBM Plex Serif",
+      "family": "Invitation IBM Plex Serif v1",
+      "category": "serif",
+      "weights": [
+        400,
+        700
+      ],
+      "styles": [
+        "italic",
+        "normal"
+      ]
     }
   ]
 }

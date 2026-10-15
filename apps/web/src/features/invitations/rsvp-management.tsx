@@ -18,14 +18,24 @@ import { getInvitation } from './api';
 import { listRsvps, setRsvpState } from './rsvp-owner-api';
 import { BuilderApiError } from '../invitation-builder/api/client';
 import type { RsvpItem } from './rsvp-api';
-export function RsvpManagement({ id }: { id: string }) {
-  const owner = usePrivateOwner(id, 'CUSTOMER');
+import { formatVietnameseTimestamp } from './event-local-time';
+export function RsvpManagement({
+  id,
+  assisted = false,
+}: {
+  id: string;
+  assisted?: boolean;
+}) {
+  const owner = usePrivateOwner(id, assisted ? 'ADMIN' : 'CUSTOMER');
   const session = useSyncExternalStore(
     sessionStore.subscribe,
     sessionStore.get,
     () => null,
   );
-  if (session?.user.role !== 'CUSTOMER' || session.user.status !== 'ACTIVE')
+  if (
+    session?.user.role !== (assisted ? 'ADMIN' : 'CUSTOMER') ||
+    session.user.status !== 'ACTIVE'
+  )
     return <p role="alert">Khu vực này chỉ dành cho Customer.</p>;
   // Private state belongs to a principal/resource, never just to a role.
   // Token renewal leaves this key intact; identity changes discard the entire
@@ -34,6 +44,7 @@ export function RsvpManagement({ id }: { id: string }) {
     <OwnedRsvpManagement
       key={owner}
       id={id}
+      assisted={assisted}
       customerId={session.user.id}
       epoch={sessionStore.identityEpoch()}
     />
@@ -44,10 +55,12 @@ function OwnedRsvpManagement({
   id,
   customerId,
   epoch,
+  assisted,
 }: {
   id: string;
   customerId: string;
   epoch: number;
+  assisted: boolean;
 }) {
   const lifetime = useOperationLifetime(`RsvpManagement:${id}`);
   const authorized = useCallback(() => {
@@ -56,10 +69,10 @@ function OwnedRsvpManagement({
       lifetime.isActive() &&
       sessionStore.identityEpoch() === epoch &&
       user?.id === customerId &&
-      user.role === 'CUSTOMER' &&
+      user.role === (assisted ? 'ADMIN' : 'CUSTOMER') &&
       user.status === 'ACTIVE'
     );
-  }, [customerId, epoch, lifetime]);
+  }, [customerId, epoch, lifetime, assisted]);
   const [items, setItems] = useState<RsvpItem[]>([]),
     [cursor, setCursor] = useState<string | null>(null),
     [control, setControl] = useState<{
@@ -81,8 +94,11 @@ function OwnedRsvpManagement({
     setError('');
     try {
       const [detail, page] = await Promise.all([
-        getInvitation(id, { scope }),
-        listRsvps(id, undefined, { scope }),
+        getInvitation(id, { scope, ...(assisted ? { assisted: true } : {}) }),
+        listRsvps(id, undefined, {
+          scope,
+          ...(assisted ? { assisted: true } : {}),
+        }),
       ]);
       if (current !== generation.current || !authorized()) return;
       setControl({
@@ -103,7 +119,7 @@ function OwnedRsvpManagement({
       operation.current = false;
       if (current === generation.current && authorized()) setBusy(false);
     }
-  }, [id, authorized, lifetime]);
+  }, [id, authorized, lifetime, assisted]);
   const invalidate = useCallback(() => {
     generation.current++;
   }, []);
@@ -128,7 +144,7 @@ function OwnedRsvpManagement({
         id,
         control.controlVersion,
         !control.rsvpOpen,
-        { scope },
+        { scope, ...(assisted ? { assisted: true } : {}) },
       );
       if (current === generation.current && authorized()) setControl(result);
     } catch (cause) {
@@ -162,7 +178,10 @@ function OwnedRsvpManagement({
     const current = generation.current;
     const scope = lifetime.capture();
     try {
-      const page = await listRsvps(id, cursor, { scope });
+      const page = await listRsvps(id, cursor, {
+        scope,
+        ...(assisted ? { assisted: true } : {}),
+      });
       if (current === generation.current && authorized()) {
         setItems((previous) => {
           const seen = new Set(previous.map((item) => item.id));
@@ -240,7 +259,7 @@ function OwnedRsvpManagement({
                 {item.message || 'Chưa có lời nhắn'}
               </p>
               <time dateTime={item.createdAt}>
-                {new Date(item.createdAt).toLocaleString('vi-VN')}
+                {formatVietnameseTimestamp(item.createdAt)}
               </time>
             </li>
           ))}

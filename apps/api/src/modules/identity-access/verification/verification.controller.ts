@@ -17,6 +17,7 @@ import { RateLimitService } from '../infrastructure/rate-limit.service';
 import { CredentialCrypto } from '../infrastructure/credential-crypto';
 import { ChallengeService } from './challenge.service';
 import { LocalVerificationService } from './local-verification.service';
+import { CustomerInvitationService } from '../admin/customer-invitation.service';
 import { PasswordResetService } from './password-reset.service';
 
 function fields(body: unknown, keys: string[]): Record<string, string> {
@@ -56,6 +57,8 @@ export class VerificationController {
     private readonly browser: BrowserSecurityService,
     @Inject(CredentialCrypto) private readonly crypto: CredentialCrypto,
     @Inject(DataSource) private readonly db: DataSource,
+    @Inject(CustomerInvitationService)
+    private readonly invitations: CustomerInvitationService,
   ) {}
   private async requestInput(body: unknown, request: Request, reset: boolean) {
     this.browser.requireOrigin(request, true);
@@ -86,6 +89,13 @@ export class VerificationController {
     // Count outside the business transaction: rejected proof attempts must persist.
     await this.limiter.consumeProof(known?.id, this.limiter.ip(request));
     return input;
+  }
+  @Post('customer-activation/confirm')
+  @HttpCode(204)
+  @Header('Cache-Control', 'no-store')
+  async activate(@Body() body: unknown, @Req() request: Request) {
+    const { proof, newPassword } = await this.confirmInput(body, request, true);
+    await this.invitations.activate(proof, newPassword);
   }
   @Post('email-verifications')
   @HttpCode(202)

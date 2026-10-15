@@ -167,7 +167,16 @@ function mergeContent(
     unknown
   >;
   const binding = node.props.bindings[0];
-  if (!binding) return content;
+  if (!binding) {
+    if (kind === 'QRBank' && complete(content.bank, 'bank'))
+      content.qrPayload = createBankQrPayload(
+        content.bank as Required<
+          Pick<Bank, 'bin' | 'account' | 'recipientName'>
+        > &
+          Pick<Bank, 'message'>,
+      );
+    return content;
+  }
   const resolved = value;
   if (kind === 'Text' && binding.target === 'text') content.text = resolved;
   else if (
@@ -344,7 +353,40 @@ export function resolvePrimitiveDocument(
         });
         continue;
       }
-    } else missing = true;
+    } else {
+      const direct = node.props.content as unknown as Record<string, unknown>;
+      if (kind === 'Calendar' || kind === 'Countdown') {
+        value = direct.event;
+        missing = !complete(value, 'wedding.event');
+        if (
+          !missing &&
+          eventIssues(value as WeddingEvent, `/nodes/${id}/props/content/event`)
+            .length
+        ) {
+          issues.push({
+            path: `/nodes/${id}/props/content/event`,
+            nodeId: id,
+            code: 'BINDING_TYPE',
+          });
+          continue;
+        }
+      } else if (kind === 'Map') {
+        value = direct.venue;
+        missing =
+          !validVenue(value) ||
+          (blank(value.address) &&
+            !(
+              typeof value.latitude === 'number' &&
+              typeof value.longitude === 'number'
+            ));
+      } else if (kind === 'QRBank') {
+        value = direct.bank;
+        missing = !complete(value, 'bank');
+      } else if (kind === 'Timeline') {
+        value = direct.entries;
+        missing = !complete(value, 'timeline');
+      } else missing = true;
+    }
     if (missing) {
       if (!node.custom.optional)
         issues.push({

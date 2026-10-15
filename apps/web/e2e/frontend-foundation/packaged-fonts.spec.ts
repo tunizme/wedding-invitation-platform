@@ -17,12 +17,12 @@ const manifest = JSON.parse(
   }[];
 };
 
-test('standalone serves all 16 pinned font files with exact bytes and MIME', async ({
+test('standalone serves every pinned font file with exact bytes and MIME', async ({
   request,
 }) => {
-  expect(manifest.faces).toHaveLength(8);
+  expect(manifest.faces.length).toBeGreaterThan(8);
   const sources = manifest.faces.flatMap((face) => face.sources);
-  expect(sources).toHaveLength(16);
+  expect(sources.length).toBeGreaterThan(16);
   for (const source of sources) {
     const response = await request.get(source.url);
     expect(response.ok(), source.url).toBeTruthy();

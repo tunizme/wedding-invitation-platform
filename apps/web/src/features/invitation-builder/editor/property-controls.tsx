@@ -105,17 +105,20 @@ export function TextControl({
 export function IconToggle({
   label,
   pressed,
+  disabled = false,
   onClick,
   children,
 }: {
   label: string;
   pressed: boolean;
+  disabled?: boolean;
   onClick: () => void;
   children: ReactNode;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       className={styles.iconToggle}
       aria-label={label}
       aria-pressed={pressed}
@@ -286,6 +289,7 @@ export function NumberControl({
   min = 0,
   max = 100,
   step = 1,
+  emptyValue,
 }: {
   label: string;
   value: number;
@@ -293,6 +297,8 @@ export function NumberControl({
   min?: number;
   max?: number;
   step?: number;
+  /** Value committed when the field is left empty; keeps the old value if unset. */
+  emptyValue?: number;
 }) {
   const [editing, setEditing] = useState<{
     value: number;
@@ -320,7 +326,9 @@ export function NumberControl({
       }}
       onBlur={() => {
         const next =
-          draft === '' ? value : Math.min(max, Math.max(min, Number(draft)));
+          draft === ''
+            ? (emptyValue ?? value)
+            : Math.min(max, Math.max(min, Number(draft)));
         if (Number.isFinite(next)) {
           onChange(next);
         }

@@ -24,6 +24,10 @@ export type TemplateChoice = {
   publishedRevisionId: string;
 };
 export type InvitationSummary = {
+  title?: string;
+  editingMode?: 'FORM_ONLY' | 'SERVICE_MANAGED';
+  paidAt?: string | null;
+  paymentNote?: string;
   id: string;
   status: 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED';
   publicUrl: string | null;
@@ -55,8 +59,14 @@ export const listInvitations = (query = '', options: ScopedOptions = {}) =>
     '/invitations' + (query ? '?' + query : ''),
     options,
   );
-export const getInvitation = (id: string, options: ScopedOptions = {}) =>
-  builderRequest<InvitationDetail>(`/invitations/${id}`, options);
+export const getInvitation = (
+  id: string,
+  options: ScopedOptions & { assisted?: boolean } = {},
+) =>
+  builderRequest<InvitationDetail>(
+    `/${options.assisted ? 'admin/' : ''}invitations/${id}`,
+    options,
+  );
 export const createInvitation = (
   templateId: string,
   designRevisionId: string,

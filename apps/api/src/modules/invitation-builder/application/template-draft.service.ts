@@ -144,6 +144,44 @@ export class TemplateDraftService {
   async get(actor: AuthenticatedPrincipal, id: string) {
     return templateDetail(await requireTemplate(this.db.manager, id, actor));
   }
+  async remove(actor: AuthenticatedPrincipal, id: string, body: unknown) {
+    const input = closedObject(body, ['expectedVersion']);
+    const expected = positiveVersion(input.expectedVersion);
+    await this.db.transaction(async (manager) => {
+      const row = await requireTemplate(manager, id, actor, true);
+      assertVersion(row.edit_version, expected);
+      const revisions: { id: string }[] = await manager.query(
+        'SELECT id FROM template_design_revisions WHERE template_id=$1 LIMIT 1',
+        [id],
+      );
+      if (row.status !== 'DRAFT' || revisions.length)
+        throw new BuilderProblemException(409, 'TEMPLATE_NOT_DRAFT');
+      // Enqueue also locks the template, so publication cannot start during deletion.
+      const active: { id: string }[] = await manager.query(
+        "SELECT id FROM publication_jobs WHERE template_id=$1 AND status IN ('PENDING','RUNNING') LIMIT 1",
+        [id],
+      );
+      if (active.length)
+        throw new BuilderProblemException(409, 'PUBLICATION_IN_PROGRESS');
+      await manager.query(
+        'SELECT id FROM assets WHERE id IN (SELECT asset_id FROM template_draft_asset_refs WHERE template_id=$1) ORDER BY id FOR UPDATE',
+        [id],
+      );
+      await manager.query(
+        'DELETE FROM template_draft_asset_refs WHERE template_id=$1',
+        [id],
+      );
+      // Only terminal failed attempts can exist for a never-published draft.
+      await manager.query(
+        'DELETE FROM publication_job_asset_refs WHERE job_id IN (SELECT id FROM publication_jobs WHERE template_id=$1)',
+        [id],
+      );
+      await manager.query('DELETE FROM publication_jobs WHERE template_id=$1', [
+        id,
+      ]);
+      await manager.query('DELETE FROM invitation_templates WHERE id=$1', [id]);
+    });
+  }
   async save(actor: AuthenticatedPrincipal, id: string, body: unknown) {
     const input = closedObject(body, [
         'expectedVersion',

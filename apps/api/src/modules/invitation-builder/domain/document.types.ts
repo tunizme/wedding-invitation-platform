@@ -1,3 +1,4 @@
+import type { InvitationFontId } from './font-catalog';
 import type {
   EditorDocument,
   EditorScene,
@@ -83,7 +84,7 @@ export interface Padding {
   left: number;
 }
 export interface TextStyle {
-  fontId: 'noto-sans-v1' | 'noto-serif-v1';
+  fontId: InvitationFontId;
   fontSize: number;
   fontWeight: 400 | 700;
   italic: boolean;
@@ -196,31 +197,42 @@ export interface ContentByKind {
     fill: HexRGBA;
   };
   Calendar: {
+    event?: WeddingEvent;
     textStyle: TextStyle;
     accentColor: HexRGBA;
-    variant?: 'classic' | 'minimal' | 'filled';
+    variant?:
+      'classic' | 'minimal' | 'filled' | 'plain' | 'ribbon' | 'notebook';
   };
   Countdown: {
+    event?: WeddingEvent;
     textStyle: TextStyle;
     label: string;
     endedLabel: string;
     layout?: 'horizontal' | 'vertical';
     gap?: number;
     frameColor?: HexRGBA;
+    design?: 'boxed';
   };
-  Map: { textStyle: TextStyle; label: string };
+  Map: { textStyle: TextStyle; label: string; venue?: Venue };
   RSVP: {
     textStyle: TextStyle;
     title: string;
     closedLabel: string;
     successLabel: string;
+    design?: 'invitation';
+    attendanceLabel?: string;
+    inputBorderColor?: HexRGBA;
     nameLabel?: string;
     submitLabel?: string;
     buttonColor?: HexRGBA;
     buttonTextColor?: HexRGBA;
   };
-  QRBank: { textStyle: TextStyle; label: string };
-  Timeline: { textStyle: TextStyle; accentColor: HexRGBA };
+  QRBank: { textStyle: TextStyle; label: string; bank?: Bank };
+  Timeline: {
+    textStyle: TextStyle;
+    accentColor: HexRGBA;
+    entries?: TimelineEntry[];
+  };
 }
 export interface ElementProps<K extends ComponentName = ComponentName> {
   box: Box;

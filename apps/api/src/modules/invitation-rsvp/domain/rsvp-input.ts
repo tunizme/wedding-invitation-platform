@@ -5,6 +5,7 @@ export interface RsvpPayload {
   attendance: 'ATTENDING' | 'DECLINED';
   partySize: number;
   message: string;
+  guestToken?: string;
 }
 export function normalizeRsvp(body: unknown): RsvpPayload {
   const input = closedObject(body, [
@@ -12,6 +13,7 @@ export function normalizeRsvp(body: unknown): RsvpPayload {
     'attendance',
     'partySize',
     'message',
+    'guestToken',
   ]);
   if (
     typeof input.name !== 'string' ||
@@ -41,7 +43,16 @@ export function normalizeRsvp(body: unknown): RsvpPayload {
     )
   )
     throw new UnprocessableEntityException();
+  if (
+    input.guestToken !== undefined &&
+    (typeof input.guestToken !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        input.guestToken,
+      ))
+  )
+    throw new UnprocessableEntityException();
   return {
+    ...(input.guestToken ? { guestToken: input.guestToken } : {}),
     name,
     attendance: input.attendance as RsvpPayload['attendance'],
     partySize: input.partySize,

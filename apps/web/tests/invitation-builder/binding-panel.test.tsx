@@ -129,6 +129,9 @@ describe('author binding controls', () => {
   it('authors a typed venue fallback and edits numeric coordinates', () => {
     const onCommand = vi.fn(),
       node = widgetNode('Map');
+    node.props.bindings = [
+      { target: 'venue', source: 'venue', eventKey: 'ceremony' },
+    ];
     const { rerender } = render(
       <BindingPanel
         id="map"

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import styles from './widget-designs.module.css';
 function remaining(datetime: string, asOf: string) {
   const target = new Date(datetime).getTime(),
     now = new Date(asOf).getTime();
@@ -26,10 +27,12 @@ export function CountdownWidget({
   layout = 'horizontal',
   gap = 4,
   frameColor,
+  design,
 }: {
   layout?: 'horizontal' | 'vertical';
   gap?: number;
   frameColor?: string;
+  design?: 'boxed';
   locale?: 'vi' | 'en';
   datetime: string;
   timeZone: string;
@@ -68,6 +71,56 @@ export function CountdownWidget({
         ? null
         : remaining(datetime, live ? clock : asOf);
   if (value === null) return <p role="status">{endedLabel}</p>;
+  if (design === 'boxed') {
+    const units = [
+      [
+        value.days,
+        locale === 'vi' ? 'ngày' : 'days',
+        locale === 'vi' ? 'Ngày' : 'Days',
+      ],
+      [
+        value.hours,
+        locale === 'vi' ? 'giờ' : 'hours',
+        locale === 'vi' ? 'Giờ' : 'Hours',
+      ],
+      [
+        value.minutes,
+        locale === 'vi' ? 'phút' : 'minutes',
+        locale === 'vi' ? 'Phút' : 'Minutes',
+      ],
+      [
+        value.seconds,
+        locale === 'vi' ? 'giây' : 'seconds',
+        locale === 'vi' ? 'Giây' : 'Seconds',
+      ],
+    ];
+    return (
+      <section
+        aria-label={label || (locale === 'vi' ? 'Đếm ngược' : 'Countdown')}
+        data-time-zone={timeZone}
+        data-countdown-design="boxed"
+        className={styles.countdown}
+        style={{
+          gridTemplateColumns:
+            layout === 'vertical' ? '1fr' : 'repeat(4, minmax(0, 1fr))',
+          gap,
+        }}
+      >
+        {units.map(([number, text, accessibleLabel]) => (
+          <div
+            key={text}
+            aria-label={String(accessibleLabel)}
+            className={styles.countdownUnit}
+            style={{ backgroundColor: frameColor ?? '#000000FF' }}
+          >
+            <span>
+              {number} {text}
+            </span>
+          </div>
+        ))}
+      </section>
+    );
+  }
   return (
     <section aria-label={label} data-time-zone={timeZone}>
       <span>{label}</span>

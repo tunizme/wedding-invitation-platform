@@ -4,8 +4,13 @@ import {
   useOperationLifetime,
   type OperationLifetime,
 } from '../../identity-access/session/operation-scope';
-import { useState } from 'react';
-import { BuilderApiError, type TemplateDetail } from '../api/client';
+import { useCallback, useState } from 'react';
+import { Toast } from '../../../ui/platform/toast';
+import {
+  builderRequest,
+  BuilderApiError,
+  type TemplateDetail,
+} from '../api/client';
 import {
   enqueueTemplatePublication,
   getPublicationOperation,
@@ -33,11 +38,13 @@ export function PublicationControls({
   onBusy?: (busy: boolean) => void;
   lifetime?: OperationLifetime;
 }) {
+  const managed = template.resourceKind === 'INVITATION';
   const localLifetime = useOperationLifetime(template.id);
   const lifetime = ownerLifetime ?? localLifetime;
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(''),
     [refreshPending, setRefreshPending] = useState(false);
+  const dismissMessage = useCallback(() => setMessage(''), []);
 
   async function publish() {
     const scope = lifetime.capture();
@@ -51,12 +58,21 @@ export function PublicationControls({
       if (!scope.isActive()) return;
       if (!current) return;
       onBusy?.(true);
-      const accepted = await enqueueTemplatePublication(
-        current.id,
-        current.editVersion,
-        crypto.randomUUID(),
-        { scope },
-      );
+      const accepted = managed
+        ? await builderRequest<
+            Awaited<ReturnType<typeof enqueueTemplatePublication>>
+          >(`/admin/invitations/${current.id}/publish`, {
+            scope,
+            method: 'POST',
+            body: { expectedVersion: current.editVersion },
+            idempotencyKey: crypto.randomUUID(),
+          })
+        : await enqueueTemplatePublication(
+            current.id,
+            current.editVersion,
+            crypto.randomUUID(),
+            { scope },
+          );
       if (!scope.isActive()) return;
       setMessage('Đang chuẩn bị bản xuất bản…');
       const deadline = Date.now() + 90_000;
@@ -72,13 +88,13 @@ export function PublicationControls({
       }
       if (operation.status === 'SUCCEEDED') {
         const result = publicationResult(operation, current.id);
-        if (!result.revisionId) throw new Error('Missing revision');
+        if (!managed && !result.revisionId) throw new Error('Missing revision');
         setMessage('Đã xuất bản phiên bản mới.');
         try {
           await onChanged({
             status: 'PUBLISHED',
             editVersion: result.editVersion,
-            publishedRevisionId: result.revisionId,
+            publishedRevisionId: result.revisionId ?? null,
           });
           if (!scope.isActive()) return;
           setRefreshPending(false);
@@ -129,13 +145,20 @@ export function PublicationControls({
     onBusy?.(true);
     setMessage('');
     try {
-      const committed = await unpublishTemplate(
-        template.id,
-        template.editVersion,
-        { scope },
-      );
+      const committed = managed
+        ? await builderRequest<TemplateLifecycle>(
+            `/admin/invitations/${template.id}/unpublish`,
+            {
+              scope,
+              method: 'POST',
+              body: { expectedVersion: template.editVersion },
+            },
+          )
+        : await unpublishTemplate(template.id, template.editVersion, { scope });
       if (!scope.isActive()) return;
-      setMessage('Đã gỡ mẫu khỏi thư viện.');
+      setMessage(
+        managed ? 'Đã gỡ xuất bản thiệp.' : 'Đã gỡ mẫu khỏi thư viện.',
+      );
       await onChanged(committed);
       if (!scope.isActive()) return;
     } catch (error) {
@@ -204,7 +227,7 @@ export function PublicationControls({
           Thử tải lại thông tin
         </button>
       )}
-      {message && <span role="status">{message}</span>}
+      <Toast message={message} onDismiss={dismissMessage} />
     </section>
   );
 }

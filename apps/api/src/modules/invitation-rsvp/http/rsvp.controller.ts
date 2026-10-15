@@ -1,3 +1,4 @@
+import { requireAssistedInvitation } from '../../invitations/authorization/invitation.policy';
 import {
   Body,
   Controller,
@@ -74,5 +75,33 @@ export class OwnerRsvpController {
     @Body() body: unknown,
   ) {
     return this.control.set(request.principal, id, body);
+  }
+}
+
+@Controller('admin/invitations')
+@Roles('ADMIN')
+export class AdminRsvpController {
+  constructor(
+    @Inject(RsvpService) private readonly rsvps: RsvpService,
+    @Inject(RsvpControlService) private readonly control: RsvpControlService,
+  ) {}
+  @Get(':id/rsvps')
+  list(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Query() query: Record<string, unknown>,
+  ) {
+    return this.rsvps.list(request.principal, id, query, true);
+  }
+  @Patch(':id/rsvp-state')
+  set(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.control.set(request.principal, id, body, {
+      authorize: (manager, invitationId, actor) =>
+        requireAssistedInvitation(manager, invitationId, actor, true),
+    });
   }
 }

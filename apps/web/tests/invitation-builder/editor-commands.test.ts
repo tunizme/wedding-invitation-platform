@@ -8,6 +8,7 @@ import {
   applyDocumentCommand,
   duplicateSelection,
   commitDocument,
+  nodesUsingAsset,
   undoDocument,
   redoDocument,
 } from '../../src/features/invitation-builder/editor/editor-commands';
@@ -77,5 +78,85 @@ describe('500px editing preserves authored relationships', () => {
     expect(() => applyDocumentCommand(d, { type: 'delete', id: a })).toThrow();
     const deleted = applyDocumentCommand(d, { type: 'delete', id: b });
     expect(deleted.nodeOptions[a].action).toBeUndefined();
+  });
+  it('turns text shadow off only by removing the key, not by writing undefined', () => {
+    const d = fixture();
+    const text = primitiveNode('Text').props.content;
+    if (!('textStyle' in text)) throw new Error('Text expected');
+    const base = text.textStyle;
+    const on = applyDocumentCommand(d, {
+      type: 'content',
+      id: a,
+      value: {
+        textStyle: {
+          ...base,
+          textShadow: { offsetX: 0, offsetY: 0, blur: 5, color: '#00000066' },
+        },
+      },
+    });
+    expect(() =>
+      applyDocumentCommand(on, {
+        type: 'content',
+        id: a,
+        value: { textStyle: { ...base, textShadow: undefined } },
+      }),
+    ).toThrow();
+    const off = applyDocumentCommand(on, {
+      type: 'content',
+      id: a,
+      value: { textStyle: { ...base } },
+    });
+    expect(JSON.stringify(off.nodes[a])).not.toContain('textShadow');
+  });
+});
+
+describe('library image deletion and crop confirmation', () => {
+  const asset = '00000000-0000-4000-8000-0000000000aa';
+  const c = '00000000-0000-4000-8000-000000000003';
+  function withImages() {
+    const d = fixture();
+    d.nodes[c] = primitiveNode('Image', asset);
+    d.nodes.ROOT.nodes.push(c);
+    d.nodeOptions[a] = { action: { kind: 'scroll', value: c } };
+    return d;
+  }
+  it('counts elements whose content uses the asset', () => {
+    const d = withImages();
+    expect(nodesUsingAsset(d, asset)).toEqual([c]);
+    expect(nodesUsingAsset(d, '00000000-0000-4000-8000-0000000000bb')).toEqual(
+      [],
+    );
+  });
+  it('removes several elements in one undo step and clears scroll targets', () => {
+    const d = withImages();
+    const h = commitDocument(
+      { past: [], present: d, future: [] },
+      { type: 'delete-many', ids: [c, b] },
+    );
+    expect(h.present.nodes.ROOT.nodes).toEqual([a]);
+    expect(h.present.nodeOptions[a].action).toBeUndefined();
+    expect(undoDocument(h).present.nodes.ROOT.nodes).toEqual([a, b, c]);
+  });
+  it('stores crop options and the new frame height together', () => {
+    const d = withImages();
+    const h = commitDocument(
+      { past: [], present: d, future: [] },
+      {
+        type: 'crop',
+        id: c,
+        options: {
+          crop: { x: 0.1, y: 0.1, width: 0.5, height: 0.8 },
+          cropAspect: '1:1',
+          mask: 'dome',
+        },
+        box: { height: 240 },
+      },
+    );
+    expect(h.present.nodeOptions[c].mask).toBe('dome');
+    expect((h.present.nodes[c] as CanvasNode).props.box).toMatchObject({
+      width: 240,
+      height: 240,
+    });
+    expect(h.past).toHaveLength(1);
   });
 });

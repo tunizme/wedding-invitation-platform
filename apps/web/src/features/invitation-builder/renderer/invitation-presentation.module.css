@@ -26,52 +26,6 @@
   color: #29251f;
   cursor: pointer;
 }
-.envelope {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  background: #f8f4ed;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 100px 32px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.envelope > div {
-  padding: 40px;
-  border: 1px solid #b69a72;
-  border-radius: 12px;
-  background: #fdfbf7;
-}
-.envelope button {
-  min-height: 44px;
-  padding: 12px 24px;
-  background: #66584a;
-  color: white;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.particles {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-.particles > span {
-  position: absolute;
-  top: -24px;
-  color: #b69a72;
-  animation: fall 12s linear infinite;
-}
-.petal {
-  display: block;
-  width: 12px;
-  height: 18px;
-  background: #e7c7cf;
-  border-radius: 0 90% 0 90%;
-}
 .notice {
   position: sticky;
   bottom: 76px;
@@ -79,15 +33,8 @@
   padding: 8px;
   margin: 0;
 }
-@keyframes fall {
-  to {
-    transform: translateY(100vh) rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .particles {
-    display: none;
-  }
+.surface [data-opening-covered='true'] [data-entrance] {
+  animation-play-state: paused !important;
 }
 
 .surface[data-motion-paused='true'] * {

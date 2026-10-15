@@ -28,6 +28,7 @@ export class UploadService {
     input: Record<string, unknown>,
     actor: AuthenticatedPrincipal,
     context: StorageContext,
+    assistance?: { invitationId: string; ownerId: string },
   ) {
     if (
       !file ||
@@ -54,10 +55,14 @@ export class UploadService {
       file.buffer,
       'audio/mpeg',
       {
-        scope: actor.role === 'ADMIN' ? 'TEMPLATE' : 'CUSTOMER',
-        owner_user_id: actor.userId,
+        scope: assistance
+          ? 'CUSTOMER'
+          : actor.role === 'ADMIN'
+            ? 'TEMPLATE'
+            : 'CUSTOMER',
+        owner_user_id: assistance?.ownerId ?? actor.userId,
         uploaded_by: actor.userId,
-        assistance_invitation_id: null,
+        assistance_invitation_id: assistance?.invitationId ?? null,
         name: input.name.trim(),
         kind: 'AUDIO',
         width: 0,
@@ -181,6 +186,7 @@ export class UploadService {
     input: Record<string, unknown>,
     actor: AuthenticatedPrincipal,
     context: StorageContext,
+    assistance?: { invitationId: string; ownerId: string },
   ) {
     if (
       !input ||
@@ -203,17 +209,20 @@ export class UploadService {
       const normalized = await this.normalize(file);
       if (context.signal?.aborted || Date.now() >= context.deadline)
         throw new BuilderProblemException(503, 'STORAGE_UNAVAILABLE', [], 5);
-      const scope: AssetScope =
-        actor.role === 'ADMIN' ? 'TEMPLATE' : 'CUSTOMER';
+      const scope: AssetScope = assistance
+        ? 'CUSTOMER'
+        : actor.role === 'ADMIN'
+          ? 'TEMPLATE'
+          : 'CUSTOMER';
       const kind = input.kind as Exclude<AssetKind, 'THUMBNAIL'>;
       return await this.writes.upload(
         normalized.bytes,
         'image/webp',
         {
           scope,
-          owner_user_id: actor.userId,
+          owner_user_id: assistance?.ownerId ?? actor.userId,
           uploaded_by: actor.userId,
-          assistance_invitation_id: null,
+          assistance_invitation_id: assistance?.invitationId ?? null,
           name: input.name.trim(),
           kind,
           width: normalized.width,

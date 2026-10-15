@@ -47,7 +47,7 @@ export interface TemplateDesignRevision {
   sample_data: WeddingData;
   document_hash: string;
   renderer_contract_version: 1 | 2 | 3;
-  thumbnail_asset_id: string;
+  thumbnail_asset_id: string | null;
   created_by: string;
   created_at: Date;
 }
@@ -64,7 +64,7 @@ export const TemplateDesignRevisionEntity =
       sample_data: { type: 'jsonb' },
       document_hash: { type: 'char', length: 64 },
       renderer_contract_version: { type: 'integer' },
-      thumbnail_asset_id: { type: 'uuid' },
+      thumbnail_asset_id: { type: 'uuid', nullable: true },
       created_by: { type: 'uuid' },
       created_at: { type: 'timestamptz' },
     },

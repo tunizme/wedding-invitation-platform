@@ -51,8 +51,9 @@ export class PublicAssetsController {
       `SELECT * FROM assets a WHERE a.id=$1 AND a.status='READY' AND (
       (a.scope='CUSTOMER' AND a.owner_user_id=$2 AND EXISTS (
         SELECT 1 FROM invitation_asset_refs refs WHERE refs.invitation_id=$3 AND refs.slot='PUBLISHED' AND refs.asset_id=a.id))
-      OR (a.scope='TEMPLATE' AND EXISTS (
-        SELECT 1 FROM template_revision_asset_refs refs WHERE refs.revision_id=$4 AND refs.asset_id=a.id)))`,
+      OR (a.scope='TEMPLATE' AND (EXISTS (
+        SELECT 1 FROM template_revision_asset_refs refs WHERE refs.revision_id=$4 AND refs.asset_id=a.id)
+        OR EXISTS(SELECT 1 FROM invitation_asset_refs refs WHERE refs.invitation_id=$3 AND refs.slot='PUBLISHED' AND refs.asset_id=a.id))))`,
       [
         assetId,
         invitation.owner_user_id,

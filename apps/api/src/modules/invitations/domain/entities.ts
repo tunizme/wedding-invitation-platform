@@ -3,6 +3,7 @@ import type { PublicationStatus } from '../../invitation-builder/domain/entities
 import type {
   SupportedResolvedScene,
   WeddingData,
+  SupportedTemplateDesign,
 } from '../../invitation-builder/domain/document.types';
 
 export interface Invitation {
@@ -10,6 +11,12 @@ export interface Invitation {
   owner_user_id: string;
   design_revision_id: string;
   draft_wedding_data: WeddingData;
+  editing_mode?: 'FORM_ONLY' | 'SERVICE_MANAGED';
+  draft_document?: SupportedTemplateDesign | null;
+  title?: string;
+  paid_at?: Date | null;
+  paid_by?: string | null;
+  payment_note?: string;
   published_wedding_data: WeddingData | null;
   published_scene: SupportedResolvedScene | null;
   status: PublicationStatus;
@@ -33,6 +40,12 @@ export const InvitationEntity = new EntitySchema<Invitation>({
     owner_user_id: { type: 'uuid' },
     design_revision_id: { type: 'uuid' },
     draft_wedding_data: { type: 'jsonb' },
+    editing_mode: { type: 'varchar', length: 20, default: 'FORM_ONLY' },
+    draft_document: { type: 'jsonb', nullable: true },
+    title: { type: 'varchar', length: 200, default: '' },
+    paid_at: { type: 'timestamptz', nullable: true },
+    paid_by: { type: 'uuid', nullable: true },
+    payment_note: { type: 'varchar', length: 1000, default: '' },
     published_wedding_data: { type: 'jsonb', nullable: true },
     published_scene: { type: 'jsonb', nullable: true },
     status: { type: 'varchar', length: 12 },

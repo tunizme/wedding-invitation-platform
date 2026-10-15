@@ -13,6 +13,7 @@ import type { TemplateDesignRevision } from '../../invitation-builder/domain/ent
 import { resolveDesign } from '../../invitation-builder/domain/resolve-design';
 import { canonicalHash } from '../../invitation-builder/domain/validation-helpers';
 import type { PublicationJob } from '../../invitation-builder/publication/entities';
+import { assertInvitationPublishPermission } from '../authorization/invitation.policy';
 import type { Invitation } from '../domain/entities';
 
 @Injectable()
@@ -35,13 +36,36 @@ export class InvitationPublicationService {
         [input.jobId],
       );
       if (!lookup[0]) throw new NotFoundException();
+      const [owner]: { owner_user_id: string }[] = await manager.query(
+        'SELECT owner_user_id FROM invitations WHERE id=$1',
+        [lookup[0].invitation_id],
+      );
+      if (!owner) throw new NotFoundException();
       const users: { id: string; role: string; status: string }[] =
         await manager.query(
-          'SELECT id,role,status FROM users WHERE id=$1 FOR UPDATE',
-          [lookup[0].requested_by],
+          'SELECT id,role,status FROM users WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE',
+          [[...new Set([lookup[0].requested_by, owner.owner_user_id])].sort()],
         );
-      if (users[0]?.role !== 'CUSTOMER' || users[0].status !== 'ACTIVE')
+      const requester = users.find(
+          (user) => user.id === lookup[0].requested_by,
+        ),
+        customer = users.find((user) => user.id === owner.owner_user_id);
+      if (
+        !requester ||
+        requester.status !== 'ACTIVE' ||
+        !customer ||
+        customer.role !== 'CUSTOMER' ||
+        customer.status !== 'ACTIVE' ||
+        !(
+          requester.role === 'ADMIN' ||
+          (requester.role === 'CUSTOMER' && requester.id === customer.id)
+        )
+      )
         throw new NotFoundException();
+      const actor = {
+        userId: requester.id,
+        role: requester.role,
+      } as AuthenticatedPrincipal;
       const invitations: Invitation[] = await manager.query(
         'SELECT * FROM invitations WHERE id=$1 FOR UPDATE',
         [lookup[0].invitation_id],
@@ -57,7 +81,7 @@ export class InvitationPublicationService {
       );
       if (
         !invitation ||
-        invitation.owner_user_id !== users[0].id ||
+        invitation.owner_user_id !== customer.id ||
         !job ||
         job.status !== 'RUNNING' ||
         job.lease_owner !== input.leaseOwner ||
@@ -69,13 +93,14 @@ export class InvitationPublicationService {
         !job.candidate_data
       )
         throw new BuilderProblemException(409, 'VERSION_CONFLICT');
+      assertInvitationPublishPermission(invitation, actor);
       const revisions: TemplateDesignRevision[] = await manager.query(
         'SELECT * FROM template_design_revisions WHERE id=$1',
         [invitation.design_revision_id],
       );
       if (
         !revisions[0] ||
-        canonicalHash(revisions[0].document) !==
+        canonicalHash(invitation.draft_document ?? revisions[0].document) !==
           canonicalHash(job.candidate_document) ||
         canonicalHash({
           document: job.candidate_document,
@@ -127,28 +152,32 @@ export class InvitationPublicationService {
       if (
         templateIds.some(
           (id) =>
-            !allowedTemplate.has(id) ||
-            byId.get(id)?.scope !== 'TEMPLATE' ||
+            (invitation.editing_mode !== 'SERVICE_MANAGED' &&
+              !allowedTemplate.has(id)) ||
+            (byId.get(id)?.scope !== 'TEMPLATE' &&
+              !(
+                invitation.editing_mode === 'SERVICE_MANAGED' &&
+                byId.get(id)?.scope === 'CUSTOMER' &&
+                byId.get(id)?.owner_user_id === customer.id
+              )) ||
             byId.get(id)?.status !== 'READY',
         ) ||
         customerIds.some(
           (id) =>
             byId.get(id)?.scope !== 'CUSTOMER' ||
-            byId.get(id)?.owner_user_id !== users[0].id ||
+            byId.get(id)?.owner_user_id !== customer.id ||
             byId.get(id)?.status !== 'READY',
         )
       )
         throw new BuilderProblemException(422, 'ASSET_UNAVAILABLE');
-      const actor: AuthenticatedPrincipal = {
-        userId: users[0].id,
-        role: 'CUSTOMER',
-      } as AuthenticatedPrincipal;
       await this.references.replaceInvitation(
         manager,
         invitation.id,
         'PUBLISHED',
         job.candidate_data,
         actor,
+        actor.role === 'ADMIN',
+        invitation.draft_document ?? undefined,
       );
       const slug = invitation.public_slug ?? randomUUID();
       const updated: Invitation[] = await manager.query(
@@ -164,7 +193,7 @@ export class InvitationPublicationService {
           job.candidate_data,
           resolved.scene,
           resolved.hasVisibleRsvp,
-          users[0].id,
+          actor.userId,
         ],
       );
       if (!updated[0])

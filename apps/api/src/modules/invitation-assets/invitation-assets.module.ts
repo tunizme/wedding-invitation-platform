@@ -1,3 +1,4 @@
+import { ManagedAssetsController } from './http/managed-assets.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InvitationBuilderConfigModule } from '../../config/invitation-builder-config.module';
@@ -22,7 +23,7 @@ import { PublicAssetsController } from './http/public-assets.controller';
     InvitationBuilderConfigModule,
     TypeOrmModule.forFeature(invitationAssetEntities),
   ],
-  controllers: [AssetsReadController, AssetsController, PublicAssetsController],
+  controllers: [AssetsReadController, AssetsController, PublicAssetsController, ManagedAssetsController],
   providers: [
     UploadService,
     AssetCleanupWorker,

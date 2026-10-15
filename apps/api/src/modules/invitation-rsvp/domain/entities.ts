@@ -2,6 +2,7 @@ import { EntitySchema } from 'typeorm';
 export interface RsvpResponse {
   id: string;
   invitation_id: string;
+  guest_id?: string | null;
   request_key: string;
   payload_hash: string;
   name: string;
@@ -17,6 +18,7 @@ export const RsvpResponseEntity = new EntitySchema<RsvpResponse>({
   columns: {
     id: { type: 'uuid', primary: true },
     invitation_id: { type: 'uuid' },
+    guest_id: { type: 'uuid', nullable: true },
     request_key: { type: 'uuid' },
     payload_hash: { type: 'varchar', length: 64 },
     name: { type: 'varchar', length: 120 },

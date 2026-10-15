@@ -1,3 +1,4 @@
+import { FONT_IDS } from './font-catalog';
 import * as bankCatalog from './bank-catalog.json';
 import {
   COMPONENTS,
@@ -124,7 +125,7 @@ export const definitions: Record<string, Schema> = {
   }),
   textStyle: object(
     {
-      fontId: choice(['noto-sans-v1', 'noto-serif-v1']),
+      fontId: choice(FONT_IDS),
       fontSize: number(8, 160),
       fontWeight: choice([400, 700]),
       italic: bool,
@@ -246,30 +247,46 @@ const contents: Record<ComponentName, Schema> = {
   }),
   Calendar: object(
     {
+      event: ref('event'),
       textStyle,
       accentColor: color,
-      variant: choice(['classic', 'minimal', 'filled']),
+      variant: choice([
+        'classic',
+        'minimal',
+        'filled',
+        'plain',
+        'ribbon',
+        'notebook',
+      ]),
     },
     ['textStyle', 'accentColor'],
   ),
   Countdown: object(
     {
+      event: ref('event'),
       textStyle,
       label,
       endedLabel: label,
       layout: choice(['horizontal', 'vertical']),
       gap: number(0, 40),
       frameColor: color,
+      design: choice(['boxed']),
     },
     ['textStyle', 'label', 'endedLabel'],
   ),
-  Map: object({ textStyle, label }),
+  Map: object({ textStyle, label, venue: ref('venue') }, [
+    'textStyle',
+    'label',
+  ]),
   RSVP: object(
     {
       textStyle,
       title: label,
       closedLabel: label,
       successLabel: label,
+      design: choice(['invitation']),
+      attendanceLabel: label,
+      inputBorderColor: color,
       nameLabel: label,
       submitLabel: label,
       buttonColor: color,
@@ -277,14 +294,24 @@ const contents: Record<ComponentName, Schema> = {
     },
     ['textStyle', 'title', 'closedLabel', 'successLabel'],
   ),
-  QRBank: object({ textStyle, label }),
-  Timeline: object({ textStyle, accentColor: color }),
+  QRBank: object({ textStyle, label, bank: ref('bank') }, [
+    'textStyle',
+    'label',
+  ]),
+  Timeline: object(
+    { textStyle, accentColor: color, entries: ref('timeline') },
+    ['textStyle', 'accentColor'],
+  ),
 };
 const emptyObject = object({});
 const emptyArray: Schema = { type: 'array', maxItems: 0 };
 const common = { hidden: bool, nodes: emptyArray, linkedNodes: emptyObject };
 for (const kind of COMPONENTS) {
   const matrix = PROPERTY_MATRIX[kind];
+  // Image frames may carry a background and padding; Decoration a background.
+  // Both stay optional so documents saved before these controls remain valid.
+  const optionalBackground = kind === 'Image' || kind === 'Decoration';
+  const optionalPadding = kind === 'Image';
   const appearance = object(
     {
       opacity: position,
@@ -292,8 +319,10 @@ for (const kind of COMPONENTS) {
       shadow: ref('shadow'),
       borderRadius: number(0, 600),
       borderRadii: ref('cornerRadii'),
-      ...(matrix.background ? { background: ref('background') } : {}),
-      ...(matrix.padding ? { padding: ref('padding') } : {}),
+      ...(matrix.background || optionalBackground
+        ? { background: ref('background') }
+        : {}),
+      ...(matrix.padding || optionalPadding ? { padding: ref('padding') } : {}),
     },
     [
       'opacity',

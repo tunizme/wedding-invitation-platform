@@ -11,6 +11,9 @@ import {
 import { Button } from '../../ui/platform/button';
 import { InlineAlert } from '../../ui/platform/feedback';
 import type { CustomField } from '../invitation-builder/document/editor-document';
+import { formatVietnameseTimestamp } from './event-local-time';
+import styles from './service-pages.module.css';
+import { invitationFeatureVisibility } from './feature-visibility';
 
 type Wish = {
   id: string;
@@ -52,7 +55,11 @@ function OwnedInteractions({
   assisted: boolean;
 }) {
   const lifetime = useOperationLifetime(`Interactions:${id}`),
-    [tab, setTab] = useState<'wishes' | 'form-responses'>('wishes'),
+    [tab, setTab] = useState<'wishes' | 'form-responses'>(
+      assisted || invitationFeatureVisibility.wishes
+        ? 'wishes'
+        : 'form-responses',
+    ),
     [wishes, setWishes] = useState<Wish[]>([]),
     [answers, setAnswers] = useState<Answer[]>([]),
     [cursor, setCursor] = useState<string | null>(null),
@@ -123,14 +130,16 @@ function OwnedInteractions({
   };
   return (
     <section aria-label="Tương tác thiệp">
-      <nav aria-label="Loại phản hồi">
-        <Button
-          variant="secondary"
-          aria-pressed={tab === 'wishes'}
-          onClick={() => setTab('wishes')}
-        >
-          Lời chúc
-        </Button>
+      <nav aria-label="Loại phản hồi" className={styles.actions}>
+        {invitationFeatureVisibility.wishes && (
+          <Button
+            variant="secondary"
+            aria-pressed={tab === 'wishes'}
+            onClick={() => setTab('wishes')}
+          >
+            Lời chúc
+          </Button>
+        )}
         {!assisted && (
           <Button
             variant="secondary"
@@ -153,7 +162,7 @@ function OwnedInteractions({
                   : w.status === 'APPROVED'
                     ? 'Đã công khai'
                     : 'Đã ẩn'}{' '}
-                · {new Date(w.createdAt).toLocaleString('vi-VN')}
+                · {formatVietnameseTimestamp(w.createdAt)}
               </p>
               <Button
                 disabled={busy || w.status === 'APPROVED'}
@@ -172,9 +181,7 @@ function OwnedInteractions({
           ))
         : answers.map((a) => (
             <article key={a.id}>
-              <h3>
-                Phản hồi · {new Date(a.createdAt).toLocaleString('vi-VN')}
-              </h3>
+              <h3>Phản hồi · {formatVietnameseTimestamp(a.createdAt)}</h3>
               <dl>
                 {a.fields.map((f) => (
                   <div key={f.id}>

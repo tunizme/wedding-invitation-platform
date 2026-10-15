@@ -164,8 +164,17 @@ function bindContent(
     unknown
   >;
   const binding = node.props.bindings[0];
-  if (!binding) return content;
   const kind = node.type.resolvedName;
+  if (!binding) {
+    if (kind === 'QRBank' && complete(content.bank, 'bank'))
+      content.qrPayload = createBankQrPayload(
+        content.bank as Required<
+          Pick<Bank, 'bin' | 'account' | 'recipientName'>
+        > &
+          Pick<Bank, 'message'>,
+      );
+    return content;
+  }
   if (kind === 'Text') content.text = value;
   else if (kind === 'Image' || kind === 'Decoration') content.assetId = value;
   else if (kind === 'Calendar' || kind === 'Countdown') content.event = value;
@@ -259,7 +268,40 @@ export function resolvePrimitiveDocument(
     )
       value = (node.props as import('./types').ElementProps<'Image'>).content
         .assetId;
-    else if (kind !== 'Shape' && kind !== 'RSVP') missing = true;
+    else if (kind !== 'Shape' && kind !== 'RSVP') {
+      const direct = node.props.content as unknown as Record<string, unknown>;
+      if (kind === 'Calendar' || kind === 'Countdown') {
+        value = direct.event;
+        missing = !complete(value, 'wedding.event');
+        if (
+          !missing &&
+          eventIssues(value as WeddingEvent, `/nodes/${id}/props/content/event`)
+            .length
+        ) {
+          issues.push({
+            path: `/nodes/${id}/props/content/event`,
+            nodeId: id,
+            code: 'BINDING_TYPE',
+          });
+          continue;
+        }
+      } else if (kind === 'Map') {
+        value = direct.venue;
+        missing =
+          !obj(value) ||
+          (blank(value.address) &&
+            !(
+              typeof value.latitude === 'number' &&
+              typeof value.longitude === 'number'
+            ));
+      } else if (kind === 'QRBank') {
+        value = direct.bank;
+        missing = !complete(value, 'bank');
+      } else if (kind === 'Timeline') {
+        value = direct.entries;
+        missing = !complete(value, 'timeline');
+      } else missing = true;
+    }
     if (kind === 'RSVP' && options.mode === 'public' && !options.invitation) {
       issues.push({
         path: `/nodes/${id}`,

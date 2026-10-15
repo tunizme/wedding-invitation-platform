@@ -153,3 +153,75 @@ describe('500px document contract', () => {
     ).toBe(500);
   });
 });
+
+describe('Cinelove image customization fields', () => {
+  const id = '00000000-0000-4000-8000-000000000003';
+  const withNode = (
+    node: ReturnType<typeof primitiveNode>,
+    options: Record<string, unknown> = {},
+  ) => {
+    const base = createBlankDocument();
+    return {
+      ...base,
+      nodes: {
+        ...base.nodes,
+        [id]: node,
+        ROOT: { ...base.nodes.ROOT, nodes: [id] },
+      },
+      nodeOptions: { [id]: options },
+    };
+  };
+  it('keeps images without background or padding valid', () => {
+    expect(validateEditorDocument(withNode(primitiveNode('Image'))).valid).toBe(
+      true,
+    );
+  });
+  it('accepts an image background and padding, and a decoration background only', () => {
+    const image = primitiveNode('Image');
+    image.props.appearance.background = { kind: 'solid', color: '#FF000080' };
+    image.props.appearance.padding = {
+      top: 10,
+      right: 10,
+      bottom: 10,
+      left: 10,
+    };
+    expect(validateEditorDocument(withNode(image)).valid).toBe(true);
+    const decoration = primitiveNode('Decoration');
+    decoration.props.appearance.background = {
+      kind: 'solid',
+      color: '#FFFFFFFF',
+    };
+    expect(validateEditorDocument(withNode(decoration)).valid).toBe(true);
+    decoration.props.appearance.padding = {
+      top: 1,
+      right: 1,
+      bottom: 1,
+      left: 1,
+    };
+    expect(validateEditorDocument(withNode(decoration)).valid).toBe(false);
+  });
+  it('accepts the 100px padding ceiling used by the panel', () => {
+    const image = primitiveNode('Image');
+    image.props.appearance.padding = {
+      top: 100,
+      right: 100,
+      bottom: 100,
+      left: 100,
+    };
+    expect(validateEditorDocument(withNode(image)).valid).toBe(true);
+  });
+  it('accepts legacy and new crop shapes with a crop aspect, and rejects unknown values', () => {
+    const image = primitiveNode('Image');
+    for (const mask of ['circle', 'arch', 'heart', 'dome', 'fade-bottom'])
+      expect(
+        validateEditorDocument(withNode(image, { mask, cropAspect: '16:9' }))
+          .valid,
+      ).toBe(true);
+    expect(
+      validateEditorDocument(withNode(image, { mask: 'blob' })).valid,
+    ).toBe(false);
+    expect(
+      validateEditorDocument(withNode(image, { cropAspect: '5:4' })).valid,
+    ).toBe(false);
+  });
+});

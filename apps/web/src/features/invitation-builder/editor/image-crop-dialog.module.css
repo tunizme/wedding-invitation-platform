@@ -1,0 +1,327 @@
+/* Measurements follow the reference crop dialog (800px, 552×540 stage). */
+.dialog {
+  box-sizing: border-box;
+  width: min(800px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 20px 24px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-text, #29251f);
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 0.08),
+    0 3px 6px -4px rgb(0 0 0 / 0.12),
+    0 9px 28px 8px rgb(0 0 0 / 0.05);
+  overflow: auto;
+}
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+.dialog .title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.dialog .body {
+  display: flex;
+  gap: 20px;
+}
+.dialog .stage {
+  flex: 0 0 552px;
+  height: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #666;
+  touch-action: none;
+  user-select: none;
+}
+.dialog .frame {
+  position: relative;
+}
+.dialog .image,
+.dialog .view img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  pointer-events: none;
+}
+.dialog .image {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.dialog .dim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+}
+.dialog .cropBox {
+  position: absolute;
+  cursor: move;
+  outline: 1px solid rgb(51 153 255 / 0.75);
+}
+.dialog .cropBox:focus-visible {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}
+.dialog .view {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.dialog .gridLines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dialog .gridLines::before,
+.dialog .gridLines::after {
+  content: '';
+  position: absolute;
+  border: 0 dashed rgb(238 238 238 / 0.6);
+}
+.dialog .gridLines::before {
+  inset: 33.333% 0;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+.dialog .gridLines::after {
+  inset: 0 33.333%;
+  border-left-width: 1px;
+  border-right-width: 1px;
+}
+.dialog .center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.75;
+  background:
+    linear-gradient(#eee, #eee) center / 9px 1px no-repeat,
+    linear-gradient(#eee, #eee) center / 1px 9px no-repeat;
+}
+.dialog .handle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #39f;
+  transform: translate(-50%, -50%);
+}
+/* Larger invisible hit area for pointer users. */
+.dialog .handle::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+.dialog .handle[data-handle='nw'] {
+  left: 0;
+  top: 0;
+  cursor: nwse-resize;
+}
+.dialog .handle[data-handle='n'] {
+  left: 50%;
+  top: 0;
+  cursor: ns-resize;
+}
+.dialog .handle[data-handle='ne'] {
+  left: 100%;
+  top: 0;
+  cursor: nesw-resize;
+}
+.dialog .handle[data-handle='e'] {
+  left: 100%;
+  top: 50%;
+  cursor: ew-resize;
+}
+.dialog .handle[data-handle='se'] {
+  left: 100%;
+  top: 100%;
+  cursor: nwse-resize;
+}
+.dialog .handle[data-handle='s'] {
+  left: 50%;
+  top: 100%;
+  cursor: ns-resize;
+}
+.dialog .handle[data-handle='sw'] {
+  left: 0;
+  top: 100%;
+  cursor: nesw-resize;
+}
+.dialog .handle[data-handle='w'] {
+  left: 0;
+  top: 50%;
+  cursor: ew-resize;
+}
+.dialog .controls {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dialog .shapeTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  margin: 0 0 12px;
+  color: #5c6370;
+  font-size: 14px;
+  font-weight: 500;
+}
+.dialog .activeShape {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: center / contain no-repeat;
+}
+.dialog .resetShape {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: #76828e;
+  color: #fff;
+  cursor: pointer;
+}
+/* 24px touch target around the small reset badge. */
+.dialog .resetShape::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+.dialog .shapeList {
+  display: grid;
+  grid-template-columns: repeat(4, 35px);
+  justify-content: space-between;
+  gap: 12px 0;
+  max-height: 250px;
+  margin: 0;
+  padding: 2px;
+  overflow-y: auto;
+  list-style: none;
+}
+.dialog .shape {
+  display: block;
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: center / 100% 100% no-repeat;
+  cursor: pointer;
+}
+.dialog .shape[aria-pressed='true'] {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}
+.dialog .shape:focus-visible {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}
+.dialog .ratioTitle {
+  margin: 28px 0 16px;
+  color: #5c6370;
+  font-size: 14px;
+  font-weight: 500;
+}
+.dialog .ratios {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.dialog .ratios button,
+.dialog .cancel,
+.dialog .confirm {
+  min-height: 32px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  color: rgb(0 0 0 / 0.88);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.dialog .ratios button {
+  height: 35px;
+}
+.dialog .ratios button[aria-pressed='true'],
+.dialog .confirm {
+  border-color: #1677ff;
+  background: #1677ff;
+  color: #fff;
+}
+.dialog .ratios button:focus-visible,
+.dialog .cancel:focus-visible,
+.dialog .confirm:focus-visible {
+  outline: 2px solid #91caff;
+  outline-offset: 1px;
+}
+.dialog .confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dialog .footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dialog .cancel,
+.dialog .confirm {
+  padding: 0 15px;
+}
+@media (max-width: 860px) {
+  .dialog .body {
+    flex-direction: column;
+  }
+  .dialog .stage {
+    flex-basis: auto;
+    width: 100%;
+    height: min(540px, 60dvh);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dialog .ratios button,
+  .dialog .shape {
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+}
+/* Keep the reference look over the workspace's generic button hover rules. */
+.dialog .shape,
+.dialog .resetShape {
+  min-height: 0;
+}
+.dialog .shape:hover:not(:disabled) {
+  background: center / 100% 100% no-repeat;
+}
+.dialog .resetShape:hover:not(:disabled) {
+  background: #5c6670;
+}
+.dialog .ratios button:hover:not(:disabled),
+.dialog .cancel:hover:not(:disabled) {
+  border-color: #4096ff;
+  background: #fff;
+  color: #4096ff;
+}
+.dialog .ratios button[aria-pressed='true']:hover:not(:disabled),
+.dialog .confirm:hover:not(:disabled) {
+  border-color: #4096ff;
+  background: #4096ff;
+  color: #fff;
+}

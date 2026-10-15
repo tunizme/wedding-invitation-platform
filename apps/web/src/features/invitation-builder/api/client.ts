@@ -28,6 +28,8 @@ export interface TemplateSummary {
   updatedAt: string;
 }
 export interface TemplateDetail extends TemplateSummary {
+  resourceKind?: 'INVITATION';
+  paidAt?: string | null;
   draftDocument: SupportedTemplateDesign;
   draftSampleData: WeddingData;
   coverAssetId: string | null;
@@ -51,6 +53,8 @@ export interface ListPage<T> {
   nextCursor: string | null;
 }
 const messages: Record<string, string> = {
+  TEMPLATE_NOT_DRAFT: 'Chỉ có thể xóa mẫu bản nháp chưa từng xuất bản.',
+  PAYMENT_REQUIRED: 'Cần xác nhận đã thanh toán trước khi xuất bản thiệp.',
   VERSION_CONFLICT:
     'Mẫu đã có phiên bản mới. Bản sửa của bạn vẫn được giữ; tải lại để tiếp tục.',
   ASSET_UNAVAILABLE: 'Ảnh không còn khả dụng hoặc bạn không có quyền sử dụng.',
@@ -90,7 +94,7 @@ async function fetchBuilder(
   token?: string,
 ): Promise<Response> {
   if (
-    !/^\/(?:admin\/templates|admin\/template-assets|admin\/template-audio|admin\/editor-presets|admin\/invitations|assets|templates|invitations|publication-operations)(?:[/?]|$)/.test(
+    !/^\/(?:admin\/customers|admin\/templates|admin\/template-assets|admin\/template-audio|admin\/editor-presets|admin\/invitations|assets|templates|invitations|publication-operations)(?:[/?]|$)/.test(
       path,
     ) ||
     /[\\#]/.test(path) ||
@@ -237,7 +241,7 @@ export async function uploadBuilderAsset(
   name: string,
   kind: Exclude<AssetSummary['kind'], 'THUMBNAIL'>,
   scope: 'template' | 'customer' = 'template',
-  options: Pick<Options, 'signal' | 'scope'> = {},
+  options: Pick<Options, 'signal' | 'scope'> & { invitationId?: string } = {},
 ): Promise<AssetSummary> {
   if (
     file.size > (kind === 'AUDIO' ? 20 : 10) * 1024 * 1024 ||
@@ -254,8 +258,9 @@ export async function uploadBuilderAsset(
   form.append('kind', kind);
   if (scope === 'customer' && !['IMAGE', 'AUDIO'].includes(kind))
     throw new BuilderApiError(422, 'UPLOAD_INVALID');
-  const path =
-    kind === 'AUDIO'
+  const path = options.invitationId
+    ? `/admin/invitations/${options.invitationId}/${kind === 'AUDIO' ? 'audio' : 'assets'}`
+    : kind === 'AUDIO'
       ? scope === 'template'
         ? '/admin/template-audio'
         : '/assets/audio'

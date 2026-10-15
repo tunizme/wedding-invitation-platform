@@ -13,6 +13,8 @@ import type {
 } from '../../invitation-builder/domain/document.types';
 import { UUID_EXPRESSION } from '../../invitation-builder/domain/validation-helpers';
 import type { Asset } from '../domain/entities';
+import { requireAssistedInvitation } from '../../invitations/authorization/invitation.policy';
+import { detachImage } from './asset-detachment';
 import {
   StorageUnavailableError,
   type AssetStore,
@@ -65,11 +67,14 @@ export class AssetReferenceService {
         asset.scope === 'CUSTOMER' &&
         asset.owner_user_id === scope.actor.userId;
     }
-    const invitations: { owner_user_id: string; design_revision_id: string }[] =
-      await manager.query(
-        'SELECT owner_user_id,design_revision_id FROM invitations WHERE id=$1',
-        [scope.invitationId],
-      );
+    const invitations: {
+      owner_user_id: string;
+      design_revision_id: string;
+      editing_mode: string;
+    }[] = await manager.query(
+      'SELECT owner_user_id,design_revision_id,editing_mode FROM invitations WHERE id=$1',
+      [scope.invitationId],
+    );
     const invitation = invitations[0];
     if (!invitation) throw new NotFoundException();
     if (scope.assisted) {
@@ -117,7 +122,10 @@ export class AssetReferenceService {
     const existingIds = new Set(existing.map((row) => row.asset_id));
     return (asset) =>
       asset.scope === 'TEMPLATE'
-        ? templateIds.has(asset.id)
+        ? templateIds.has(asset.id) ||
+          (scope.allowTemplate &&
+            scope.assisted &&
+            invitation.editing_mode === 'SERVICE_MANAGED')
         : asset.scope === 'CUSTOMER' &&
           asset.owner_user_id === invitation.owner_user_id &&
           (!scope.assisted ||
@@ -226,6 +234,7 @@ export class AssetReferenceService {
     data: WeddingData,
     actor: AuthenticatedPrincipal,
     assisted = false,
+    document?: SupportedTemplateDesign,
   ): Promise<void> {
     // Both retained data snapshots protect ALL their photo IDs, even when not
     // displayed. Public delivery must separately check the visible scene set.
@@ -234,13 +243,18 @@ export class AssetReferenceService {
       'invitation_asset_refs',
       'invitation_id',
       id,
-      weddingAssetIds(data),
+      [
+        ...new Set([
+          ...weddingAssetIds(data),
+          ...(document ? designAssetIds(document) : []),
+        ]),
+      ],
       {
         kind: 'invitation',
         actor,
         invitationId: id,
         assisted,
-        allowTemplate: false,
+        allowTemplate: !!document,
       },
       slot,
     );
@@ -283,6 +297,17 @@ export class AssetReferenceService {
     );
     const asset = rows[0];
     if (
+      asset?.scope === 'CUSTOMER' &&
+      asset.assistance_invitation_id &&
+      actor.role === 'ADMIN'
+    ) {
+      const [customer]: { status: string }[] = await this.db.query(
+        'SELECT status FROM users WHERE id=$1',
+        [asset.owner_user_id],
+      );
+      if (customer?.status === 'ACTIVE') return asset;
+    }
+    if (
       !asset ||
       !(
         (actor.role === 'ADMIN' && asset.scope === 'TEMPLATE') ||
@@ -312,6 +337,20 @@ export class AssetReferenceService {
     id: string,
     actor: AuthenticatedPrincipal,
   ): Promise<Asset> {
+    if (actor.role === 'ADMIN') {
+      const [candidate]: { assistance_invitation_id: string | null }[] =
+        await manager.query(
+          'SELECT assistance_invitation_id FROM assets WHERE id=$1',
+          [id],
+        );
+      if (candidate?.assistance_invitation_id)
+        await requireAssistedInvitation(
+          manager,
+          candidate.assistance_invitation_id,
+          actor,
+          true,
+        );
+    }
     const rows: Asset[] = await manager.query(
       'SELECT * FROM assets WHERE id=$1 FOR UPDATE',
       [id],
@@ -323,6 +362,10 @@ export class AssetReferenceService {
         (actor.role === 'ADMIN' &&
           asset.scope === 'TEMPLATE' &&
           asset.uploaded_by === actor.userId) ||
+        (actor.role === 'ADMIN' &&
+          asset.scope === 'CUSTOMER' &&
+          !!asset.assistance_invitation_id &&
+          asset.uploaded_by === actor.userId) ||
         (actor.role === 'CUSTOMER' &&
           asset.scope === 'CUSTOMER' &&
           asset.owner_user_id === actor.userId)
@@ -330,10 +373,11 @@ export class AssetReferenceService {
     )
       throw new NotFoundException();
     if (asset.status === 'READY') {
-      await this.assertUnreferenced(manager, id);
       await manager.query("UPDATE assets SET status='DELETING' WHERE id=$1", [
         id,
       ]);
+      await detachImage(manager, id);
+      await this.assertUnreferenced(manager, id);
       return { ...asset, status: 'DELETING' };
     }
     return asset;
@@ -353,9 +397,21 @@ export class AssetReferenceService {
     actor: AuthenticatedPrincipal,
     context: StorageContext,
   ): Promise<void> {
-    const asset = await this.db.transaction((manager) =>
-      this.beginDelete(manager, id, actor),
-    );
+    let asset: Asset | undefined;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        asset = await this.db.transaction((manager) =>
+          this.beginDelete(manager, id, actor),
+        );
+        break;
+      } catch (error) {
+        const code = (error as { driverError?: { code?: string } }).driverError
+          ?.code;
+        if (attempt === 2 || !['40P01', '40001'].includes(code ?? ''))
+          throw error;
+      }
+    }
+    if (!asset) throw new Error('Asset deletion did not complete');
     await this.finishDelete(asset, context);
   }
 }

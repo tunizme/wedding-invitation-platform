@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { EntityManager } from 'typeorm';
 import type { AuthenticatedPrincipal } from '../../identity-access/authorization/principal';
+import { BuilderProblemException } from '../../../common/errors/public-problem.exception';
 import { resourceId } from '../../invitation-builder/http/input';
 import type { Invitation } from '../domain/entities';
 
@@ -77,4 +78,32 @@ export async function requireAssistedInvitation(
   );
   if (!rows[0]) throw new NotFoundException();
   return rows[0];
+}
+
+export async function requireInvitationAccess(
+  manager: EntityManager,
+  id: string,
+  actor: AuthenticatedPrincipal,
+  lock = false,
+) {
+  return actor.role === 'ADMIN'
+    ? requireAssistedInvitation(manager, id, actor, lock)
+    : requireOwnedInvitation(manager, id, actor, lock);
+}
+export function assertInvitationDesignPermission(
+  invitation: Invitation,
+  actor: AuthenticatedPrincipal,
+) {
+  if (actor.role === 'ADMIN' && invitation.editing_mode !== 'SERVICE_MANAGED')
+    throw new ForbiddenException();
+  if (invitation.editing_mode === 'SERVICE_MANAGED' && actor.role !== 'ADMIN')
+    throw new ForbiddenException();
+}
+export function assertInvitationPublishPermission(
+  invitation: Invitation,
+  actor: AuthenticatedPrincipal,
+) {
+  assertInvitationDesignPermission(invitation, actor);
+  if (invitation.editing_mode === 'SERVICE_MANAGED' && !invitation.paid_at)
+    throw new BuilderProblemException(409, 'PAYMENT_REQUIRED');
 }

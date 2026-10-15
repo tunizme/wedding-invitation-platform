@@ -17,7 +17,11 @@ import {
 } from '../../invitation-assets/application/asset-reference.service';
 import type { Invitation } from '../../invitations/domain/entities';
 import { invitationSummary } from '../../invitations/application/invitation-summary';
-import { requireOwnedInvitation } from '../../invitations/authorization/invitation.policy';
+import {
+  requireInvitationAccess,
+  assertInvitationPublishPermission,
+  assertInvitationDesignPermission,
+} from '../../invitations/authorization/invitation.policy';
 import type { TemplateDesignRevision } from '../domain/entities';
 
 type OperationResult = {
@@ -253,12 +257,13 @@ export class PublicationService {
       expectedVersion,
     });
     return this.db.transaction(async (manager) => {
-      const invitation = await requireOwnedInvitation(
+      const invitation = await requireInvitationAccess(
         manager,
         invitationId,
         actor,
         true,
       );
+      assertInvitationPublishPermission(invitation, actor);
       await manager.query(
         'SELECT pg_advisory_xact_lock($1,$2)',
         [1346459220, 1],
@@ -300,7 +305,9 @@ export class PublicationService {
         'SELECT clock_timestamp() AS now',
       );
       const enqueuedAt = new Date(clock[0].now);
-      const validated = validateSupportedTemplateDesign(revision.document);
+      const validated = validateSupportedTemplateDesign(
+        invitation.draft_document ?? revision.document,
+      );
       if (!validated.valid)
         throw new BuilderProblemException(
           422,
@@ -308,8 +315,9 @@ export class PublicationService {
           validated.issues,
         );
       if (
-        revision.schema_version !== validated.value.schemaVersion ||
-        revision.renderer_contract_version !== validated.value.schemaVersion
+        invitation.editing_mode !== 'SERVICE_MANAGED' &&
+        (revision.schema_version !== validated.value.schemaVersion ||
+          revision.renderer_contract_version !== validated.value.schemaVersion)
       )
         throw new BuilderProblemException(422, 'UNSUPPORTED_SCHEMA');
       const document = validated.value,
@@ -345,14 +353,20 @@ export class PublicationService {
         if (
           templateIds.some(
             (id) =>
-              !allowedTemplate.has(id) ||
-              byId.get(id)?.scope !== 'TEMPLATE' ||
+              (invitation.editing_mode !== 'SERVICE_MANAGED' &&
+                !allowedTemplate.has(id)) ||
+              (byId.get(id)?.scope !== 'TEMPLATE' &&
+                !(
+                  invitation.editing_mode === 'SERVICE_MANAGED' &&
+                  byId.get(id)?.scope === 'CUSTOMER' &&
+                  byId.get(id)?.owner_user_id === invitation.owner_user_id
+                )) ||
               byId.get(id)?.status !== 'READY',
           ) ||
           customerIds.some(
             (id) =>
               byId.get(id)?.scope !== 'CUSTOMER' ||
-              byId.get(id)?.owner_user_id !== actor.userId ||
+              byId.get(id)?.owner_user_id !== invitation.owner_user_id ||
               byId.get(id)?.status !== 'READY',
           )
         )
@@ -395,12 +409,13 @@ export class PublicationService {
     const id = resourceId(rawId),
       expected = positiveVersion(rawExpectedVersion);
     return this.db.transaction(async (manager) => {
-      const invitation: Invitation = await requireOwnedInvitation(
+      const invitation: Invitation = await requireInvitationAccess(
         manager,
         id,
         actor,
         true,
       );
+      assertInvitationDesignPermission(invitation, actor);
       if (invitation.edit_version !== expected)
         throw new BuilderProblemException(409, 'VERSION_CONFLICT');
       if (invitation.status === 'DRAFT')
@@ -440,8 +455,8 @@ export class PublicationService {
       if (!visible.length) throw new NotFoundException();
     } else {
       const visible: { id: string }[] = await this.db.query(
-        'SELECT id FROM invitations WHERE id=$1 AND owner_user_id=$2',
-        [row.invitation_id, actor.userId],
+        'SELECT id FROM invitations WHERE id=$1 AND (owner_user_id=$2 OR $3)',
+        [row.invitation_id, actor.userId, actor.role === 'ADMIN'],
       );
       if (!visible.length) throw new NotFoundException();
     }
@@ -468,8 +483,8 @@ export class PublicationService {
             [resourceIdValue],
           )
         : await this.db.query(
-            'SELECT id FROM invitations WHERE id=$1 AND owner_user_id=$2',
-            [resourceIdValue, actor.userId],
+            'SELECT id FROM invitations WHERE id=$1 AND (owner_user_id=$2 OR $3)',
+            [resourceIdValue, actor.userId, actor.role === 'ADMIN'],
           );
     if (!visible.length) throw new NotFoundException();
     const rows: PublicationJob[] = await this.db.query(

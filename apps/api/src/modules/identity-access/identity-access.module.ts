@@ -40,6 +40,7 @@ import { OAuthController } from './oauth/oauth.controller';
 import { ProfileService } from './profile/profile.service';
 import { ChangePasswordService } from './profile/change-password.service';
 import { ProfileController } from './profile/profile.controller';
+import { CustomerInvitationService } from './admin/customer-invitation.service';
 import { CustomerController } from './admin/customer.controller';
 import { CustomerQueryService } from './admin/customer-query.service';
 import { CustomerStatusService } from './admin/customer-status.service';
@@ -73,6 +74,15 @@ export { IDENTITY_CONFIG } from '../../config/identity-access.environment';
     AuthContextController,
   ],
   providers: [
+    {
+      provide: CustomerInvitationService,
+      inject: [DataSource, CredentialCrypto, ChallengeService],
+      useFactory: (
+        db: DataSource,
+        crypto: CredentialCrypto,
+        challenges: ChallengeService,
+      ) => new CustomerInvitationService(db, crypto, challenges),
+    },
     {
       provide: CookieLedgerService,
       inject: [IDENTITY_CONFIG, CredentialCrypto],

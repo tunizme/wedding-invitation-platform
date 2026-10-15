@@ -1,10 +1,19 @@
 'use client';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from 'react';
 import type {
   ResolvedAdvanced,
   CustomField,
 } from '../document/editor-document';
-import type { RenderContext, WeddingEvent } from '../document/types';
+import type { RenderContext, WeddingEvent, TextStyle } from '../document/types';
+import { textStyle } from './primitives';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import carouselStyles from './carousel.module.css';
 import { AssetImage } from './asset-image';
 
 const labels = {
@@ -86,9 +95,14 @@ function Album({
     ids = element.content.assetIds ?? [],
     t = labels[locale],
     c = element.content,
-    stage = useRef<HTMLDivElement>(null),
-    shown = useRef(0);
-  const durationMs = (c.durationSec ?? 1.5) * 1000,
+    layout = carousel
+      ? c.carouselLayout === 'feature'
+        ? 'feature'
+        : 'stack'
+      : 'classic',
+    stage = useRef<HTMLDivElement>(null);
+  const durationMs =
+      (c.durationSec ?? (layout === 'classic' ? 1.5 : 0.65)) * 1000,
     delayMs = (c.delaySec ?? 0) * 1000;
   const reduced = useSyncExternalStore(
     subscribeMotion,
@@ -115,47 +129,22 @@ function Album({
     delayMs,
     durationMs,
   ]);
-  useEffect(() => {
-    if (shown.current === index) return;
-    shown.current = index;
-    const node = stage.current;
-    if (!carousel || !c.transition || !node || context.mode === 'capture')
-      return;
-    if (reduced || typeof node.animate !== 'function') return;
-    const frames: Record<string, Keyframe[]> = {
-      fade: [{ opacity: 0 }, { opacity: 1 }],
-      zoom: [
-        { opacity: 0.3, transform: 'scale(1.18)' },
-        { opacity: 1, transform: 'scale(1)' },
-      ],
-      switch: [
-        { opacity: 0, transform: 'translateX(30%)' },
-        { opacity: 1, transform: 'translateX(0)' },
-      ],
-      overlap: [
-        { transform: 'translateX(-100%)' },
-        { transform: 'translateX(0)' },
-      ],
-    };
-    const animation = node.animate(frames[c.transition], {
-      duration: durationMs,
-      delay: delayMs,
-      easing: 'ease',
-      fill: 'backwards',
-    });
-    return () => animation.cancel();
-  }, [
-    index,
-    carousel,
-    c.transition,
-    durationMs,
-    delayMs,
-    context.mode,
-    reduced,
-  ]);
   if (!ids.length) return <p>{element.content.label}</p>;
   return (
     <div
+      className={layout !== 'classic' ? carouselStyles.carousel : undefined}
+      data-carousel-layout={carousel ? layout : undefined}
+      onKeyDown={(event) => {
+        if (!carousel || !['ArrowLeft', 'ArrowRight'].includes(event.key))
+          return;
+        event.preventDefault();
+        setPaused(true);
+        setIndex(
+          (i) =>
+            (i + (event.key === 'ArrowRight' ? 1 : ids.length - 1)) %
+            ids.length,
+        );
+      }}
       onFocusCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setPaused(true);
       }}
@@ -168,61 +157,126 @@ function Album({
         gap: 8,
       }}
     >
-      <div
-        ref={stage}
-        style={{
-          flex: 1,
-          minHeight: 0,
-          display: 'grid',
-          gridTemplateColumns: carousel ? '1fr' : 'repeat(2,minmax(0,1fr))',
-          gap: 8,
-          overflow: 'auto',
-        }}
-      >
-        {(carousel ? [ids[index % ids.length]] : ids).map((id, i) => (
-          <AssetImage
-            key={id + ':' + i}
-            source={context.assetUrls[id]}
-            alt={
-              element.content.label +
-              ' ' +
-              (carousel ? (index % ids.length) + 1 : i + 1)
-            }
-            style={{
-              width: '100%',
-              height: carousel ? '100%' : 140,
-              objectFit: 'cover',
-            }}
-          />
-        ))}
-      </div>
+      {layout !== 'classic' ? (
+        <div
+          ref={stage}
+          className={carouselStyles.stage}
+          data-layout={layout}
+          style={
+            {
+              '--carousel-duration': `${durationMs}ms`,
+              '--carousel-delay': `${delayMs}ms`,
+            } as CSSProperties
+          }
+        >
+          {ids.map((id, i) => {
+            const current = index % ids.length;
+            let offset = (i - current + ids.length) % ids.length;
+            if (layout === 'feature' && offset > ids.length / 2)
+              offset -= ids.length;
+            if (
+              (layout === 'stack' && offset > 2) ||
+              (layout === 'feature' && Math.abs(offset) > 1)
+            )
+              return null;
+            return (
+              <div
+                key={`${id}:${i}`}
+                className={carouselStyles.card}
+                data-active={offset === 0}
+                data-offset={offset}
+                aria-hidden={offset !== 0}
+              >
+                <div className={carouselStyles.cardImage}>
+                  <AssetImage
+                    source={context.assetUrls[id]}
+                    alt={offset === 0 ? `${c.label} ${i + 1}` : ''}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          ref={stage}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: 'grid',
+            gridTemplateColumns: carousel ? '1fr' : 'repeat(2,minmax(0,1fr))',
+            gap: 8,
+            overflow: 'auto',
+          }}
+        >
+          {(carousel ? [ids[index % ids.length]] : ids).map((id, i) => (
+            <AssetImage
+              key={id + ':' + i}
+              source={context.assetUrls[id]}
+              alt={
+                element.content.label +
+                ' ' +
+                (carousel ? (index % ids.length) + 1 : i + 1)
+              }
+              style={{
+                width: '100%',
+                height: carousel ? '100%' : 140,
+                objectFit: 'cover',
+              }}
+            />
+          ))}
+        </div>
+      )}
       {carousel && (
-        <nav aria-label={element.content.label}>
+        <nav
+          aria-label={element.content.label}
+          className={
+            layout !== 'classic' ? carouselStyles.navigation : undefined
+          }
+        >
           <button
             type="button"
             aria-label={t.previous}
+            className={layout !== 'classic' ? carouselStyles.arrow : undefined}
+            disabled={ids.length < 2 || context.mode === 'capture'}
             onClick={() => setIndex((i) => (i + ids.length - 1) % ids.length)}
           >
-            ‹
+            <ChevronLeft size={18} aria-hidden="true" />
           </button>
           <span
+            className={
+              layout !== 'classic' ? carouselStyles.counter : undefined
+            }
             aria-live={
               autoplay && !paused && !hovered && !reduced ? 'off' : 'polite'
             }
           >
             {' '}
-            {(index % ids.length) + 1}/{ids.length}{' '}
+            {layout === 'classic'
+              ? `${(index % ids.length) + 1}/${ids.length}`
+              : `${String((index % ids.length) + 1).padStart(2, '0')} / ${String(ids.length).padStart(2, '0')}`}{' '}
           </span>
           <button
             type="button"
             aria-label={t.next}
+            className={layout !== 'classic' ? carouselStyles.arrow : undefined}
+            disabled={ids.length < 2 || context.mode === 'capture'}
             onClick={() => setIndex((i) => (i + 1) % ids.length)}
           >
-            ›
+            <ChevronRight size={18} aria-hidden="true" />
           </button>
           {autoplay && (
             <button
               type="button"
+              className={
+                layout !== 'classic' ? carouselStyles.pause : undefined
+              }
               aria-pressed={paused}
               onClick={() => setPaused((p) => !p)}
             >
@@ -396,24 +450,43 @@ const subscribe = (listener: () => void) => {
 function GuestName({
   label,
   mode,
+  verifiedName,
+  style,
 }: {
   label: string;
   mode: RenderContext['mode'];
+  verifiedName?: string;
+  style?: TextStyle;
 }) {
   const name = useSyncExternalStore(
     subscribe,
     () =>
-      new URLSearchParams(window.location.search).get('guest')?.slice(0, 120) ??
-      '',
+      (new URLSearchParams(window.location.search).has('g')
+        ? ''
+        : new URLSearchParams(window.location.search)
+            .get('guest')
+            ?.slice(0, 120)) ?? '',
     () => '',
   );
-  return <span>{mode === 'public' && name ? name : label}</span>;
+  return (
+    <div
+      data-guest-name
+      data-measure-content
+      style={style ? textStyle(style) : undefined}
+    >
+      {mode === 'public' && (verifiedName || name)
+        ? verifiedName || name
+        : label}
+    </div>
+  );
 }
 function Reminder({
   element,
   locale,
+  mode,
 }: {
   element: ResolvedAdvanced;
+  mode: RenderContext['mode'];
   locale: 'vi' | 'en';
 }) {
   const event = (
@@ -480,8 +553,26 @@ function Reminder({
     <a
       href={'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics)}
       download="loi-moi.ics"
+      tabIndex={mode === 'public' ? 0 : -1}
+      onClick={(event) => {
+        if (mode !== 'public') event.preventDefault();
+      }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+        boxSizing: 'border-box',
+        padding: '8px 16px',
+        borderRadius: 3,
+        textDecoration: 'none',
+        fontSize: element.content.fontSize ?? 14,
+        background: element.content.buttonColor,
+        color: element.content.textColor,
+      }}
     >
-      {labels[locale].remind}
+      {element.content.label || labels[locale].remind}
     </a>
   ) : (
     <span>{element.content.label}</span>
@@ -540,9 +631,18 @@ export function AdvancedWidget({
       return (
         <a
           href={`tel:${c.phone?.replace(/[ ()-]/g, '')}`}
+          tabIndex={context.mode === 'public' ? 0 : -1}
+          onClick={(event) => {
+            if (context.mode !== 'public') event.preventDefault();
+          }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+            boxSizing: 'border-box',
+            fontSize: c.fontSize ?? 16,
             gap: 8,
             padding: '8px 16px',
             borderRadius: 8,
@@ -554,8 +654,9 @@ export function AdvancedWidget({
           {c.showIcon !== false && (
             <svg
               aria-hidden="true"
-              width="18"
-              height="18"
+              width={c.iconSize ?? 18}
+              height={c.iconSize ?? 18}
+              style={{ color: c.iconColor ?? 'currentColor', flexShrink: 0 }}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -570,9 +671,16 @@ export function AdvancedWidget({
         </a>
       );
     case 'Reminder':
-      return <Reminder element={element} locale={locale} />;
+      return <Reminder element={element} locale={locale} mode={context.mode} />;
     case 'GuestName':
-      return <GuestName label={c.label} mode={context.mode} />;
+      return (
+        <GuestName
+          label={c.label}
+          mode={context.mode}
+          verifiedName={context.guestName}
+          style={c.textStyle}
+        />
+      );
     case 'CustomForm':
       return <CustomForm element={element} context={context} locale={locale} />;
   }

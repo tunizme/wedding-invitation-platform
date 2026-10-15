@@ -1,7 +1,8 @@
 .textSelection {
   --moveable-color: #4aa5ff;
 }
-.textSelection :global(.moveable-line) {
+/* Every selection outline matches the text frame; handles keep their own style. */
+.rotationFeedback :global(.moveable-line) {
   background: #9bceff;
 }
 .textSelection :global(.moveable-control) {

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import Moveable from 'react-moveable';
 import type { Able, MoveableManagerInterface } from 'react-moveable';
 import { Move, RotateCw } from 'lucide-react';
@@ -166,9 +166,9 @@ export function GeometryControls({
       }
     } else paint(box);
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     moveable.current?.updateRect();
-  }, [box, zoom, target]);
+  }, [box.x, box.y, box.width, box.height, box.rotation, zoom, target]);
   useEffect(() => {
     const cancel = (event: KeyboardEvent | Event) => {
       if (event instanceof KeyboardEvent && event.key !== 'Escape') return;

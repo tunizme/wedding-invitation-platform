@@ -194,6 +194,7 @@ export class EmailOutboxWorker
       if (
         ![
           'local-verification-v1',
+          'customer-invitation-v1',
           'password-reset-v1',
           'social-verification-v1',
         ].includes(item.template_key) ||
@@ -211,13 +212,16 @@ export class EmailOutboxWorker
       const reset = item.template_key === 'password-reset-v1';
       const social = item.template_key === 'social-verification-v1';
       const messageId = await this.sender.send({
-        purpose: reset
-          ? 'PASSWORD_RESET'
-          : social
-            ? 'SOCIAL_EMAIL_VERIFICATION'
-            : 'LOCAL_EMAIL_VERIFICATION',
+        purpose:
+          item.template_key === 'customer-invitation-v1'
+            ? 'CUSTOMER_INVITATION'
+            : reset
+              ? 'PASSWORD_RESET'
+              : social
+                ? 'SOCIAL_EMAIL_VERIFICATION'
+                : 'LOCAL_EMAIL_VERIFICATION',
         to: item.recipient_email,
-        link: `${this.frontendOrigin}/${reset ? 'reset-password' : social ? 'social-onboarding' : 'verify-email'}#token=${encodeURIComponent(proof)}`,
+        link: `${this.frontendOrigin}/${reset ? 'reset-password' : social ? 'social-onboarding' : item.template_key === 'customer-invitation-v1' ? 'activate-account' : 'verify-email'}#token=${encodeURIComponent(proof)}`,
         idempotencyKey: `${reset ? 'PASSWORD_RESET' : social ? 'SOCIAL_EMAIL_VERIFICATION' : 'LOCAL_EMAIL_VERIFICATION'}.${item.challenge_id}.${item.template_key}`,
       });
       result = { accepted: true, messageId };

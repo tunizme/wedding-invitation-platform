@@ -283,6 +283,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
 }
 .legacyForm
   input:not([type='checkbox']):not([type='range']):not([type='color']),
@@ -903,4 +905,228 @@
     height: 40px;
     width: 40px;
   }
+}
+
+/* Image / decoration panel header (reference: preview 140×138, actions 36px). */
+.mediaHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 24px;
+}
+.mediaPreview {
+  display: grid;
+  place-items: center;
+  width: 140px;
+  height: 138px;
+  padding: 9px 10px;
+  border: 1px solid var(--studio-border, #e5e7eb);
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+}
+/* Scoped twice to win over the editor workspace's generic button rules. */
+.mediaHeader .mediaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 104px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #3f83f8;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.mediaHeader .changeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 24px;
+  margin-top: -12px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: #3f83f8;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.mediaHeader .mediaButton:hover:not(:disabled),
+.mediaHeader .changeButton:hover:not(:disabled) {
+  background: #1c64f2;
+}
+.mediaHeader .mediaButton:focus-visible,
+.mediaHeader .changeButton:focus-visible {
+  outline: 2px solid #1c64f2;
+  outline-offset: 2px;
+}
+.mediaHeader .mediaButton:disabled,
+.mediaHeader .changeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.flipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+.flipItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.toastRegion {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  z-index: 1000;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #fff;
+  color: rgb(0 0 0 / 0.88);
+  font-size: 14px;
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 0.08),
+    0 3px 6px -4px rgb(0 0 0 / 0.12),
+    0 9px 28px 8px rgb(0 0 0 / 0.05);
+}
+.toast svg {
+  color: #52c41a;
+}
+
+.calendarTemplates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.calendarTemplates > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 4px;
+  border: 1px solid var(--studio-border, #dcdfe6);
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.calendarTemplates > button[aria-pressed='true'] {
+  border-color: #409eff;
+  color: #2586ee;
+  background: #f5faff;
+}
+.calendarTemplates > button:focus-visible {
+  outline: 2px solid #2586ee;
+  outline-offset: 2px;
+}
+.calendarThumbnail {
+  display: block;
+  width: 66px;
+  height: 64px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.calendarThumbnail > section {
+  width: 300px;
+  height: 280px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #999;
+  transform: scale(0.22);
+  transform-origin: top left;
+}
+
+.fontTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--studio-border, #dcdfe6);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.fontTrigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fontPicker {
+  display: grid;
+  gap: 8px;
+}
+.fontPicker > input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  font: inherit;
+}
+.fontList {
+  max-height: min(360px, 45vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.fontList h4 {
+  margin: 12px 8px 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.fontList button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 4px;
+  padding: 8px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.fontList button:hover,
+.fontList button[aria-pressed='true'] {
+  background: #edf5ff;
+  color: #1765b5;
+}
+.fontPicker :focus-visible,
+.fontTrigger:focus-visible {
+  outline: 2px solid #2586ee;
+  outline-offset: 2px;
+}
+.fontList button:disabled {
+  cursor: wait;
+  opacity: 0.5;
 }

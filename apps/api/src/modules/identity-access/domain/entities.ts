@@ -7,6 +7,8 @@ export interface User {
   id: string;
   email: string;
   password_hash: string | null;
+  invitation_pending?: boolean;
+  invited_by?: string | null;
   login_method: string;
   role: string;
   status: string;
@@ -26,6 +28,8 @@ export const UserEntity = new EntitySchema<User>({
     id: { type: 'uuid', primary: true },
     email: { type: 'varchar', length: 254 },
     password_hash: { type: 'varchar', length: 255, nullable: true },
+    invitation_pending: { type: 'boolean', default: false },
+    invited_by: { type: 'uuid', nullable: true },
     login_method: { type: 'varchar', length: 10 },
     role: { type: 'varchar', length: 10 },
     status: { type: 'varchar', length: 10 },

@@ -8,19 +8,19 @@ import type { ScopedOptions } from './api';
 export const listRsvps = (
   id: string,
   cursor?: string,
-  options: ScopedOptions = {},
+  options: ScopedOptions & { assisted?: boolean } = {},
 ) =>
   builderRequest<ListPage<RsvpItem>>(
-    `/invitations/${id}/rsvps${cursor ? '?cursor=' + encodeURIComponent(cursor) : ''}`,
+    `/${options.assisted ? 'admin/' : ''}invitations/${id}/rsvps${cursor ? '?cursor=' + encodeURIComponent(cursor) : ''}`,
     options,
   );
 export const setRsvpState = (
   id: string,
   expectedControlVersion: number,
   open: boolean,
-  options: ScopedOptions = {},
+  options: ScopedOptions & { assisted?: boolean } = {},
 ) =>
   builderRequest<{ controlVersion: number; rsvpOpen: boolean }>(
-    `/invitations/${id}/rsvp-state`,
+    `/${options.assisted ? 'admin/' : ''}invitations/${id}/rsvp-state`,
     { ...options, method: 'PATCH', body: { expectedControlVersion, open } },
   );

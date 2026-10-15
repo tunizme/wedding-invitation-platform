@@ -16,7 +16,10 @@ import {
   queryString,
   encodeNewestCursor,
 } from '../../invitation-builder/http/input';
-import { requireOwnedInvitation } from '../../invitations/authorization/invitation.policy';
+import {
+  requireInvitationAccess,
+  requireOwnedInvitation,
+} from '../../invitations/authorization/invitation.policy';
 import type { Invitation } from '../../invitations/domain/entities';
 import type { RsvpResponse } from '../domain/entities';
 import { normalizeRsvp } from '../domain/rsvp-input';
@@ -73,6 +76,15 @@ export class RsvpService {
     if (!invitation.rsvp_open || !invitation.published_has_visible_rsvp)
       throw new BuilderProblemException(409, 'RSVP_CLOSED');
     // Preserve PostgreSQL microseconds for both rolling-window comparison and INSERT.
+    let guestId: string | null = null;
+    if (value.guestToken) {
+      const [guest] = await manager.query<{ id: string }[]>(
+        'SELECT id FROM invitation_guests WHERE invitation_id=$1 AND token=$2 AND revoked_at IS NULL FOR UPDATE',
+        [invitation.id, value.guestToken],
+      );
+      if (!guest) throw new NotFoundException();
+      guestId = guest.id;
+    }
     const clocks: { accepted_at: string }[] = await manager.query(
       `SELECT to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS accepted_at`,
     );
@@ -80,8 +92,8 @@ export class RsvpService {
       source = rsvpSourceHash(this.config.rateHmacKey, invitation.id, address);
     await enforceRsvpRate(manager, invitation.id, source, acceptedAt);
     const rows: RsvpResponse[] = await manager.query(
-      `INSERT INTO rsvp_responses(id,invitation_id,request_key,payload_hash,name,attendance,party_size,message,source_hash,created_at)
- VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      `INSERT INTO rsvp_responses(id,invitation_id,request_key,payload_hash,name,attendance,party_size,message,source_hash,created_at,guest_id)
+ VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
       [
         randomUUID(),
         invitation.id,
@@ -93,8 +105,14 @@ export class RsvpService {
         value.message,
         source,
         acceptedAt,
+        guestId,
       ],
     );
+    if (guestId)
+      await manager.query(
+        'UPDATE invitation_guests SET attendance=$2,party_size=$3,updated_at=clock_timestamp() WHERE id=$1',
+        [guestId, value.attendance, value.partySize],
+      );
     return { replayed: false, receipt: receipt(rows[0]) };
   }
   async state(slug: string) {
@@ -113,9 +131,11 @@ export class RsvpService {
     actor: AuthenticatedPrincipal,
     id: string,
     query: Record<string, unknown>,
+    assisted = false,
   ) {
     return this.db.transaction(async (manager) => {
-      await requireOwnedInvitation(manager, id, actor);
+      if (assisted) await requireInvitationAccess(manager, id, actor);
+      else await requireOwnedInvitation(manager, id, actor);
       closedObject(query, ['limit', 'cursor']);
       const limit = listLimit(query),
         cursor = newestCursor(queryString(query, 'cursor'));

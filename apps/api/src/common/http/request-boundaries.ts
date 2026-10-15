@@ -54,7 +54,9 @@ export function configureRequestBoundaries(
       if (
         size !== undefined &&
         Number(size) >
-          (/^\/api\/v1\/(?:admin\/template-audio|assets\/audio)\/?$/.test(path)
+          (/^\/api\/v1\/(?:admin\/template-audio|assets\/audio|admin\/invitations\/[^/]+\/audio)\/?$/.test(
+            path,
+          )
             ? 20 * 1024 * 1024 + 64 * 1024
             : BUILDER_MULTIPART_BODY_LIMIT)
       )
@@ -66,7 +68,13 @@ export function configureRequestBoundaries(
         path,
       )
         ? parsers.interaction
-        : /^\/api\/v1\/admin\/(?:templates|editor-presets)(?:\/|$)/.test(path)
+        : /^\/api\/v1\/admin\/(?:templates|editor-presets)(?:\/|$)/.test(
+              path,
+            ) ||
+            /^\/api\/v1\/admin\/invitations\/[^/]+\/draft\/?$/.test(path) ||
+            /^\/api\/v1\/(?:admin\/)?invitations\/[^/]+\/guests\/import\/?$/.test(
+              path,
+            )
           ? parsers.template
           : /^\/api\/v1\/public\/invitations\/[^/]+\/rsvps\/?$/.test(path)
             ? parsers.rsvp

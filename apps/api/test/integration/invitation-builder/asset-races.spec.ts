@@ -103,7 +103,7 @@ describe.sequential('asset and receipt cleanup races', () => {
     ).toEqual([]);
   });
 
-  it('serializes cover assignment with deletion so exactly one mutation wins', async () => {
+  it('serializes cover assignment with deletion without leaving a dangling cover', async () => {
     const asset = await f.asset(admin.principal),
       template = await f.template(admin.principal);
     const [assign, remove] = await Promise.all([
@@ -123,16 +123,10 @@ describe.sequential('asset and receipt cleanup races', () => {
       'SELECT status FROM assets WHERE id=$1',
       [asset.id],
     );
-    if (assign.status === 200) {
-      expect(remove.status).toBe(409);
-      expect(updated[0].cover_asset_id).toBe(asset.id);
-      expect(stored[0].status).toBe('READY');
-    } else {
-      expect(assign.status).toBe(422);
-      expect(remove.status).toBe(204);
-      expect(updated[0].cover_asset_id).toBeNull();
-      expect(stored[0].status).toBe('DELETED');
-    }
+    expect([200, 409, 422]).toContain(assign.status);
+    expect(remove.status).toBe(204);
+    expect(updated[0].cover_asset_id).toBeNull();
+    expect(stored[0].status).toBe('DELETED');
   });
 
   it('keeps a successful object write unreachable when its SQL finalize rolls back', async () => {

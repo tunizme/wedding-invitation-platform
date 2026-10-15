@@ -1,0 +1,131 @@
+/* Reference confirm dialog: 416px wide, 32px buttons, yellow note box. */
+.dialog {
+  box-sizing: border-box;
+  width: min(416px, calc(100vw - 32px));
+  padding: 20px 24px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: rgb(0 0 0 / 0.88);
+  font-size: 14px;
+  line-height: 1.5714;
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 0.08),
+    0 3px 6px -4px rgb(0 0 0 / 0.12),
+    0 9px 28px 8px rgb(0 0 0 / 0.05);
+}
+.dialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(4px);
+}
+.dialog .withIcon {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  column-gap: 12px;
+}
+.dialog .withIcon .body {
+  grid-column: 2;
+}
+.dialog .icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #faad14;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.dialog .title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.dialog .body {
+  margin-top: 8px;
+}
+.dialog .body p {
+  margin: 0;
+}
+.dialog .usage {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dialog .usage li::before {
+  content: '• ';
+}
+.dialog .strong {
+  font-weight: 600;
+}
+.dialog .note {
+  margin: 12px 0 !important;
+  padding: 12px;
+  border: 1px solid #fce96a;
+  border-radius: 6px;
+  background: #fdfdea;
+  color: #723b13;
+}
+.dialog .error {
+  margin-top: 8px !important;
+  color: #cf1322;
+}
+.dialog .footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dialog .cancel,
+.dialog .primary,
+.dialog .danger {
+  min-height: 32px;
+  padding: 0 15px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  color: rgb(0 0 0 / 0.88);
+  font: inherit;
+  cursor: pointer;
+}
+.dialog .primary {
+  border-color: #1677ff;
+  background: #1677ff;
+  color: #fff;
+}
+.dialog .danger {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+.dialog .cancel:focus-visible,
+.dialog .primary:focus-visible,
+.dialog .danger:focus-visible {
+  outline: 2px solid #91caff;
+  outline-offset: 1px;
+}
+.dialog .cancel:disabled,
+.dialog .primary:disabled,
+.dialog .danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Keep the reference look over the workspace's generic button hover rules. */
+.dialog .cancel:hover:not(:disabled) {
+  border-color: #4096ff;
+  background: #fff;
+  color: #4096ff;
+}
+.dialog .primary:hover:not(:disabled) {
+  border-color: #4096ff;
+  background: #4096ff;
+  color: #fff;
+}
+.dialog .danger:hover:not(:disabled) {
+  border-color: #ff7875;
+  background: #fff;
+  color: #ff7875;
+}

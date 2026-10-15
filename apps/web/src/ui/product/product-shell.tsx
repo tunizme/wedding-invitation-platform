@@ -116,6 +116,10 @@ function AccountDisclosure({ user }: { user: UserProfile }) {
                   <PenLine size={18} aria-hidden="true" />
                   Quản lý mẫu
                 </Link>
+                <Link href="/admin/invitations">
+                  <Mail size={18} aria-hidden="true" />
+                  Thiệp khách hàng
+                </Link>
                 <Link href="/admin/customers">
                   <Users size={18} aria-hidden="true" />
                   Quản lý khách hàng

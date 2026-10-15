@@ -8,35 +8,79 @@ const root = resolve(import.meta.dirname, '../..');
 const fonts = join(root, 'apps/web/public/fonts/invitation-builder');
 const manifest = JSON.parse(readFileSync(join(fonts, 'manifest.json'), 'utf8'));
 
-test('all sixteen invitation WOFF2 assets match the committed manifest', () => {
-  assert.equal(manifest.faces.length, 8);
+test('all invitation WOFF2 assets match the pinned catalog manifest', () => {
+  const legacy = manifest.faces.filter((face) =>
+    ['noto-sans-v1', 'noto-serif-v1'].includes(face.fontId),
+  );
+  assert.equal(legacy.length, 8);
+  assert.equal(legacy.flatMap((face) => face.sources).length, 16);
+  assert.ok(manifest.families.length >= 22);
+  assert.deepEqual(
+    new Set(manifest.faces.map((face) => face.fontId)),
+    new Set(manifest.families.map((font) => font.id)),
+  );
+  assert.equal(
+    readFileSync(
+      join(
+        root,
+        'apps/web/src/features/invitation-builder/document/font-catalog.ts',
+      ),
+      'utf8',
+    ),
+    readFileSync(
+      join(
+        root,
+        'apps/api/src/modules/invitation-builder/domain/font-catalog.ts',
+      ),
+      'utf8',
+    ),
+  );
   const sources = manifest.faces.flatMap((face) => face.sources);
-  assert.equal(sources.length, 16);
-  assert.equal(new Set(sources.map((source) => source.url)).size, 16);
+
+  assert.equal(
+    new Set(sources.map((source) => source.url)).size,
+    sources.length,
+  );
   for (const source of sources) {
     const name = source.url.split('/').at(-1);
     const path = join(fonts, name);
     assert.equal(statSync(path).size, source.bytes, name);
-    assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'), source.sha256, name);
+    assert.equal(
+      createHash('sha256').update(readFileSync(path)).digest('hex'),
+      source.sha256,
+      name,
+    );
     assert.equal(readFileSync(path).toString('ascii', 0, 4), 'wOF2', name);
   }
 });
 
 test('the standalone runner owns static and public assets', () => {
   const dockerfile = readFileSync(join(root, 'apps/web/Dockerfile'), 'utf8');
-  assert.match(dockerfile, /COPY --from=builder \/workspace\/apps\/web\/\.next\/static \.\/apps\/web\/\.next\/static/);
-  assert.match(dockerfile, /COPY --from=builder \/workspace\/apps\/web\/public \.\/apps\/web\/public/);
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/workspace\/apps\/web\/\.next\/static \.\/apps\/web\/\.next\/static/,
+  );
+  assert.match(
+    dockerfile,
+    /COPY --from=builder \/workspace\/apps\/web\/public \.\/apps\/web\/public/,
+  );
 });
 
 test('licensed platform font sources match their pinned manifest', () => {
   const directory = join(root, 'apps/web/src/ui/platform/fonts');
-  const platform = JSON.parse(readFileSync(join(directory, 'manifest.json'), 'utf8'));
+  const platform = JSON.parse(
+    readFileSync(join(directory, 'manifest.json'), 'utf8'),
+  );
   assert.equal(platform.license, 'OFL-1.1');
   assert.equal(platform.files.length, 7);
   for (const file of platform.files) {
     const path = join(directory, file.file);
     const bytes = readFileSync(path);
     assert.equal(bytes.length, file.bytes, file.file);
-    assert.equal(createHash('sha256').update(bytes).digest('hex'), file.sha256, file.file);
+    assert.equal(
+      createHash('sha256').update(bytes).digest('hex'),
+      file.sha256,
+      file.file,
+    );
   }
 });

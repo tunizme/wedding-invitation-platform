@@ -1,3 +1,10 @@
+/** Operational timestamps use Vietnam time even when the browser is abroad. */
+export function formatVietnameseTimestamp(iso: string): string {
+  return new Date(iso).toLocaleString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+  });
+}
+
 /** Calendar values are interpreted in the event's declared IANA zone. */
 export function eventLocalTime(iso: string, timeZone: string): string {
   if (!iso || !Number.isFinite(Date.parse(iso))) return '';

@@ -14,8 +14,10 @@ export function useAssetPreview(assets: AssetSummary[]) {
     sessionStore.identityEpoch,
     () => 0,
   );
-  const [loadedKey, setLoadedKey] = useState('');
-  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [preview, setPreview] = useState<{
+    key: string;
+    urls: Record<string, string>;
+  }>({ key: '', urls: {} });
   const assetKey = assets
     .map((asset) => `${asset.id}:${asset.previewUrl}`)
     .join('|');
@@ -24,7 +26,9 @@ export function useAssetPreview(assets: AssetSummary[]) {
     const abort = new AbortController();
     const created: string[] = [];
     let active = true;
-    void Promise.all(
+    // Each protected image settles independently: an unavailable/stale asset
+    // must not hide valid images or hold them up until its request times out.
+    void Promise.allSettled(
       assets.map(async (asset) => {
         const blob = await builderRequest<Blob>(
           scopedAssetPath(asset.previewUrl),
@@ -34,21 +38,22 @@ export function useAssetPreview(assets: AssetSummary[]) {
             scope,
           },
         );
-        if (!active || !scope.isActive()) return [asset.id, ''] as const;
+        if (!active || !scope.isActive()) return;
         const url = URL.createObjectURL(blob);
         created.push(url);
-        return [asset.id, url] as const;
+        setPreview((current) => {
+          if (!active || !scope.isActive()) return current;
+          const key = `${epoch}:${assetKey}`;
+          return {
+            key,
+            urls: {
+              ...(current.key === key ? current.urls : {}),
+              [asset.id]: url,
+            },
+          };
+        });
       }),
-    )
-      .then((entries) => {
-        if (active && scope.isActive()) {
-          setUrls(Object.fromEntries(entries));
-          setLoadedKey(`${epoch}:${assetKey}`);
-        }
-      })
-      .catch(() => {
-        if (active && scope.isActive()) setUrls({});
-      });
+    );
     return () => {
       active = false;
       abort.abort();
@@ -58,5 +63,5 @@ export function useAssetPreview(assets: AssetSummary[]) {
     // assetKey encodes the only fields that affect protected preview requests.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetKey, epoch]);
-  return loadedKey === `${epoch}:${assetKey}` ? urls : {};
+  return preview.key === `${epoch}:${assetKey}` ? preview.urls : {};
 }

@@ -4,12 +4,19 @@ import { fontFamily } from '../renderer/font-registry';
 /** Measures authored typography without depending on canvas zoom or rotation. */
 export function createTextMeasurement(node: CanvasNode) {
   if (
-    node.type.resolvedName !== 'Text' ||
-    !('text' in node.props.content) ||
+    !['Text', 'GuestName'].includes(node.type.resolvedName) ||
+    !('textStyle' in node.props.content) ||
+    !node.props.content.textStyle ||
     typeof document === 'undefined'
   )
     return null;
-  const { text, textStyle: style } = node.props.content;
+  const style = node.props.content.textStyle;
+  const text =
+    'text' in node.props.content
+      ? node.props.content.text
+      : 'label' in node.props.content
+        ? node.props.content.label
+        : '';
   const { padding, border } = node.props.appearance;
   const position = border.position ?? 'all';
   const horizontalEdges =

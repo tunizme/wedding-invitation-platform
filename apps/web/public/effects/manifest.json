@@ -1,0 +1,524 @@
+[
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/begie/begie-preview.webp",
+    "path": "/effects/opening-effects/opening-envelope/begie/begie-preview.webp",
+    "bytes": 20360,
+    "sha256": "ae5e81427a0e7a01849d158af6cd7c06ef0a8d0021bc4e051012735efc1ffe83"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/begie/black-seal.webp",
+    "path": "/effects/opening-effects/opening-envelope/begie/black-seal.webp",
+    "bytes": 2318,
+    "sha256": "9ebb2d3715d04af9e8c7985651b078bc972793686115c7c877f62c9221b40540"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/begie/envelope-begie.webp",
+    "path": "/effects/opening-effects/opening-envelope/begie/envelope-begie.webp",
+    "bytes": 54298,
+    "sha256": "5b341246a04296154e087fb5970c5694dceea89c8c41890cd2397abe4c0098ea"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/begie/flower-left.webp",
+    "path": "/effects/opening-effects/opening-envelope/begie/flower-left.webp",
+    "bytes": 41308,
+    "sha256": "45176bc03fa795f9f7b82f9e057e31fefce6f8fd6696622e3a991b797bbcd526"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/begie/flower-right.webp",
+    "path": "/effects/opening-effects/opening-envelope/begie/flower-right.webp",
+    "bytes": 47248,
+    "sha256": "41307bcdaeee93e2927797eea3bb43460bbe84db0a65c92d3760323d74b116ed"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/begie/white-paper-texture-background.webp",
+    "path": "/effects/opening-effects/opening-envelope/begie/white-paper-texture-background.webp",
+    "bytes": 734,
+    "sha256": "a45821138024c1ac7242697ec6566be6f54635f8fc387789078b7a25d2206c3b"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/bg.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/bg.webp",
+    "bytes": 225838,
+    "sha256": "e725fb63db8b61b2c3d1e9e22f1a0c512f0064fcddc3884e877cfd737891f76b"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/classic-preview.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/classic-preview.webp",
+    "bytes": 156580,
+    "sha256": "162e7205ec4377a1225bd3beee7dde3849c13b8256dbae6ec4f1656a4ebd3d62"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/envelope.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/envelope.webp",
+    "bytes": 100840,
+    "sha256": "780192fac0ec2a41da4e49369efd11a2675dc45dd99f405a2b08459c7ceb68fd"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/floral-left.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/floral-left.webp",
+    "bytes": 62292,
+    "sha256": "a1b21f99869fc25f7c0a8242a8f1940c6cb45a874f65280f3ffc1d25db8fef23"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/floral-right-a.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/floral-right-a.webp",
+    "bytes": 62046,
+    "sha256": "fe351a7f81c2070ff1c4a3951a6f6b8d6a384d5c27ffd9443f1dec644cf8cc21"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/floral-right-b.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/floral-right-b.webp",
+    "bytes": 70840,
+    "sha256": "8f715eab62743b807031d4da16ea170b5e59baadbe738cff050e1fe77f39f5ed"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/seal.webp",
+    "path": "/effects/opening-effects/opening-envelope/classic/seal.webp",
+    "bytes": 38642,
+    "sha256": "634cc43fe54fdfa58726a630ea3db1dc51940236ba035fe7377c57df21991a29"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/serif.woff2",
+    "path": "/effects/opening-effects/opening-envelope/classic/serif.woff2",
+    "bytes": 22240,
+    "sha256": "1b14510e0152d3d5b093aee5494098e373bfe8ab3e3041d21da5697ae4359f70"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/classic/serif2.woff2",
+    "path": "/effects/opening-effects/opening-envelope/classic/serif2.woff2",
+    "bytes": 138624,
+    "sha256": "53603446555df0ad0e6ca5722a8f703c6ee2acf23ab40c66ed05fdf5125023c2"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/red/envelope-red.webp",
+    "path": "/effects/opening-effects/opening-envelope/red/envelope-red.webp",
+    "bytes": 2858,
+    "sha256": "e19d0092c5b256a7e8531e21ebf4faf2a2c5b03b6319b7d4cedd3c7d7cafec84"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/red/flower-left.webp",
+    "path": "/effects/opening-effects/opening-envelope/red/flower-left.webp",
+    "bytes": 16366,
+    "sha256": "f8659e1c8f0afac9b0ae8de8b6416712935e754bd59d9837b359f21bce04b240"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/red/flower-right.webp",
+    "path": "/effects/opening-effects/opening-envelope/red/flower-right.webp",
+    "bytes": 56560,
+    "sha256": "af8edcdaa981661fc22121ec03ca43bb6080ee0b39bdd0e88e30783d19ce534e"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/red/red-preview.webp",
+    "path": "/effects/opening-effects/opening-envelope/red/red-preview.webp",
+    "bytes": 22624,
+    "sha256": "d09e88424aa20a1dab06cc4b10e5b93faade11e969b96e1793d7c11e30ff75a6"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/opening-envelope/red/seal.png",
+    "path": "/effects/opening-effects/opening-envelope/red/seal.png",
+    "bytes": 1034326,
+    "sha256": "5ddc268e58c4a8e7f4d03a5ce3288abab8fe020ca0982adacd4ba80cc4475a7a"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/photobooth/frame.webp",
+    "path": "/effects/opening-effects/photobooth/frame.webp",
+    "bytes": 88066,
+    "sha256": "d1e9ff8dc84ef67806ca21f9b0f90c22b1856ee8c29ac96abb2523d25733f2fb"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/photobooth/preview.webp",
+    "path": "/effects/opening-effects/photobooth/preview.webp",
+    "bytes": 97596,
+    "sha256": "acd8b1cecfad3fb812eed81ab60903d06f52a62b58fc2f5e7b3a89ccba10be64"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/animated-image-1.jpg",
+    "path": "/effects/opening-effects/preview/animated-image-1.jpg",
+    "bytes": 9874,
+    "sha256": "8c8efbb36f3ebd9ba29fb3e13ca6a300698f22c1b4c472ca974588c0605b98bb"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/animated-image-1.webm",
+    "path": "/effects/opening-effects/preview/animated-image-1.webm",
+    "bytes": 933778,
+    "sha256": "9c341113263f3bcb280c5054574f71ae1bf87300cfb0774f1534e502ce7f91f2"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-blue.jpg",
+    "path": "/effects/opening-effects/preview/curtain-reveal-blue.jpg",
+    "bytes": 11182,
+    "sha256": "afa0acad0fef3f25d5a87b7e2f3cb95040ea61a79eb106ef26a8c09b55a3823d"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-blue.webm",
+    "path": "/effects/opening-effects/preview/curtain-reveal-blue.webm",
+    "bytes": 198473,
+    "sha256": "3ae593045c9f9e8e1e7c590447db36932efbb0300f0d09aeba0e64ced6417515"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-pink.jpg",
+    "path": "/effects/opening-effects/preview/curtain-reveal-pink.jpg",
+    "bytes": 21068,
+    "sha256": "874ebfd87e817f69ac00fb8159104de9e9ac6b4b21693758fdd903d58dfab28b"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-pink.webm",
+    "path": "/effects/opening-effects/preview/curtain-reveal-pink.webm",
+    "bytes": 337004,
+    "sha256": "a4c4ade111b517854ff275fc41fa22b486e98b803b215d0b412818fd17dd1312"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-purple.jpg",
+    "path": "/effects/opening-effects/preview/curtain-reveal-purple.jpg",
+    "bytes": 14305,
+    "sha256": "cd1c7b67e89b549d9ec1d524cc0e114fbadb17e531710893872d85f32dd6cb9d"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-purple.webm",
+    "path": "/effects/opening-effects/preview/curtain-reveal-purple.webm",
+    "bytes": 217324,
+    "sha256": "fb559ac8ba53ca48da82b6054357facfdfcd4cdfb3aa5c6eee48924121c448ab"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-red.jpg",
+    "path": "/effects/opening-effects/preview/curtain-reveal-red.jpg",
+    "bytes": 45216,
+    "sha256": "9b57152e6126c39df92b02bd152c352131934275f8cf400e1fe186a18ca8e881"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-red.webm",
+    "path": "/effects/opening-effects/preview/curtain-reveal-red.webm",
+    "bytes": 573129,
+    "sha256": "c675142c1ce7d427f4c55d371fad416bd8980dcde93a134a076085e5e58fc4eb"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-yellow.jpg",
+    "path": "/effects/opening-effects/preview/curtain-reveal-yellow.jpg",
+    "bytes": 10666,
+    "sha256": "2698ce1438d02a5a633fc8c869cd65b54b3e32674361ecd4ad07a10ef9ddc6eb"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/curtain-reveal-yellow.webm",
+    "path": "/effects/opening-effects/preview/curtain-reveal-yellow.webm",
+    "bytes": 225051,
+    "sha256": "c1ec45fc1227f0ddd7d3f9d4807146d4fcd104687d6bbbbfa09ad9d33fa50b93"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/intro-page-1.jpg",
+    "path": "/effects/opening-effects/preview/intro-page-1.jpg",
+    "bytes": 139749,
+    "sha256": "241346397436eca02b272d818b47351d183f4bf37e2ace422d10929927308041"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/intro-page-1.webm",
+    "path": "/effects/opening-effects/preview/intro-page-1.webm",
+    "bytes": 501567,
+    "sha256": "8e9cbc922cf5329ccc8d455fd4c0a9483b7fdfe7ff1829372d6f0a32092a885a"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/intro-page-2.jpg",
+    "path": "/effects/opening-effects/preview/intro-page-2.jpg",
+    "bytes": 150207,
+    "sha256": "8f9d2ff4c5cdc6c35d08ce8b0fa9ed68811861398c2dc1216f45fa3a18b202a7"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/intro-page-2.webm",
+    "path": "/effects/opening-effects/preview/intro-page-2.webm",
+    "bytes": 278742,
+    "sha256": "332bcb9f1661c4a3364cebc3d419918442fe53ad1103b04f9bccd65d6b76089e"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/preview/invitation-card.webm",
+    "path": "/effects/opening-effects/preview/invitation-card.webm",
+    "bytes": 544158,
+    "sha256": "2aca2d3b6facae6d01bc67fbfe40236aec6fad89258f1328fdd416ca5222f409"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/seals/seal-01.png",
+    "path": "/effects/opening-effects/seals/seal-01.png",
+    "bytes": 67536,
+    "sha256": "5ec4d2a2b4c24ccd0439af0ebdfc35ee087a85a771245fa62af8b8ac439df5f1"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/envelop-left.webp",
+    "path": "/effects/opening-effects/sliding-door/envelop-left.webp",
+    "bytes": 143560,
+    "sha256": "ed102a33b4089b4713e88d840625ae58903ebb4e1a1a5f3a8022c87c14711a0a"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/envelop-right.webp",
+    "path": "/effects/opening-effects/sliding-door/envelop-right.webp",
+    "bytes": 107528,
+    "sha256": "3b13e95a7597aed5bfb0ee295c5b7f8b41d3fa4244d861d769b0904446a020d9"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/green-line-floral-left.webp",
+    "path": "/effects/opening-effects/sliding-door/green-line-floral-left.webp",
+    "bytes": 111236,
+    "sha256": "6eeb7829e970650506099c256230560b4cfa1435ce715ccc2fa40e1b188ede7f"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/green-line-floral-right.webp",
+    "path": "/effects/opening-effects/sliding-door/green-line-floral-right.webp",
+    "bytes": 96924,
+    "sha256": "f32e0fde20947b3f51ce2ce3d9047886bd7ec900a766b46aee3e619d3f0c28a0"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/pink-lily-left.webp",
+    "path": "/effects/opening-effects/sliding-door/pink-lily-left.webp",
+    "bytes": 81230,
+    "sha256": "2d58e0c5e418ce8c2f0fc0fc0024da15730c030203460bdef15cbf73af5af9ae"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/pink-lily-right.webp",
+    "path": "/effects/opening-effects/sliding-door/pink-lily-right.webp",
+    "bytes": 75070,
+    "sha256": "e07e044c2bd3d334884e4f5e90a6e2144d90b7004113db010af0f17ef569390e"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/white-floral-left.webp",
+    "path": "/effects/opening-effects/sliding-door/white-floral-left.webp",
+    "bytes": 73018,
+    "sha256": "1c326f970794e7d01eecda59c15462e853380f7c512165f7bc6ac184490f7934"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/sliding-door/white-floral-right.webp",
+    "path": "/effects/opening-effects/sliding-door/white-floral-right.webp",
+    "bytes": 68681,
+    "sha256": "fa1372559ceff7246e9214dfdd3cb2d70a56cbd5286e6fae73b591e7fd35c53c"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/textures/bg.webp",
+    "path": "/effects/opening-effects/textures/bg.webp",
+    "bytes": 45580,
+    "sha256": "271d1909219553e65bcfd9e17580a4a430b129fa34eb0397ed3286dd2f22cb19"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/textures/dark-nilen-texture.png",
+    "path": "/effects/opening-effects/textures/dark-nilen-texture.png",
+    "bytes": 25704,
+    "sha256": "3927b8692151db25bb9c85faab8fca1fa6a0a367da4b0facbce9e872abf4912a"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/textures/low-contrast-linen.png",
+    "path": "/effects/opening-effects/textures/low-contrast-linen.png",
+    "bytes": 23767,
+    "sha256": "8d66d4b1e489a1964a1caef141c6c277f9bf313eef2b5c259d9b0f70a1a7cf4e"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/textures/white-paper-texture-background.webp",
+    "path": "/effects/opening-effects/textures/white-paper-texture-background.webp",
+    "bytes": 734,
+    "sha256": "a45821138024c1ac7242697ec6566be6f54635f8fc387789078b7a25d2206c3b"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/boho-floral-green/flower.webp",
+    "path": "/effects/opening-effects/themes/boho-floral-green/flower.webp",
+    "bytes": 64646,
+    "sha256": "3845da194772299b646ce82e44680ea2f7f5d2fb9b107024eb2d0765435890d7"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/la-ngoc-green/la1.webp",
+    "path": "/effects/opening-effects/themes/la-ngoc-green/la1.webp",
+    "bytes": 15560,
+    "sha256": "18db60a7756a28540e621c82a66cc65b80a46e2dc363ba3b62909d9601bc6d34"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/la-ngoc-green/la2.webp",
+    "path": "/effects/opening-effects/themes/la-ngoc-green/la2.webp",
+    "bytes": 17142,
+    "sha256": "959151126e2f530138bf54be5503947dc1bd23acb159d0002e6dc3cc29e81ffe"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/longphung-v2-red/cloud.webp",
+    "path": "/effects/opening-effects/themes/longphung-v2-red/cloud.webp",
+    "bytes": 3796,
+    "sha256": "dc9a1543858a14fa4a8072ed3d62128dfb7feb6e54fb4c273388ad5e3ad8e88b"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/longphung-v2-red/phuong.webp",
+    "path": "/effects/opening-effects/themes/longphung-v2-red/phuong.webp",
+    "bytes": 73058,
+    "sha256": "eb6b9b1e3872a16e4753233f5b0eb9b67a58ad3be2f782c78865039dbb34d111"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/longphung-v2-red/rong.webp",
+    "path": "/effects/opening-effects/themes/longphung-v2-red/rong.webp",
+    "bytes": 76314,
+    "sha256": "f6c54c808e2751c7880c11848a80f47990a951a7848a44e08306e9d8fa6b6ab3"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/nature/flower_paralax.webp",
+    "path": "/effects/opening-effects/themes/nature/flower_paralax.webp",
+    "bytes": 17780,
+    "sha256": "efb87fc7168ced05e6ff8fbfd7597dd28a2469457f10699310f7c5e5ed848339"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/nature/flower_top.webp",
+    "path": "/effects/opening-effects/themes/nature/flower_top.webp",
+    "bytes": 14520,
+    "sha256": "9febe662c3db111a020947e4556261f1e9037c3df5591c41f90c57ddbdf8ec22"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/red-v1/bg-main.webp",
+    "path": "/effects/opening-effects/themes/red-v1/bg-main.webp",
+    "bytes": 45258,
+    "sha256": "5c1b2fab30ce08ada4a9807aa080ea7b48491ee0808cc56421da99a5b01b2fb1"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/red-v1/phuong.webp",
+    "path": "/effects/opening-effects/themes/red-v1/phuong.webp",
+    "bytes": 96524,
+    "sha256": "9bd1875a62379c34a4d5ae64e5177f7da3fd63ded96b511dd0f9dbd7b5e97639"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/red-v1/rong.webp",
+    "path": "/effects/opening-effects/themes/red-v1/rong.webp",
+    "bytes": 105542,
+    "sha256": "69a2eb5c256e1d0c120faac47d9de7781d7c19ad8198ecbaacdf4d86efef9e61"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/royal-red/flower.webp",
+    "path": "/effects/opening-effects/themes/royal-red/flower.webp",
+    "bytes": 45384,
+    "sha256": "2a8c5231b7f1c56f711a88a821be63a3e96014d8d2b28a58a6786cbe1471abd1"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songlong-red/chinese_happiness.webp",
+    "path": "/effects/opening-effects/themes/songlong-red/chinese_happiness.webp",
+    "bytes": 5178,
+    "sha256": "e10e795e0ef811c94b0eedab71f555b5c8c8c17e0262cfb323bc917b411f08c1"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songlong-red/cloud_big.webp",
+    "path": "/effects/opening-effects/themes/songlong-red/cloud_big.webp",
+    "bytes": 7866,
+    "sha256": "2c9653121636775af7034bde2cbb26d72b8ade71fcee8edb9f397d927ec42ca4"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songlong-red/cloud_small.webp",
+    "path": "/effects/opening-effects/themes/songlong-red/cloud_small.webp",
+    "bytes": 4792,
+    "sha256": "51288e6f691b6efac156694917962f9bb45c860d9c1d94ee46dc2c958a992d46"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songlong-red/dragon_left.webp",
+    "path": "/effects/opening-effects/themes/songlong-red/dragon_left.webp",
+    "bytes": 109140,
+    "sha256": "0c037e09e0b977c4e7bfe3c2211d5106fe4a0d5b22f44eeb2a33e208418f1fd9"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songlong-red/dragon_right.webp",
+    "path": "/effects/opening-effects/themes/songlong-red/dragon_right.webp",
+    "bytes": 109246,
+    "sha256": "e70aa87f1a550bd1d03e10249312fb932bd48a399cf3bcf2dd9d9410a49a4e60"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songlong-red/wave.webp",
+    "path": "/effects/opening-effects/themes/songlong-red/wave.webp",
+    "bytes": 2228,
+    "sha256": "c07ab70d509624d2858b183c3d11ce5fc30a8d4e1dbe70ec153b053c4136737f"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songphung-green/HOA.webp",
+    "path": "/effects/opening-effects/themes/songphung-green/HOA.webp",
+    "bytes": 48742,
+    "sha256": "1a04df51cca06aaf1935bbba21fb6f8ce4246651e8d2aaaf652a0c238efc7d01"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songphung-green/Phuong.webp",
+    "path": "/effects/opening-effects/themes/songphung-green/Phuong.webp",
+    "bytes": 67548,
+    "sha256": "6bd5737675cd034f8e3af2545af76915fb9a28ef214183a28b911e33ee670ee1"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songphung-red/HOA.webp",
+    "path": "/effects/opening-effects/themes/songphung-red/HOA.webp",
+    "bytes": 71696,
+    "sha256": "836ac3e24134cf3f3a60c1982ee857289f4d0e26edd0148c4573797a2b9f54a0"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/opening-effects/themes/songphung-red/Phuong.webp",
+    "path": "/effects/opening-effects/themes/songphung-red/Phuong.webp",
+    "bytes": 89530,
+    "sha256": "a2d9be25176f90194f8a4a5dbb8e60ef7df36fefc490271f29ca138db4643403"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/fade-in-all.png",
+    "path": "/effects/transition-effects/fade-in-all.png",
+    "bytes": 6351,
+    "sha256": "45bd0e377bb100f2e78288d31653e83e48951386cbeeaa87cb650b74d03ad440"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/fade-in-mix.png",
+    "path": "/effects/transition-effects/fade-in-mix.png",
+    "bytes": 3561,
+    "sha256": "1aafad678494659d236d270c9ffbab7f8ae283c4d6590d727c1d5e3d5fed2c03"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/flip-in-all.png",
+    "path": "/effects/transition-effects/flip-in-all.png",
+    "bytes": 4384,
+    "sha256": "c5fff1c6b3888b3af3b1ac8ba231ed8ae1034a78ee72e8e6a51289fdcc16b2f0"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/none.png",
+    "path": "/effects/transition-effects/none.png",
+    "bytes": 8258,
+    "sha256": "25de74370f219e90658b1ffa1652a015e92c78cd716a82fc116ab9a753fb6435"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/scale-in-all.png",
+    "path": "/effects/transition-effects/scale-in-all.png",
+    "bytes": 1488,
+    "sha256": "a590febfd40982456af19dacf7eec21f2f4afac522393352876c858982172dbb"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/slide-up-all.png",
+    "path": "/effects/transition-effects/slide-up-all.png",
+    "bytes": 2955,
+    "sha256": "f22a6cd81420cc8e53816aaf481dabf6c374a4e16c67ae12ae5856ec07c2cdbd"
+  },
+  {
+    "source": "https://assets.cinelove.me/assets/transition-effects/slide-up-mix.png",
+    "path": "/effects/transition-effects/slide-up-mix.png",
+    "bytes": 2028,
+    "sha256": "408a8e0d75c9f4cefe5517bb5f30b8825d2e2f47aed946a6da372b939e102a96"
+  },
+  {
+    "source": "https://assets.cinelove.me/fonts/webfonts/aquarelle/aquarelle.woff2",
+    "path": "/effects/fonts/webfonts/aquarelle/aquarelle.woff2",
+    "bytes": 25108,
+    "sha256": "78cb6b52664bf8bc1fba4c5f963894d1487e15c81dcefda98d471e4ba267b648"
+  },
+  {
+    "source": "https://assets.cinelove.me/resources/characters/24bebbc90bc64fe3952b44881c3be849.gif",
+    "path": "/effects/resources/characters/24bebbc90bc64fe3952b44881c3be849.gif",
+    "bytes": 2784512,
+    "sha256": "c4cb94f4a650f0d910970e34461585922feaa0bcff1c529c406dcd895e81f0a4"
+  },
+  {
+    "source": "https://assets.cinelove.me/resources/characters/694f2494535443aa96ab2f8cbf4d06bf.gif",
+    "path": "/effects/resources/characters/694f2494535443aa96ab2f8cbf4d06bf.gif",
+    "bytes": 967661,
+    "sha256": "3bf3866c5d1b8e9374d7d2b9110372624fc316022ee3753001cfdd656e5bdc8a"
+  },
+  {
+    "source": "https://assets.cinelove.me/resources/characters/804e975d4ce943ceb59eaef61f6f1e8d.gif",
+    "path": "/effects/resources/characters/804e975d4ce943ceb59eaef61f6f1e8d.gif",
+    "bytes": 3018043,
+    "sha256": "2a11c460e6fb39343a5f51aef33b7566baef8b89ba97004cac95812638e42052"
+  },
+  {
+    "source": "https://assets.cinelove.me/resources/characters/c75adf6d5f824943954f73aa10deb85b.gif",
+    "path": "/effects/resources/characters/c75adf6d5f824943954f73aa10deb85b.gif",
+    "bytes": 839502,
+    "sha256": "ca56e308a13701bdb53a02f7a00999b7e08ce1955b33c0f45b6e4f371a0a4586"
+  },
+  {
+    "path": "/effects/opening-effects/preview/invitation-card.jpg",
+    "generatedFrom": "/effects/opening-effects/preview/invitation-card.webm",
+    "bytes": 63320,
+    "sha256": "6df01ae49dd92b3789cacad3380b1ea3c4a3ad2dabada237600864a859a0376a"
+  }
+]

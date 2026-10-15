@@ -123,7 +123,12 @@
   outline: 2px solid var(--color-primary, #66584a);
   outline-offset: 2px;
 }
-.node[data-kind='Text'][data-selected='true'][data-locked='false'] {
+.node[data-kind='Text'][data-selected='true'][data-locked='false'],
+.node[data-kind='GuestName'][data-selected='true'][data-locked='false'] {
+  outline: none;
+}
+/* The resize frame already outlines the primary unlocked element. */
+.node[data-primary='true'][data-selected='true'][data-locked='false'] {
   outline: none;
 }
 .node textarea {
@@ -168,16 +173,7 @@
   border-bottom: 1px solid var(--color-border, #e5dcce);
   padding-block: 8px;
 }
-.quickImages {
-  display: flex;
-  gap: 8px;
-  position: sticky;
-  bottom: 0;
-  overflow-x: auto;
-  padding: 8px;
-  background: var(--color-background, #fdfbf7);
-  z-index: 12;
-}
+
 .upload {
   padding: 12px;
   border: 1px dashed var(--color-primary, #66584a);
@@ -313,10 +309,19 @@
   gap: 8px;
 }
 .toolbar > section > button:first-child {
-  background: #3285e8;
-  border-color: #3285e8;
+  background: #246bc4;
+  border-color: #246bc4;
   color: #fff;
   padding-inline: 20px;
+}
+.toolbar > section > button:first-child:hover:not(:disabled) {
+  background: #1957a8;
+  border-color: #1957a8;
+  color: #fff;
+}
+.toolbar > section > button:first-child:focus-visible {
+  outline: 2px solid #1957a8;
+  outline-offset: 3px;
 }
 .toolbar > section > span {
   position: absolute;
@@ -501,9 +506,6 @@
 }
 .layout[data-preview='true'] .canvasControls {
   right: 22px;
-}
-.quickImages:empty {
-  display: none;
 }
 .categoryChips {
   display: flex;
@@ -926,6 +928,64 @@
   border-radius: 8px;
   background: var(--color-soft-background, #f1f2f4);
 }
+.stockPick[aria-pressed='true'] {
+  outline: 3px solid #246bc4;
+  outline-offset: -3px;
+}
+.selectionMark {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #246bc4;
+  color: #fff;
+  z-index: 1;
+}
+.batchSelection {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+}
+.batchSelection > button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  cursor: pointer;
+}
+.batchSelection > button:first-of-type {
+  background: #246bc4;
+  border-color: #246bc4;
+  color: #fff;
+}
+.batchSelection > button:first-of-type:hover:not(:disabled) {
+  background: #1957a8;
+}
+.batchSelection > button:focus-visible {
+  outline: 2px solid #246bc4;
+  outline-offset: 2px;
+}
+.batchSelection > button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 .stockPick {
   display: block;
   width: 100%;
@@ -939,14 +999,16 @@
 .stockPick:focus-visible {
   background: var(--color-beige, #eaf3ff);
 }
-.tileDelete {
+.tileDelete,
+.workspace .tileDelete {
   position: absolute;
   top: 4px;
   right: 4px;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -955,6 +1017,17 @@
   opacity: 0;
   cursor: pointer;
 }
+.tileDelete svg {
+  flex-shrink: 0;
+}
+.tileDelete:hover:not(:disabled),
+.workspace .tileDelete:hover:not(:disabled),
+.tileDelete:focus-visible,
+.workspace .tileDelete:focus-visible {
+  background: #b42318;
+  color: #fff;
+}
+.stockTile:focus-within .tileDelete,
 .stockTile:hover .tileDelete,
 .tileDelete:focus-visible {
   opacity: 1;
@@ -1104,9 +1177,11 @@
   .tileDelete {
     opacity: 1;
   }
-  .tileDelete {
-    width: 32px;
-    height: 32px;
+  .tileDelete,
+  .workspace .tileDelete {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
   }
 }
 /* Floating quick actions above the selected element (ui-ux-pro-max: labelled icon buttons, visible focus). */
@@ -1147,11 +1222,13 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
-.floatingToolbar[data-kind='Text'] {
+.floatingToolbar[data-kind='Text'],
+.floatingToolbar[data-kind='GuestName'] {
   padding: 2px;
   box-shadow: 0 1px 7px rgb(0 0 0 / 14%);
 }
-.floatingToolbar[data-kind='Text'] button {
+.floatingToolbar[data-kind='Text'] button,
+.floatingToolbar[data-kind='GuestName'] button {
   width: 32px;
   height: 32px;
   min-height: 32px;
@@ -1325,4 +1402,94 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+}
+
+/* Keep song actions usable without shrinking icons in the narrow library. */
+.library .audioRow {
+  gap: 6px;
+  padding: 8px 4px;
+}
+.audioRow[data-selected='true'] {
+  background: #edf5ff;
+}
+.library .audioRow .audioPlay,
+.library .audioRow .rowDelete {
+  width: 32px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.audioRow svg {
+  flex-shrink: 0;
+}
+.library .audioRow .audioPick {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.audioSelected {
+  display: block;
+  color: #1769cf;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.library .audioTrim {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 36px;
+  min-width: 44px;
+  padding: 4px 7px;
+  border: 1px solid #d5dbe5;
+  border-radius: 6px;
+  background: #fff;
+  color: #36465b;
+  font-size: 12px;
+}
+.library .audioTrim:hover:not(:disabled) {
+  background: #edf5ff;
+  border-color: #1769cf;
+  color: #1769cf;
+}
+.audioRow:focus-within .rowDelete {
+  opacity: 1;
+}
+@media (max-width: 767px) {
+  .library .audioRow .audioPlay,
+  .library .audioRow .rowDelete,
+  .library .audioTrim {
+    min-height: 44px;
+  }
+}
+
+.library .widgetCard {
+  min-height: 98px;
+  background: #fff;
+  border-radius: 8px;
+}
+.widgetGlyph {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff3f5;
+}
+.library .widgetGlyph svg {
+  color: #dc6282;
+}
+.library .widgetCard:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+/* Cinelove effects shelf is 294px; other tool shelves retain their own layout. */
+@media (min-width: 1200px) {
+  .layout[data-effects='true'][data-library-open='true']:not(
+      [data-preview='true']
+    ) {
+    grid-template-columns: 84px 294px minmax(0, 1fr) 340px;
+  }
 }

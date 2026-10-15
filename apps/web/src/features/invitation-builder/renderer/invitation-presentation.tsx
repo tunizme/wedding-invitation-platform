@@ -1,22 +1,11 @@
 'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Heart,
-  Gift,
-  Music,
-  Music2,
-  Music3,
-  Music4,
-  Disc3,
-  Volume2,
-  MessageSquare,
-  Share2,
-  Pause,
-  Play,
-} from 'lucide-react';
-// Selectable music-button glyphs (settings.audio.iconStyle 0..5).
-const MUSIC_ICONS = [Music2, Music, Music3, Music4, Disc3, Volume2];
+import { Heart, Gift, MessageSquare, Share2, Pause, Play } from 'lucide-react';
+import { defaultOpeningEffect } from '../document/effects';
+import { OpeningPlayer } from './opening-effects';
+import { FallingEffects } from './falling-effects';
+import { MusicIcon } from './music-icon';
 import type { EditorScene } from '../document/editor-document';
 import type { Bank, RenderContext, ResolvedElement } from '../document/types';
 import { publicInteraction } from './content-widgets';
@@ -24,6 +13,7 @@ import { RenderElement } from './render-element';
 import { GiftAccounts } from './gift-accounts';
 import { ModalSurface } from '../../../ui/platform/modal-surface';
 import styles from './invitation-presentation.module.css';
+import { invitationFeatureVisibility } from '../../invitations/feature-visibility';
 
 type Wish = { id: string; name: string; message: string };
 function WishBook({ slug, locale }: { slug: string; locale: 'vi' | 'en' }) {
@@ -148,12 +138,47 @@ export function InvitationPresentation({
   context: RenderContext;
   children: ReactNode;
 }) {
+  return (
+    <PresentationBody
+      key={JSON.stringify(
+        scene.settings.openingEffect === undefined
+          ? scene.settings.envelope
+          : scene.settings.openingEffect,
+      )}
+      scene={scene}
+      context={context}
+    >
+      {children}
+    </PresentationBody>
+  );
+}
+function PresentationBody({
+  scene,
+  context,
+  children,
+}: {
+  scene: EditorScene;
+  context: RenderContext;
+  children: ReactNode;
+}) {
   const settings = scene.settings,
     live = context.mode === 'public',
     motion = live || context.mode === 'preview',
     slug = context.invitation?.slug,
     locale = settings.locale;
-  const [opened, setOpened] = useState(!motion || !settings.envelope),
+  const opening =
+    settings.openingEffect === undefined
+      ? settings.envelope
+        ? ({
+            ...defaultOpeningEffect('envelope'),
+            groom: '',
+            bride: '',
+            title: settings.title || 'Trân trọng kính mời',
+            buttonText: locale === 'vi' ? 'Mở thiệp' : 'Open invitation',
+          } as ReturnType<typeof defaultOpeningEffect>)
+        : null
+      : settings.openingEffect;
+  const [opened, setOpened] = useState(!motion || !opening),
     [motionPaused, setMotionPaused] = useState(false),
     [playing, setPlaying] = useState(false),
     [scrolling, setScrolling] = useState(false),
@@ -173,19 +198,20 @@ export function InvitationPresentation({
     if (!live || !slug) return;
     let active = true;
     identity.current = browserId();
-    void publicInteraction(
-      `/public/invitations/${slug}/likes?browserId=${identity.current}`,
-      undefined,
-      undefined,
-      'GET',
-    )
-      .then((v) => {
-        if (active) {
-          setCount(v.count);
-          setLiked(v.liked);
-        }
-      })
-      .catch(() => {});
+    if (invitationFeatureVisibility.likes && settings.toolbar.likes)
+      void publicInteraction(
+        `/public/invitations/${slug}/likes?browserId=${identity.current}`,
+        undefined,
+        undefined,
+        'GET',
+      )
+        .then((v) => {
+          if (active) {
+            setCount(v.count);
+            setLiked(v.liked);
+          }
+        })
+        .catch(() => {});
     const gift = (event: Event) => {
       const detail = (
         event as CustomEvent<{ accounts?: Bank[]; title?: string }>
@@ -198,12 +224,12 @@ export function InvitationPresentation({
       active = false;
       window.removeEventListener('invitation-gift', gift);
     };
-  }, [live, slug]);
+  }, [live, slug, settings.toolbar.likes]);
   useEffect(() => {
     if (audio.current) audio.current.volume = settings.audio.volume;
   }, [settings.audio.volume]);
   useEffect(() => {
-    if (!motion || !surface.current) return;
+    if (!motion || !opened || !surface.current) return;
     const elements =
       surface.current.querySelectorAll<HTMLElement>('[data-entrance]');
     const observer = new IntersectionObserver(
@@ -221,7 +247,7 @@ export function InvitationPresentation({
       observer.observe(e);
     }
     return () => observer.disconnect();
-  }, [motion, scene.elements]);
+  }, [motion, scene.elements, opened]);
   useEffect(() => {
     if (
       !scrolling ||
@@ -295,48 +321,31 @@ export function InvitationPresentation({
       data-motion-paused={motionPaused}
       style={{ width: 500, position: 'relative' }}
     >
-      <div inert={!opened} aria-hidden={!opened || undefined}>
+      <div
+        inert={!opened}
+        aria-hidden={!opened || undefined}
+        data-opening-covered={!opened}
+      >
         {children}
       </div>
-      {!opened && (
-        <div
-          className={styles.envelope}
-          style={{ height: scene.canvas.height }}
-        >
-          <div>
-            <p>
-              {locale === 'vi'
-                ? 'Trân trọng kính mời'
-                : 'You are warmly invited'}
-            </p>
-            <h2>{settings.title || 'Lời mời của chúng mình'}</h2>
-            <button
-              type="button"
-              onClick={() => {
-                setOpened(true);
-                if (settings.audio.assetId) void toggleAudio();
-              }}
-            >
-              {locale === 'vi' ? 'Mở thiệp' : 'Open invitation'}
-            </button>
-          </div>
-        </div>
+      {!opened && opening && (
+        <OpeningPlayer
+          effect={opening}
+          assetUrls={context.assetUrls}
+          guestName={context.guestName}
+          paused={motionPaused}
+          onComplete={() => setOpened(true)}
+          onActivate={() => {
+            if (settings.audio.assetId) void toggleAudio();
+          }}
+        />
       )}
-      {motion && opened && settings.particles !== 'none' && (
-        <div aria-hidden className={styles.particles}>
-          {Array.from({ length: 12 }, (_, i) => (
-            <span
-              key={i}
-              style={{ left: `${i * 8}%`, animationDelay: `${i % 5}s` }}
-            >
-              {settings.particles === 'hearts' ? (
-                <Heart size={18} />
-              ) : (
-                <span className={styles.petal} />
-              )}
-            </span>
-          ))}
-        </div>
+      {motion && opened && (
+        <FallingEffects
+          kind={settings.particles}
+          paused={motionPaused}
+          viewport={live}
+        />
       )}
       {live && settings.audio.assetId && (
         <audio
@@ -385,51 +394,51 @@ export function InvitationPresentation({
                   : undefined
               }
             >
-              {(() => {
-                const Glyph =
-                  MUSIC_ICONS[settings.audio.iconStyle ?? 0] ?? Music2;
-                return <Glyph size={20} />;
-              })()}
+              <MusicIcon index={settings.audio.iconStyle} size={20} />
             </button>
           )}
-          {settings.toolbar.wishes && slug && (
-            <button
-              type="button"
-              aria-label={locale === 'vi' ? 'Lời chúc' : 'Wishes'}
-              onClick={() => setModal('wishes')}
-            >
-              <MessageSquare size={20} />
-            </button>
-          )}
-          {settings.toolbar.likes && slug && (
-            <button
-              type="button"
-              disabled={busy}
-              aria-label={locale === 'vi' ? 'Yêu thích' : 'Like'}
-              aria-pressed={liked}
-              onClick={async () => {
-                setBusy(true);
-                setError('');
-                try {
-                  const v = await publicInteraction(
-                    `/public/invitations/${slug}/likes`,
-                    { browserId: identity.current ?? browserId() },
-                    undefined,
-                    liked ? 'DELETE' : 'POST',
-                  );
-                  setLiked(v.liked);
-                  setCount(v.count);
-                } catch (c) {
-                  setError(c instanceof Error ? c.message : 'Lỗi kết nối');
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              <Heart size={20} />
-              <span>{count}</span>
-            </button>
-          )}
+          {invitationFeatureVisibility.wishes &&
+            settings.toolbar.wishes &&
+            slug && (
+              <button
+                type="button"
+                aria-label={locale === 'vi' ? 'Lời chúc' : 'Wishes'}
+                onClick={() => setModal('wishes')}
+              >
+                <MessageSquare size={20} />
+              </button>
+            )}
+          {invitationFeatureVisibility.likes &&
+            settings.toolbar.likes &&
+            slug && (
+              <button
+                type="button"
+                disabled={busy}
+                aria-label={locale === 'vi' ? 'Yêu thích' : 'Like'}
+                aria-pressed={liked}
+                onClick={async () => {
+                  setBusy(true);
+                  setError('');
+                  try {
+                    const v = await publicInteraction(
+                      `/public/invitations/${slug}/likes`,
+                      { browserId: identity.current ?? browserId() },
+                      undefined,
+                      liked ? 'DELETE' : 'POST',
+                    );
+                    setLiked(v.liked);
+                    setCount(v.count);
+                  } catch (c) {
+                    setError(c instanceof Error ? c.message : 'Lỗi kết nối');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <Heart size={20} />
+                <span>{count}</span>
+              </button>
+            )}
           {settings.toolbar.gift &&
             (gift || configuredGift?.giftAccounts?.length) && (
               <button

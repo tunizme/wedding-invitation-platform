@@ -1,30 +1,45 @@
 import manifest from '../../../../public/fonts/invitation-builder/manifest.json';
-
-export const FONT_IDS = ['noto-sans-v1', 'noto-serif-v1'] as const;
-export type InvitationFontId = (typeof FONT_IDS)[number];
+import {
+  getInvitationFont,
+  type InvitationFontId,
+} from '../document/font-catalog';
+import type { TextStyle } from '../document/types';
+export { FONT_IDS, type InvitationFontId } from '../document/font-catalog';
 export const FONT_FACES = manifest.faces;
 
 export function fontFamily(id: InvitationFontId): string {
-  return id === 'noto-serif-v1'
-    ? '"Invitation Noto Serif v1"'
-    : '"Invitation Noto Sans v1"';
+  return JSON.stringify(getInvitationFont(id).family);
 }
 
-/** Caller supplies its document so capture and editor use the same font gate. */
-export async function loadInvitationFonts(document: Document): Promise<void> {
+/** Load only the face being applied before measuring authored text. */
+export async function loadInvitationFontFace(
+  document: Document,
+  style: Pick<TextStyle, 'fontId' | 'fontSize' | 'fontWeight' | 'italic'>,
+): Promise<void> {
+  const faces = await document.fonts.load(
+    `${style.italic ? 'italic' : 'normal'} ${style.fontWeight} ${style.fontSize}px ${fontFamily(style.fontId)}`,
+    'AgẮệỹ',
+  );
+  if (!faces.length || faces.some((face) => face.status !== 'loaded'))
+    throw new Error('FONT_UNAVAILABLE');
+}
+
+/** Explicit font ids keep catalog growth from preloading every available family. */
+export async function loadInvitationFonts(
+  document: Document,
+  ids: readonly InvitationFontId[] = ['noto-sans-v1', 'noto-serif-v1'],
+): Promise<void> {
   await Promise.all(
-    FONT_FACES.map(async (face) => {
-      const loaded = await document.fonts.load(
-        `${face.style} ${face.weight} 18px "${face.family}"`,
-        'Thiệp cưới Đặng Nguyễn Ắ ệ ỹ',
-      );
-      if (
-        loaded.length === 0 ||
-        loaded.some((font) => font.status !== 'loaded')
-      ) {
-        throw new Error('FONT_UNAVAILABLE');
-      }
-    }),
+    FONT_FACES.filter((face) =>
+      ids.includes(face.fontId as InvitationFontId),
+    ).map((face) =>
+      loadInvitationFontFace(document, {
+        fontId: face.fontId as InvitationFontId,
+        fontSize: 18,
+        fontWeight: face.weight as 400 | 700,
+        italic: face.style === 'italic',
+      }),
+    ),
   );
   await document.fonts.ready;
 }

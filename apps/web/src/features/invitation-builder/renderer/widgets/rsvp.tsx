@@ -1,5 +1,6 @@
 'use client';
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
+import styles from './widget-designs.module.css';
 export type RsvpDisplayState =
   'open' | 'error' | 'validation-error' | 'submitting' | 'success' | 'closed';
 export type RsvpFieldErrors = Partial<
@@ -47,6 +48,9 @@ export function RsvpWidget({
   retryLabel,
   uncertain = false,
   fieldErrors,
+  design,
+  attendanceLabel,
+  inputBorderColor,
   nameLabel,
   submitLabel,
   buttonColor,
@@ -54,6 +58,9 @@ export function RsvpWidget({
 }: {
   locale?: 'vi' | 'en';
   /** Optional authored overrides of the form's name label, submit text and button colours. */
+  design?: 'invitation';
+  attendanceLabel?: string;
+  inputBorderColor?: string;
   nameLabel?: string;
   submitLabel?: string;
   buttonColor?: string;
@@ -101,7 +108,7 @@ export function RsvpWidget({
         </button>
       </section>
     );
-  if (mode !== 'public' && mode !== 'capture')
+  if (mode !== 'public' && mode !== 'capture' && design !== 'invitation')
     return (
       <section aria-label={title}>
         {heading}
@@ -143,7 +150,15 @@ export function RsvpWidget({
       ? rsvpRetryMessage(600)
       : '');
   return (
-    <section aria-label={title}>
+    <section
+      aria-label={title}
+      className={design === 'invitation' ? styles.rsvp : undefined}
+      style={
+        {
+          '--rsvp-input-border': inputBorderColor ?? '#DEDEDEFF',
+        } as CSSProperties
+      }
+    >
       {heading}
       <form
         aria-label={title}
@@ -167,22 +182,51 @@ export function RsvpWidget({
           />
         </label>
         {fieldError('name')}
-        <label style={labelStyle}>
-          {locale === 'vi' ? 'Tham dự' : 'Attendance'}
-          <select
-            style={fieldStyle}
-            value={form?.attendance ?? 'ATTENDING'}
-            disabled={fieldsDisabled}
-            onChange={(event) => form?.change('attendance', event.target.value)}
-          >
-            <option value="ATTENDING">
-              {locale === 'vi' ? 'Có tham dự' : 'Attending'}
-            </option>
-            <option value="DECLINED">
-              {locale === 'vi' ? 'Không tham dự' : 'Not attending'}
-            </option>
-          </select>
-        </label>
+        {design === 'invitation' ? (
+          <fieldset className={styles.attendance} disabled={fieldsDisabled}>
+            <legend>
+              {attendanceLabel ||
+                (locale === 'vi' ? 'Bạn sẽ tham dự chứ?' : 'Will you attend?')}
+            </legend>
+            {(['ATTENDING', 'DECLINED'] as const).map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name={`${errorId}-attendance`}
+                  value={value}
+                  checked={(form?.attendance ?? 'ATTENDING') === value}
+                  onChange={() => form?.change('attendance', value)}
+                />
+                {value === 'ATTENDING'
+                  ? locale === 'vi'
+                    ? 'Có, tôi sẽ tham dự'
+                    : 'Yes, I will attend'
+                  : locale === 'vi'
+                    ? 'Tôi bận, rất tiếc không thể tham dự'
+                    : 'Sorry, I cannot attend'}
+              </label>
+            ))}
+          </fieldset>
+        ) : (
+          <label style={labelStyle}>
+            {locale === 'vi' ? 'Tham dự' : 'Attendance'}
+            <select
+              style={fieldStyle}
+              value={form?.attendance ?? 'ATTENDING'}
+              disabled={fieldsDisabled}
+              onChange={(event) =>
+                form?.change('attendance', event.target.value)
+              }
+            >
+              <option value="ATTENDING">
+                {locale === 'vi' ? 'Có tham dự' : 'Attending'}
+              </option>
+              <option value="DECLINED">
+                {locale === 'vi' ? 'Không tham dự' : 'Not attending'}
+              </option>
+            </select>
+          </label>
+        )}
         {form?.attendance !== 'DECLINED' && (
           <div>
             <label style={labelStyle}>

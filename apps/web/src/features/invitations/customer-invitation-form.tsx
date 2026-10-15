@@ -11,6 +11,7 @@ import { Check, ImagePlus } from 'lucide-react';
 import { ModalSurface } from '../../ui/platform/modal-surface';
 import { AssetLibrary } from '../invitation-builder/assets/asset-library';
 import { eventIsoTime, eventLocalTime } from './event-local-time';
+import { invitationFeatureVisibility } from './feature-visibility';
 import styles from './customer-invitation-form.module.css';
 import { Button } from '../../ui/platform/button';
 import { InlineAlert, LocalStatus } from '../../ui/platform/feedback';
@@ -739,6 +740,37 @@ function OwnedCustomerInvitationForm({ id }: { id: string }) {
     ) : (
       <p>Đang tải thông tin thiệp…</p>
     );
+  if (detail.editingMode === 'SERVICE_MANAGED')
+    return (
+      <section style={{ maxWidth: 900, margin: '32px auto', padding: 24 }}>
+        <h1>{detail.title || 'Thiệp của bạn'}</h1>
+        <p>
+          Thiệp đang được admin thiết kế và quản lý. Bạn có thể quản lý khách
+          mời và phản hồi
+          {invitationFeatureVisibility.wishes ? ' và lời chúc' : ''}.
+        </p>
+        <p>
+          {detail.status === 'PUBLISHED'
+            ? 'Thiệp đã xuất bản.'
+            : 'Thiệp chưa công khai.'}
+        </p>
+        <nav
+          aria-label="Quản lý thiệp"
+          style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}
+        >
+          <a href={`/invitations/${id}/guests`}>Khách mời</a>
+          <a href={`/invitations/${id}/rsvps`}>RSVP</a>
+          <a href={`/invitations/${id}/interactions`}>
+            {invitationFeatureVisibility.wishes
+              ? 'Lời chúc'
+              : 'Phản hồi biểu mẫu'}
+          </a>
+          {detail.status === 'PUBLISHED' && detail.publicUrl && (
+            <a href={detail.publicUrl}>Xem thiệp</a>
+          )}
+        </nav>
+      </section>
+    );
   return (
     <section
       ref={workspace}
@@ -1286,7 +1318,9 @@ function OwnedCustomerInvitationForm({ id }: { id: string }) {
       <Link href={`/invitations/${id}/rsvps`}>Phản hồi RSVP</Link>
       {detail.document.schemaVersion === 3 && (
         <Link href={`/invitations/${id}/interactions`}>
-          Lời chúc & phản hồi biểu mẫu
+          {invitationFeatureVisibility.wishes
+            ? 'Lời chúc & phản hồi biểu mẫu'
+            : 'Phản hồi biểu mẫu'}
         </Link>
       )}
       {!successOpen && status && (

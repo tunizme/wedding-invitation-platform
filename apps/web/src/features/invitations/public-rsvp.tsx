@@ -37,6 +37,9 @@ export function PublicRsvp({
   title,
   closedLabel = 'Đã đóng xác nhận',
   successLabel = 'Cảm ơn bạn đã phản hồi',
+  design,
+  attendanceLabel,
+  inputBorderColor,
   nameLabel,
   submitLabel,
   buttonColor,
@@ -47,6 +50,9 @@ export function PublicRsvp({
   title: string;
   closedLabel?: string;
   successLabel?: string;
+  design?: 'invitation';
+  attendanceLabel?: string;
+  inputBorderColor?: string;
   nameLabel?: string;
   submitLabel?: string;
   buttonColor?: string;
@@ -113,6 +119,9 @@ export function PublicRsvp({
   const submit = async () => {
     if (sending.current || retryAt > Date.now()) return;
     const payload: RsvpPayload = {
+      ...(new URLSearchParams(window.location.search).get('g')
+        ? { guestToken: new URLSearchParams(window.location.search).get('g')! }
+        : {}),
       name: name.trim(),
       attendance,
       partySize: attendance === 'DECLINED' ? 0 : Number(partySize),
@@ -182,6 +191,9 @@ export function PublicRsvp({
       title={title}
       closedLabel={closedLabel}
       successLabel={successLabel}
+      design={design}
+      attendanceLabel={attendanceLabel}
+      inputBorderColor={inputBorderColor}
       nameLabel={nameLabel}
       submitLabel={submitLabel}
       buttonColor={buttonColor}

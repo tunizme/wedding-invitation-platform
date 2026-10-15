@@ -3,8 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   eventIsoTime,
   eventLocalTime,
+  formatVietnameseTimestamp,
 } from '../../src/features/invitations/event-local-time';
 describe('declared event time zone input', () => {
+  it('formats operational timestamps in Vietnam time across a UTC date boundary', () => {
+    expect(formatVietnameseTimestamp('2027-01-09T20:30:00Z')).toBe(
+      '03:30:00 10/1/2027',
+    );
+  });
   it('projects an instant and writes the event zone without depending on browser time zone', () => {
     expect(eventLocalTime('2027-01-10T03:00:00Z', 'Asia/Ho_Chi_Minh')).toBe(
       '2027-01-10T10:00:00',

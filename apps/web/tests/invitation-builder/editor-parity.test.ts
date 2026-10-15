@@ -27,7 +27,8 @@ it('serializes the native 500px document and optional presentation fields consis
   document.settings.pageAnimation = 'fade-mix';
   for (const id of document.nodes.ROOT.nodes) {
     const content = (document.nodes[id] as CanvasNode).props.content;
-    if ('textStyle' in content) content.textStyle.strike = true;
+    if ('textStyle' in content && content.textStyle)
+      content.textStyle.strike = true;
     if (document.nodes[id].type.resolvedName === 'Countdown')
       Object.assign(content, {
         layout: 'vertical',

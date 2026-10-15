@@ -4,6 +4,7 @@ export type RsvpPayload = {
   attendance: 'ATTENDING' | 'DECLINED';
   partySize: number;
   message: string;
+  guestToken?: string;
 };
 export type RsvpReceipt = { receiptId: string; acceptedAt: string };
 export type RsvpState = { open: boolean; available: boolean };
@@ -13,6 +14,7 @@ export type RsvpItem = {
   attendance: 'ATTENDING' | 'DECLINED';
   partySize: number;
   message: string;
+  guestToken?: string;
   createdAt: string;
 };
 export class PublicRsvpError extends Error {

@@ -1,3 +1,4 @@
+import { supportsFontFace } from './font-catalog';
 import { validateEditorDocument } from './editor-document';
 import type { SupportedTemplateDesign } from './types';
 import { z } from 'zod';
@@ -68,6 +69,15 @@ export function validatePrimitiveDocument(
     if (!['Text', 'Image', 'Decoration', 'Shape'].includes(kind)) widgets++;
     const { box, appearance, bindings, content } = node.props;
     const path = `/nodes/${id}/props`;
+    if (
+      'textStyle' in content &&
+      !supportsFontFace(
+        content.textStyle.fontId,
+        content.textStyle.fontWeight,
+        content.textStyle.italic,
+      )
+    )
+      errors.push(issue(path + '/content/textStyle', 'FONT_STYLE_UNAVAILABLE'));
     const padding = appearance.padding;
     const borderPosition = appearance.border.position ?? 'all';
     const horizontalBorder =
@@ -117,7 +127,19 @@ export function validatePrimitiveDocument(
       );
     if (
       ['Calendar', 'Countdown', 'Map', 'QRBank', 'Timeline'].includes(kind) &&
-      bindings.length !== 1
+      bindings.length !== 1 &&
+      !Object.hasOwn(
+        content,
+        (
+          {
+            Calendar: 'event',
+            Countdown: 'event',
+            Map: 'venue',
+            QRBank: 'bank',
+            Timeline: 'entries',
+          } as Record<string, string>
+        )[kind],
+      )
     )
       errors.push(issue(path + '/bindings', 'BINDING_REQUIRED'));
     for (const binding of bindings) {

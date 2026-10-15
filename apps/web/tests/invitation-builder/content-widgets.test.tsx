@@ -66,6 +66,42 @@ const advance = () =>
   });
 
 describe('carousel motion and controls', () => {
+  it.each(['stack', 'feature'] as const)(
+    'navigates %s cards while keeping neighboring images decorative',
+    (carouselLayout) => {
+      const { container } = render(
+        <AdvancedWidget
+          element={{
+            ...carousel,
+            content: {
+              ...carousel.content,
+              carouselLayout,
+              assetIds: ['one', 'two', 'three'],
+            },
+          }}
+          context={{
+            ...context,
+            assetUrls: { ...context.assetUrls, three: '/three.png' },
+          }}
+          locale="vi"
+        />,
+      );
+      expect(container.querySelector('[data-carousel-layout]')).toHaveAttribute(
+        'data-carousel-layout',
+        carouselLayout,
+      );
+      expect(screen.getByRole('img')).toHaveAttribute('src', '/one.png');
+      expect(screen.getByText('01 / 03')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Ảnh sau' }));
+      expect(screen.getByRole('img')).toHaveAttribute('src', '/two.png');
+      fireEvent.keyDown(screen.getByRole('button', { name: 'Ảnh sau' }), {
+        key: 'ArrowLeft',
+      });
+      expect(screen.getByRole('img')).toHaveAttribute('src', '/one.png');
+      fireEvent.click(screen.getByRole('button', { name: 'Ảnh trước' }));
+      expect(screen.getByRole('img')).toHaveAttribute('src', '/three.png');
+    },
+  );
   it('autoplays, pauses on focus until explicitly resumed, and supports manual navigation', () => {
     vi.useFakeTimers();
     draw();
@@ -110,30 +146,15 @@ describe('carousel motion and controls', () => {
       expect(screen.queryByRole('button', { name: 'Tạm dừng' })).toBeNull();
     },
   );
-  it('cancels the previous transition when another image is selected or unmounted', () => {
-    const cancel = vi.fn();
-    const animate = vi.fn(() => ({ cancel }));
-    const { container, unmount } = render(
-      <AdvancedWidget
-        element={{
-          ...carousel,
-          content: { ...carousel.content, transition: 'fade' },
-        }}
-        context={context}
-        locale="vi"
-      />,
+  it('uses stack for an older carousel without a layout and exposes motion timing', () => {
+    const { container } = draw();
+    expect(container.querySelector('[data-carousel-layout]')).toHaveAttribute(
+      'data-carousel-layout',
+      'stack',
     );
-    const stage = container.querySelector('img')!.parentElement!;
-    Object.defineProperty(stage, 'animate', {
-      value: animate,
-      configurable: true,
+    expect(container.querySelector('[data-layout="stack"]')).toHaveStyle({
+      '--carousel-duration': '500ms',
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Ảnh sau' }));
-    expect(animate).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole('button', { name: 'Ảnh trước' }));
-    expect(cancel).toHaveBeenCalledTimes(1);
-    unmount();
-    expect(cancel).toHaveBeenCalledTimes(2);
   });
 });
 

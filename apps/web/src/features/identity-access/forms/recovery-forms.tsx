@@ -163,7 +163,9 @@ export function VerifyEmailForm() {
     </Button>
   );
 }
-export function ResetPasswordForm() {
+export function ResetPasswordForm({
+  activation = false,
+}: { activation?: boolean } = {}) {
   const { proofRef, ready, hasProof } = useFragmentProof();
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -182,10 +184,15 @@ export function ResetPasswordForm() {
     setPending(true);
     setError('');
     try {
-      await iamRequest('/auth/password-resets/confirm', {
-        method: 'POST',
-        body: { proof: proofRef.current, newPassword: password },
-      });
+      await iamRequest(
+        activation
+          ? '/auth/customer-activation/confirm'
+          : '/auth/password-resets/confirm',
+        {
+          method: 'POST',
+          body: { proof: proofRef.current, newPassword: password },
+        },
+      );
       proofRef.current = '';
       setPassword('');
       setDone(true);
@@ -201,8 +208,9 @@ export function ResetPasswordForm() {
     return (
       <div role="status">
         <p>
-          Mật khẩu đã được đổi. Các phiên cũ đã kết thúc. Vui lòng đăng nhập
-          lại.
+          {activation
+            ? 'Tài khoản đã được kích hoạt. Vui lòng đăng nhập để quản lý thiệp.'
+            : 'Mật khẩu đã được đổi. Các phiên cũ đã kết thúc. Vui lòng đăng nhập lại.'}
         </p>
         <Link href="/login">Đăng nhập</Link>
       </div>
@@ -211,7 +219,10 @@ export function ResetPasswordForm() {
     return (
       <>
         <InlineAlert tone="error">{invalid}</InlineAlert>
-        <Link href="/forgot-password">Yêu cầu liên kết mới</Link>
+        {activation && <EmailRequestForm />}
+        <Link href={activation ? '/verify-email' : '/forgot-password'}>
+          Yêu cầu liên kết mới
+        </Link>
       </>
     );
   return (
@@ -233,9 +244,15 @@ export function ResetPasswordForm() {
       />
       {error && <InlineAlert tone="error">{error}</InlineAlert>}
       <Button type="submit" busy={pending}>
-        {pending ? 'Đang đổi mật khẩu…' : 'Đặt lại mật khẩu'}
+        {pending
+          ? 'Đang xử lý…'
+          : activation
+            ? 'Kích hoạt tài khoản'
+            : 'Đặt lại mật khẩu'}
       </Button>
-      <Link href="/forgot-password">Yêu cầu liên kết mới</Link>
+      <Link href={activation ? '/verify-email' : '/forgot-password'}>
+        Yêu cầu liên kết mới
+      </Link>
     </form>
   );
 }

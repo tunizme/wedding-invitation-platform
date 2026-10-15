@@ -320,7 +320,7 @@ describe.sequential('expanded editor PostgreSQL contracts', () => {
       rows.every((r: { source_hash: unknown }) => r.source_hash === null),
     ).toBe(true);
   });
-  it('retains preset-only media and rejects foreign owner assets', async () => {
+  it('redacts preset-only media and advances its version before storage deletion', async () => {
     const asset = await f.asset(admin.principal),
       document = createBlankDocument();
     document.settings.shareImageId = asset.id;
@@ -330,13 +330,19 @@ describe.sequential('expanded editor PostgreSQL contracts', () => {
         category: 'Ảnh',
         document,
       });
-    await expect(
-      f.refs.delete(asset.id, admin.principal, {
-        deadline: Date.now() + 10000,
-      }),
-    ).rejects.toThrow();
+    await f.refs.delete(asset.id, admin.principal, {
+      deadline: Date.now() + 10000,
+    });
+    const [current] = await f.db.query<
+      { edit_version: number; document: typeof document }[]
+    >(
+      'SELECT p.edit_version,r.document FROM editor_presets p JOIN editor_preset_revisions r ON r.preset_id=p.id AND r.revision=p.edit_version WHERE p.id=$1',
+      [preset.id],
+    );
+    expect(current.document.settings.shareImageId).toBeNull();
+    expect(current.edit_version).toBe(preset.editVersion + 1);
     await presets.remove(admin.principal, preset.id, {
-      expectedVersion: preset.editVersion,
+      expectedVersion: current.edit_version,
     });
     await f.refs.delete(asset.id, admin.principal, {
       deadline: Date.now() + 10000,

@@ -23,6 +23,19 @@ export class ChallengeService {
   ): Promise<void> {
     await this.enqueue(manager, userId, email, 'LOCAL_EMAIL_VERIFICATION');
   }
+  async enqueueCustomerInvitation(
+    manager: EntityManager,
+    userId: string,
+    email: string,
+  ): Promise<void> {
+    await this.enqueue(
+      manager,
+      userId,
+      email,
+      'LOCAL_EMAIL_VERIFICATION',
+      true,
+    );
+  }
   async enqueuePasswordReset(
     manager: EntityManager,
     userId: string,
@@ -80,6 +93,7 @@ export class ChallengeService {
     userId: string,
     email: string,
     purpose: LocalPurpose,
+    invitation = false,
   ) {
     await lockUsers(manager, [userId]);
     const [user] = await manager.query<User[]>(
@@ -116,7 +130,11 @@ export class ChallengeService {
       [
         outboxId,
         challengeId,
-        reset ? 'password-reset-v1' : 'local-verification-v1',
+        reset
+          ? 'password-reset-v1'
+          : invitation
+            ? 'customer-invitation-v1'
+            : 'local-verification-v1',
         email,
         encrypted.ciphertext,
         encrypted.keyVersion,

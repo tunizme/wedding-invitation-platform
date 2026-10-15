@@ -219,7 +219,7 @@ describe.sequential('asset HTTP contract', () => {
       .expect(404);
   });
 
-  it('prevents deleting any asset retained by a template cover reference', async () => {
+  it('removes a template cover reference when its uploaded image is deleted', async () => {
     const uploaded = assetSummary(
       await attach('/api/v1/admin/template-assets', admin.headers).expect(201),
     );
@@ -229,11 +229,17 @@ describe.sequential('asset HTTP contract', () => {
       .set(admin.headers)
       .send({ expectedVersion: 1, coverAssetId: uploaded.id })
       .expect(200);
-    const conflict = await request(f.app.getHttpServer())
+    await request(f.app.getHttpServer())
       .delete(`/api/v1/assets/${uploaded.id}`)
       .set(admin.headers)
-      .expect(409);
-    expect((conflict.body as { code: string }).code).toBe('ASSET_IN_USE');
+      .expect(204);
+    const rows = await f.db.query<
+      { cover_asset_id: string | null; edit_version: number }[]
+    >(
+      'SELECT cover_asset_id,edit_version FROM invitation_templates WHERE id=$1',
+      [template.id],
+    );
+    expect(rows[0]).toMatchObject({ cover_asset_id: null, edit_version: 3 });
     await request(f.app.getHttpServer())
       .delete(`/api/v1/assets/${uploaded.id}`)
       .set(customer.headers)

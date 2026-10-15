@@ -1,3 +1,8 @@
+import {
+  type OpeningEffect,
+  validOpeningEffect,
+  openingAssetIds,
+} from './effects';
 import type {
   ElementNode,
   RootNode,
@@ -11,11 +16,16 @@ import type {
   ValidationResult,
   ValidationIssue,
   WeddingEvent,
+  TextStyle,
 } from './document.types';
 import { DOCUMENT_LIMITS } from './document.types';
 import { validatePrimitiveDocument } from './document.validator';
 import { resolvePrimitiveDocument } from './resolve-design';
-import { jsonWithinLimit, UUID_EXPRESSION } from './validation-helpers';
+import {
+  eventIssues,
+  jsonWithinLimit,
+  UUID_EXPRESSION,
+} from './validation-helpers';
 
 export const ADVANCED_KINDS = [
   'Album',
@@ -44,6 +54,7 @@ export interface CustomField {
   options: string[];
 }
 export interface AdvancedContent {
+  textStyle?: TextStyle;
   label: string;
   field: string | null;
   assetIds?: string[];
@@ -51,15 +62,20 @@ export interface AdvancedContent {
   posterId?: string | null;
   phone?: string;
   eventKey?: 'ceremony' | 'reception' | 'engagement' | 'afterParty';
+  event?: WeddingEvent;
   fields?: CustomField[];
   // Contact button styling and reminder details (all optional).
   showIcon?: boolean;
+  iconSize?: number;
+  iconColor?: string;
+  fontSize?: number;
   buttonColor?: string;
   textColor?: string;
   description?: string;
   location?: string;
   allDay?: boolean;
   // Carousel presentation (all optional; manual navigation when absent).
+  carouselLayout?: 'classic' | 'stack' | 'feature';
   transition?: 'zoom' | 'switch' | 'overlap' | 'fade';
   durationSec?: number;
   delaySec?: number;
@@ -85,12 +101,52 @@ export type CanvasNode = ElementNode | AdvancedNode;
 export type CanvasRoot = Omit<RootNode, 'props'> & {
   props: { canvas: { width: 500; height: number; background: Background } };
 };
+// Crop shape ids are shared with the API validator; the web owns their artwork.
+export const CROP_SHAPES = [
+  'none',
+  'circle',
+  'arch',
+  'heart',
+  'rounded-sm',
+  'rounded-md',
+  'rounded-lg',
+  'dome',
+  'arch-bottom',
+  'pill',
+  'leaf',
+  'leaf-alt',
+  'chamfer',
+  'slant-top',
+  'slant-bottom',
+  'trapezoid',
+  'parallelogram',
+  'diamond',
+  'hexagon',
+  'star',
+  'wave',
+  'fade-top',
+  'fade-bottom',
+  'fade-left',
+  'fade-right',
+  'vignette',
+] as const;
+export type CropShape = (typeof CROP_SHAPES)[number];
+export const CROP_ASPECTS = [
+  'free',
+  '1:1',
+  '3:2',
+  '2:3',
+  '4:3',
+  '16:9',
+] as const;
+export type CropAspect = (typeof CROP_ASPECTS)[number];
 export interface NodeOptions {
   groupId?: string;
   flipX?: boolean;
   flipY?: boolean;
-  mask?: 'none' | 'circle' | 'arch' | 'heart';
+  mask?: CropShape;
   crop?: { x: number; y: number; width: number; height: number };
+  cropAspect?: CropAspect;
   entrance?:
     | 'none'
     | 'fade'
@@ -139,7 +195,18 @@ export interface EditorSettings {
     iconColor?: string;
   };
   envelope: boolean;
-  particles: 'none' | 'petals' | 'hearts';
+  /** Missing uses the legacy envelope flag; null explicitly disables opening. */
+  openingEffect?: OpeningEffect | null;
+  particles:
+    | 'none'
+    | 'petals'
+    | 'hearts'
+    | 'snow'
+    | 'flowers'
+    | 'stars'
+    | 'confetti'
+    | 'butterflies'
+    | 'mix';
   autoScroll: number;
   toolbar: { wishes: boolean; likes: boolean; gift: boolean; share: boolean };
   gradient: { from: string; to: string; angle: number } | null;
@@ -321,6 +388,7 @@ function validSettings(v: unknown): v is EditorSettings {
         'toolbar',
         'gradient',
         'pageAnimation',
+        'openingEffect',
       ],
       [
         'locale',
@@ -383,8 +451,21 @@ function validSettings(v: unknown): v is EditorSettings {
         /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(v.audio.field))) &&
     num(v.audio.volume, 0, 1) &&
     typeof v.audio.loop === 'boolean' &&
+    (v.openingEffect === undefined ||
+      v.openingEffect === null ||
+      validOpeningEffect(v.openingEffect)) &&
     typeof v.envelope === 'boolean' &&
-    ['none', 'petals', 'hearts'].includes(String(v.particles)) &&
+    [
+      'none',
+      'petals',
+      'hearts',
+      'snow',
+      'flowers',
+      'stars',
+      'confetti',
+      'butterflies',
+      'mix',
+    ].includes(String(v.particles)) &&
     num(v.autoScroll, 0, 100) &&
     keys(v.toolbar, ['wishes', 'likes', 'gift', 'share']) &&
     Object.values(v.toolbar).every((x) => typeof x === 'boolean') &&
@@ -405,6 +486,7 @@ function validOptions(v: unknown): v is NodeOptions {
         'flipY',
         'mask',
         'crop',
+        'cropAspect',
         'entrance',
         'entranceEnabled',
         'entranceDuration',
@@ -423,8 +505,12 @@ function validOptions(v: unknown): v is NodeOptions {
     (v.flipX === undefined || typeof v.flipX === 'boolean') &&
     (v.flipY === undefined || typeof v.flipY === 'boolean') &&
     (v.mask === undefined ||
-      ['none', 'circle', 'arch', 'heart'].includes(
+      (CROP_SHAPES as readonly string[]).includes(
         typeof v.mask === 'string' ? v.mask : '',
+      )) &&
+    (v.cropAspect === undefined ||
+      (CROP_ASPECTS as readonly string[]).includes(
+        typeof v.cropAspect === 'string' ? v.cropAspect : '',
       )) &&
     (v.entrance === undefined ||
       [
@@ -509,9 +595,31 @@ function validAdvancedContent(
     CustomForm: ['fields'],
   };
   const optionalExtras: Partial<Record<AdvancedKind, string[]>> = {
-    Carousel: ['transition', 'durationSec', 'delaySec', 'autoplay'],
-    Contact: ['showIcon', 'buttonColor', 'textColor'],
-    Reminder: ['description', 'location', 'allDay'],
+    GuestName: ['textStyle'],
+    Carousel: [
+      'carouselLayout',
+      'transition',
+      'durationSec',
+      'delaySec',
+      'autoplay',
+    ],
+    Contact: [
+      'showIcon',
+      'buttonColor',
+      'textColor',
+      'iconSize',
+      'iconColor',
+      'fontSize',
+    ],
+    Reminder: [
+      'event',
+      'description',
+      'location',
+      'allDay',
+      'buttonColor',
+      'textColor',
+      'fontSize',
+    ],
   };
   const optional = optionalExtras[kind] ?? [];
   if (
@@ -525,9 +633,14 @@ function validAdvancedContent(
       (!str(c.field, 60, 1) || !/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(c.field)))
   )
     return false;
+  if (kind === 'GuestName' && c.textStyle !== undefined && !object(c.textStyle))
+    return false;
   if (kind === 'Carousel') {
     const typed = c;
     if (
+      (typed.carouselLayout !== undefined &&
+        (typeof typed.carouselLayout !== 'string' ||
+          !['classic', 'stack', 'feature'].includes(typed.carouselLayout))) ||
       (typed.transition !== undefined &&
         (typeof typed.transition !== 'string' ||
           !['zoom', 'switch', 'overlap', 'fade'].includes(typed.transition))) ||
@@ -558,6 +671,9 @@ function validAdvancedContent(
       /^[+0-9 ()-]*$/.test(c.phone) &&
       (c.showIcon === undefined || typeof c.showIcon === 'boolean') &&
       hex(c.buttonColor) &&
+      hex(c.iconColor) &&
+      (c.iconSize === undefined || num(c.iconSize, 8, 80)) &&
+      (c.fontSize === undefined || num(c.fontSize, 8, 160)) &&
       hex(c.textColor)
     );
   if (kind === 'Reminder')
@@ -565,9 +681,14 @@ function validAdvancedContent(
       ['ceremony', 'reception', 'engagement', 'afterParty'].includes(
         String(c.eventKey),
       ) &&
+      (c.event === undefined ||
+        (object(c.event) && eventIssues(c.event, '/event').length === 0)) &&
       (c.description === undefined || str(c.description, 500)) &&
       (c.location === undefined || str(c.location, 200)) &&
-      (c.allDay === undefined || typeof c.allDay === 'boolean')
+      (c.allDay === undefined || typeof c.allDay === 'boolean') &&
+      hex(c.buttonColor) &&
+      hex(c.textColor) &&
+      (c.fontSize === undefined || num(c.fontSize, 8, 160))
     );
   if (kind === 'CustomForm')
     return validCustomFields(c.fields) && c.field === null;
@@ -727,7 +848,7 @@ export function validateEditorDocument(
           box,
           content: {
             text: 'widget',
-            textStyle: {
+            textStyle: node.props.content.textStyle ?? {
               fontId: 'noto-sans-v1',
               fontSize: 18,
               fontWeight: 400,
@@ -801,7 +922,7 @@ export function scalePrimitiveDocument(source: TemplateDesign): EditorDocument {
     if (node.props.appearance.shadow)
       for (const k of ['offsetX', 'offsetY', 'blur', 'spread'] as const)
         node.props.appearance.shadow[k] *= ratio;
-    if ('textStyle' in node.props.content) {
+    if ('textStyle' in node.props.content && node.props.content.textStyle) {
       node.props.content.textStyle.fontSize *= ratio;
       node.props.content.textStyle.letterSpacing *= ratio;
     }
@@ -825,6 +946,7 @@ export function documentAssetIds(design: EditorDocument): string[] {
   bg(design.nodes.ROOT.props.canvas.background);
   add(design.settings.audio.assetId);
   add(design.settings.shareImageId);
+  for (const id of openingAssetIds(design.settings.openingEffect)) add(id);
   for (const id of design.nodes.ROOT.nodes) {
     const n = design.nodes[id] as CanvasNode;
     bg(n.props.appearance.background);
@@ -907,7 +1029,8 @@ export function resolveEditorDocument(
       (node.type.resolvedName === 'YouTube' && !content.videoId) ||
       (node.type.resolvedName === 'Contact' && !content.phone) ||
       (node.type.resolvedName === 'Reminder' &&
-        !data.events?.[content.eventKey ?? 'ceremony']?.datetime);
+        !(content.event ?? data.events?.[content.eventKey ?? 'ceremony'])
+          ?.datetime);
     if (missing) {
       if (!node.custom.optional)
         issues.push({
@@ -915,11 +1038,18 @@ export function resolveEditorDocument(
           path: `/nodes/${id}/props/content`,
           code: 'BINDING_REQUIRED',
         });
-      continue;
+      // An unconfigured call button still has an authored design in preview.
+      // Keep the missing-data issue so capture/publication cannot accept it.
+      if (
+        options.mode !== 'preview' ||
+        node.type.resolvedName !== 'Contact' ||
+        node.custom.optional
+      )
+        continue;
     }
     if (node.type.resolvedName === 'Reminder')
       (content as AdvancedContent & { event?: WeddingEvent }).event =
-        data.events?.[content.eventKey ?? 'ceremony'];
+        content.event ?? data.events?.[content.eventKey ?? 'ceremony'];
     for (const a of content.assetIds ?? []) assets.add(a);
     if (content.posterId) assets.add(content.posterId);
     if (node.props.appearance.background?.kind === 'asset')
@@ -938,6 +1068,7 @@ export function resolveEditorDocument(
       data.fields?.[settings.audio.field]?.audioId ?? settings.audio.assetId;
   if (settings.audio.assetId) assets.add(settings.audio.assetId);
   if (settings.shareImageId) assets.add(settings.shareImageId);
+  for (const id of openingAssetIds(settings.openingEffect)) assets.add(id);
   const nodeOptions = structuredClone(document.nodeOptions);
   if (data.bank?.bin || data.bank?.account || data.bank?.recipientName)
     for (const option of Object.values(nodeOptions))

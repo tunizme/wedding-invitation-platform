@@ -60,5 +60,75 @@ export function PublicInvitationView({
   context: RenderContext;
   hostPolicy?: 'adaptive' | 'mobile';
 }) {
-  return <ScaledInvitationView scene={scene} context={context} />;
+  const [guestName, setGuestName] = useState<string>();
+  const slug = context.mode === 'public' ? context.invitation?.slug : undefined;
+  useEffect(() => {
+    if (!slug) return;
+    const token = new URLSearchParams(window.location.search).get('g'),
+      base = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!token || !/^[a-f0-9-]{36}$/i.test(token) || !base) return;
+    const controller = new AbortController();
+    let live = true,
+      sent = false;
+    const endpoint = `${base.replace(/\/$/, '')}/public/invitations/${slug}/guests/${token}`;
+    const record = () => {
+      if (document.visibilityState !== 'visible' || sent || !live) return;
+      sent = true;
+      let eventId = crypto.randomUUID();
+      try {
+        const storageKey = `invitation-open:${slug}:${token}`,
+          saved = sessionStorage.getItem(storageKey),
+          prior = saved ? JSON.parse(saved) : null;
+        if (
+          prior &&
+          typeof prior.eventId === 'string' &&
+          Date.now() - prior.at < 30 * 60 * 1000
+        )
+          eventId = prior.eventId;
+        else
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({ eventId, at: Date.now() }),
+          );
+      } catch {
+        /* Private browsing may disable session storage. */
+      }
+      void fetch(`${endpoint}/open`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId }),
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        signal: AbortSignal.timeout(10000),
+      }).catch(() => {
+        /* Statistics must not interrupt the invitation. */
+      });
+    };
+    void fetch(endpoint, {
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const guest = (await response.json()) as { name?: unknown };
+        if (live && typeof guest.name === 'string') {
+          setGuestName(guest.name);
+          record();
+          document.addEventListener('visibilitychange', record);
+        }
+      })
+      .catch(() => {
+        /* Invalid or revoked guest links show the general invitation. */
+      });
+    return () => {
+      live = false;
+      controller.abort();
+      document.removeEventListener('visibilitychange', record);
+    };
+  }, [slug]);
+  return (
+    <ScaledInvitationView scene={scene} context={{ ...context, guestName }} />
+  );
 }

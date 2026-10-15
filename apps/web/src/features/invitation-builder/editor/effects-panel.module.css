@@ -1,0 +1,843 @@
+.panel {
+  color: #182333;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  padding: 0 2px;
+}
+.panel h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.panel button {
+  cursor: pointer;
+  font: inherit;
+}
+.panel button:focus-visible,
+.configModal button:focus-visible {
+  outline: 2px solid #3296ff;
+  outline-offset: 3px;
+}
+.hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #7b8597;
+  margin: 6px 0 18px;
+}
+.groups {
+  display: grid;
+  gap: 10px;
+}
+.groups > button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 52px 1fr 16px;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  border: 1px solid #e0e4ea;
+  border-radius: 14px;
+  padding: 14px;
+  background: #f8f9fb;
+  color: #243044;
+  min-height: 82px;
+}
+.groups strong {
+  display: block;
+  font-size: 13px;
+}
+.groups small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: #8a94a6;
+  line-height: 1.45;
+}
+.groups > button > svg {
+  color: #cbd1db;
+}
+.groupIcon {
+  width: 52px;
+  height: 52px;
+  background: #fff;
+  border: 1px solid #e0e4ea;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #7260ff;
+}
+.groupIcon[data-group='opening'] {
+  color: #ffa500;
+}
+.groupIcon[data-group='falling'] {
+  color: #35b9ff;
+}
+.back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -8px -12px 16px;
+  padding: 12px;
+  width: calc(100% + 24px);
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid #eee;
+  color: #7664ff;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+.presetBox {
+  border: 1px solid #e9e9e9;
+  border-radius: 8px;
+  padding: 12px;
+}
+.presetBox h3 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid #eee;
+  margin: -12px -12px 14px;
+  padding: 12px;
+  color: #222;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.presetWrapper {
+  position: relative;
+  min-width: 0;
+}
+.preset {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #222;
+  border: 1px solid #ebebeb;
+  border-radius: 8px;
+  width: 100%;
+  min-height: 72px;
+  padding: 5px;
+  font-size: 13px !important;
+}
+.preset img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.preset[aria-checked='true'] {
+  background: #eff6ff;
+  border-color: #3296ff;
+  box-shadow: 0 0 0 1px #3296ff;
+}
+.reset {
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: #697282;
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.previewButton,
+.apply,
+.confirm,
+.replay {
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #6b7280;
+  color: #fff;
+}
+.apply {
+  background: #ff88a6;
+  cursor: pointer;
+}
+.confirm {
+  background: #3296ff !important;
+  border-color: #3296ff !important;
+  color: white !important;
+}
+.remove {
+  color: #ff4d4f;
+  background: #fff;
+  border: 1px solid #ffb3b4;
+  border-radius: 4px;
+  padding: 6px 12px;
+  margin: 0 0 14px;
+}
+.openingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+.openingCard {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 124/220;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #f8f8f8;
+}
+.openingCard > img,
+.openingCard > video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.openingCard[aria-pressed='true'] {
+  border-color: #3296ff;
+}
+.selected {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  background: #1890ff;
+  color: #fff;
+  border-radius: 50%;
+}
+.subtitle {
+  color: #666;
+  line-height: 1.5;
+  font-size: 14px;
+  margin: 0 0 20px;
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  position: relative;
+  background: linear-gradient(120deg, #f8f9fa, #e9ecef);
+  border: 1px solid #dce0e5;
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px #00000006;
+}
+.toggle strong {
+  display: block;
+  margin-bottom: 8px;
+}
+.toggle small {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.toggle input {
+  position: absolute;
+  width: 52px;
+  height: 28px;
+  right: 20px;
+  opacity: 0;
+  margin: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+.switchTrack {
+  flex: none;
+  width: 52px;
+  height: 28px;
+  border-radius: 20px;
+  background: #ccc;
+  position: relative;
+  box-shadow: inset 0 1px 4px #0001;
+}
+.switchTrack::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: 22px;
+  width: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px #0003;
+  transition: transform 0.15s;
+}
+.toggle input:checked + .switchTrack {
+  background: #3296ff;
+  box-shadow: 0 0 0 3px #3296ff22;
+}
+.toggle input:checked + .switchTrack::before {
+  transform: translateX(24px);
+}
+.toggle input:focus-visible + .switchTrack {
+  outline: 2px solid #3296ff;
+  outline-offset: 3px;
+}
+.fallingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+.fallingGrid button {
+  position: relative;
+  aspect-ratio: 1;
+  border: 2px solid #e6e9ee;
+  background: #f8f9fa;
+  border-radius: 14px;
+  color: #111;
+}
+.fallingGrid button > span {
+  font-size: 25px;
+}
+.fallingGrid button:last-child > span {
+  font-size: 15px;
+}
+.fallingGrid button[aria-checked='true'] {
+  border-color: #3296ff;
+  background: #eef6ff;
+}
+.fallingCheck {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  color: #3296ff;
+}
+.status {
+  font-size: 12px;
+  color: #226c3d;
+  margin-top: 12px;
+}
+.configModal,
+.motionModal {
+  width: min(800px, calc(100vw - 32px)) !important;
+  border-radius: 9px !important;
+  background: #fff !important;
+  color: #172337 !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+.configModal::backdrop,
+.motionModal::backdrop {
+  background: #0005;
+  backdrop-filter: blur(4px);
+}
+.configModal > div > header,
+.motionModal > div > header {
+  padding: 20px 24px 16px;
+  border: 0;
+  background: white;
+}
+.configModal > div > header h2,
+.motionModal > div > header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+}
+.configModal > div > header > button,
+.motionModal > div > header > button {
+  background: transparent;
+  border: 0;
+  font-size: 0;
+  box-shadow: none;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+.configModal > div > header > button::after,
+.motionModal > div > header > button::after {
+  content: '×';
+  color: #888;
+  font-size: 26px;
+}
+.configModal > div > div,
+.motionModal > div > div {
+  padding: 0 24px 20px;
+}
+.configuration {
+  display: grid;
+  grid-template-columns: minmax(0, 390px) minmax(0, 1fr);
+  gap: 14px;
+}
+.form {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.form fieldset,
+.livePreview {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #e7ebf1;
+  border-radius: 13px;
+  padding: 12px;
+  background: #f9fafc;
+}
+.form legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 12px;
+  font-weight: 600;
+  color: #364255;
+}
+.form legend + * {
+  clear: both;
+}
+.form p {
+  margin: 12px 0;
+}
+.form .hint {
+  margin: 12px 0 0;
+  font-size: 11px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #6b7688;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.field input,
+.field textarea,
+.field select,
+.form > fieldset > select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid #cdd4df;
+  border-radius: 7px;
+  background: white;
+  color: #172337;
+  font: inherit;
+  font-size: 12px;
+  padding: 8px 10px;
+}
+.field textarea {
+  resize: vertical;
+}
+.twoFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.variants {
+  display: flex;
+  gap: 12px;
+}
+.variants button {
+  flex: 1;
+  min-width: 0;
+  border: 2px solid #e1e5ec;
+  padding: 8px;
+  border-radius: 13px;
+  background: #fff;
+  color: #394559;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.variants img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 89/160;
+  object-fit: cover;
+  border-radius: 7px;
+  margin-bottom: 8px;
+}
+.variants video {
+  width: 100%;
+  aspect-ratio: 5/8;
+  object-fit: cover;
+}
+.variants button[aria-pressed='true'],
+.segment button[aria-pressed='true'],
+.textureGrid button[aria-pressed='true'],
+.curtainChoices button[aria-pressed='true'],
+.characters button[aria-pressed='true'] {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px #1890ff22;
+}
+.livePreview {
+  align-self: stretch;
+}
+.livePreview h4 {
+  font-size: 13px;
+  color: #364255;
+  margin: 0 0 10px;
+}
+.previewStage {
+  width: 100%;
+  aspect-ratio: 322/400;
+  position: relative;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #fff;
+}
+.previewStage > [data-opening-effect] {
+  height: 100%;
+  min-height: 0;
+}
+.replay {
+  display: flex;
+  margin: 14px auto 0;
+  background: #fff;
+  color: #364255;
+  border: 1px solid #d1d8e2;
+  cursor: pointer;
+  font: inherit;
+  padding: 6px 12px;
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.footer button {
+  font: inherit;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 5px 16px;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+}
+.imageSlot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+.imageSlot img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.imageSlot button {
+  margin-left: auto;
+  background: #fff;
+  color: #26354b;
+  border: 1px solid #cfd6df;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.segment {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.segment button,
+.textureGrid button {
+  border: 1px solid #dce1e9;
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: #fff;
+  color: #344256;
+  cursor: pointer;
+  font: inherit;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.swatches button {
+  width: 27px;
+  height: 27px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.swatches button[aria-pressed='true'] {
+  outline: 2px solid #3296ff;
+}
+.textureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.characters {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.characters button {
+  border: 2px solid #e5e9ef;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.characters img {
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+}
+.compactModal {
+  width: min(700px, calc(100vw - 32px)) !important;
+}
+.compactModal .configuration {
+  grid-template-columns: 1fr;
+}
+.curtainChoices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.curtainChoices button {
+  border: 2px solid #e1e5ec;
+  background: #fff;
+  padding: 6px;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.curtainChoices video {
+  width: 100%;
+  aspect-ratio: 5/8;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 6px;
+}
+.motionModal {
+  width: min(520px, calc(100vw - 24px)) !important;
+}
+.motionModal > div > div > .apply {
+  display: block;
+  margin-left: auto;
+  font-size: 13px;
+}
+.previewHint {
+  font-style: italic;
+  text-align: center;
+  color: #627084;
+  font-size: 13px;
+  margin: 12px 0 18px;
+}
+.motionViewport {
+  max-width: 340px;
+  height: 600px;
+  max-height: 65dvh;
+  overflow: auto;
+  border: 1px solid #dfe3eb;
+  border-radius: 8px;
+  margin: auto;
+  overscroll-behavior: contain;
+  background: white;
+}
+.scaled {
+  zoom: 0.68;
+}
+@media (max-width: 650px) {
+  .configuration {
+    grid-template-columns: 1fr;
+  }
+  .livePreview {
+    max-width: 360px;
+    width: 100%;
+    margin: auto;
+  }
+  .curtainChoices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .configModal > div > div {
+    padding-inline: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel * {
+    transition: none !important;
+  }
+}
+.previewStage[data-kind='photobooth'] {
+  width: min(100%, 260px);
+  aspect-ratio: 390/693.333;
+  margin-inline: auto;
+}
+.previewStage[data-kind='invitation'] {
+  aspect-ratio: 294/437;
+}
+.photoSlots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.photoSlots .imageSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.photoSlots .imageSlot img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+.photoSlots .imageSlot button {
+  margin: 0;
+  min-height: 70px;
+  border-style: dashed;
+}
+/* Isolate these controls from the editor's broad workspace button/label rules. */
+.configModal .field {
+  display: flex;
+  margin: 0 0 10px;
+  font-size: 12px;
+  gap: 6px;
+}
+.configModal .field > input,
+.configModal .field > select,
+.configModal .field > textarea {
+  margin-top: 0;
+  font-size: 12px;
+  border-radius: 7px;
+}
+.configModal .variants > button {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: start;
+  font-size: 12px;
+  padding: 8px;
+}
+.configModal .variants > button img {
+  flex: none;
+}
+.configModal .variants > button[aria-pressed='true'] {
+  background: #f9fafc;
+  border-color: #1890ff;
+}
+.configModal .curtainChoices > button {
+  display: block;
+}
+.configModal .fontTrigger {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 36px;
+  background: white;
+  color: #344256;
+  border: 1px solid #cdd4df;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.fontTrigger small {
+  color: #7b8597;
+  font-size: 11px;
+}
+.fontChoices {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 300px;
+  overflow: auto;
+  background: #fff;
+  color: #223047;
+  font:
+    13px Arial,
+    sans-serif;
+}
+.fontChoices input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #cdd4df;
+  border-radius: 5px;
+}
+.fontChoices button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  color: #223047;
+  padding: 8px;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.fontChoices button[aria-pressed='true'] {
+  background: #eef6ff;
+}
+.panel .back {
+  min-height: 40px;
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid #eee;
+  border-radius: 0;
+  justify-content: start;
+  color: #7664ff;
+}
+.panel .preset {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+}
+.panel .reset {
+  min-height: 22px;
+  padding: 0;
+  background: #697282;
+  color: white;
+  border: 0;
+}
+.panel .openingCard {
+  padding: 0;
+  display: block;
+}
+.panel .groups > button {
+  display: grid;
+  padding: 14px;
+  border-radius: 14px;
+}
+.colors {
+  border: 1px solid #e7ebf1;
+  border-radius: 13px;
+  padding: 12px;
+  background: #f9fafc;
+}
+.colors summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  color: #364255;
+  font-weight: 600;
+}
+.colors summary span {
+  font-weight: 400;
+  color: #7b8597;
+  font-size: 11px;
+}
+.colors[open] > div {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}

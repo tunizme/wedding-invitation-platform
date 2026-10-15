@@ -71,7 +71,7 @@ export function RenderElement({
           datetime={event.datetime}
           timeZone={event.timeZone}
           accentColor={content.accentColor as string}
-          variant={content.variant as 'classic' | 'minimal' | 'filled'}
+          variant={content.variant as ContentByKind['Calendar']['variant']}
         />
       );
       break;
@@ -90,6 +90,7 @@ export function RenderElement({
           endedLabel={content.endedLabel as string}
           layout={content.layout as 'horizontal' | 'vertical' | undefined}
           gap={content.gap as number | undefined}
+          design={content.design as ContentByKind['Countdown']['design']}
           frameColor={content.frameColor as string | undefined}
         />
       );
@@ -141,6 +142,9 @@ export function RenderElement({
             title={content.title as string}
             closedLabel={content.closedLabel as string}
             successLabel={content.successLabel as string}
+            design={content.design as ContentByKind['RSVP']['design']}
+            attendanceLabel={content.attendanceLabel as string | undefined}
+            inputBorderColor={content.inputBorderColor as string | undefined}
             nameLabel={content.nameLabel as string | undefined}
             submitLabel={content.submitLabel as string | undefined}
             buttonColor={content.buttonColor as string | undefined}
@@ -152,13 +156,20 @@ export function RenderElement({
             title={content.title as string}
             closedLabel={content.closedLabel as string}
             successLabel={content.successLabel as string}
+            design={content.design as ContentByKind['RSVP']['design']}
+            attendanceLabel={content.attendanceLabel as string | undefined}
+            inputBorderColor={content.inputBorderColor as string | undefined}
             nameLabel={content.nameLabel as string | undefined}
             submitLabel={content.submitLabel as string | undefined}
             buttonColor={content.buttonColor as string | undefined}
             buttonTextColor={content.buttonTextColor as string | undefined}
             displayState={
               context.validationState?.rsvp ??
-              (context.invitation?.rsvpOpen ? 'open' : 'closed')
+              (context.mode === 'editor' ||
+              context.mode === 'preview' ||
+              context.invitation?.rsvpOpen
+                ? 'open'
+                : 'closed')
             }
             mode={context.mode}
             status={

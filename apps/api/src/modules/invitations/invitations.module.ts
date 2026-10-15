@@ -1,3 +1,10 @@
+import { AdminInvitationController } from './http/admin-invitation.controller';
+import { InvitationGuestsService } from './application/invitation-guests.service';
+import {
+  InvitationGuestsController,
+  AdminInvitationGuestsController,
+  PublicInvitationGuestsController,
+} from './http/invitation-guests.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InvitationAssetsModule } from '../invitation-assets/invitation-assets.module';
@@ -13,8 +20,15 @@ import { PublicInvitationController } from './http/public-invitation.controller'
     InvitationBuilderModule,
     TypeOrmModule.forFeature(invitationEntities),
   ],
-  controllers: [InvitationController, PublicInvitationController],
-  providers: [InvitationService],
+  controllers: [
+    InvitationController,
+    AdminInvitationController,
+    PublicInvitationController,
+    InvitationGuestsController,
+    AdminInvitationGuestsController,
+    PublicInvitationGuestsController,
+  ],
+  providers: [InvitationService, InvitationGuestsService],
   exports: [TypeOrmModule, InvitationService],
 })
 export class InvitationsModule {}

@@ -1,3 +1,4 @@
+import { requireAssistedInvitation } from '../../invitations/authorization/invitation.policy';
 import { randomUUID, createHash } from 'node:crypto';
 import type { DataSource, EntityManager } from 'typeorm';
 import type { Asset, AssetStorageWrite } from '../domain/entities';
@@ -152,7 +153,18 @@ export class AssetWriteService {
   ): Promise<Asset> {
     const prepared = await this.prepare(bytes, mimeType, context);
     return this.db.transaction((manager) =>
-      this.finalize(manager, prepared, metadata),
+      (async () => {
+        if (metadata.assistance_invitation_id) {
+          const invitation = await requireAssistedInvitation(
+            manager,
+            metadata.assistance_invitation_id,
+            { userId: metadata.uploaded_by, role: 'ADMIN' } as never,
+          );
+          if (invitation.owner_user_id !== metadata.owner_user_id)
+            throw new StorageUnavailableError();
+        }
+        return this.finalize(manager, prepared, metadata);
+      })(),
     );
   }
 }

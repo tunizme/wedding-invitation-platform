@@ -1,3 +1,6 @@
+import type { CSSProperties } from 'react';
+import type { ContentByKind } from '../../document/types';
+import styles from './widget-designs.module.css';
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 function dateParts(datetime: string, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -20,7 +23,7 @@ export function CalendarWidget({
   timeZone: string;
   accentColor: string;
   /** classic: tinted day; minimal: ring around the day; filled: round solid day. */
-  variant?: 'classic' | 'minimal' | 'filled';
+  variant?: ContentByKind['Calendar']['variant'];
 }) {
   let parts: ReturnType<typeof dateParts>;
   try {
@@ -41,6 +44,73 @@ export function CalendarWidget({
       return date > 0 && date <= count ? date : null;
     },
   );
+  if (variant === 'plain' || variant === 'ribbon' || variant === 'notebook') {
+    const weekdays =
+      locale === 'vi'
+        ? WEEKDAYS
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return (
+      <section
+        aria-label={locale === 'vi' ? 'Lịch sự kiện' : 'Event calendar'}
+        data-calendar-design={variant}
+        className={`${styles.calendar} ${styles[variant]}`}
+        style={{ '--widget-accent': accentColor } as CSSProperties}
+      >
+        {variant === 'ribbon' && (
+          <header className={styles.calendarRibbon}>
+            {month}.{year}
+          </header>
+        )}
+        {variant === 'notebook' && (
+          <header className={styles.calendarNotebookHeader}>
+            <span>{month}</span>
+            <span>{year}</span>
+          </header>
+        )}
+        <div className={styles.calendarBody}>
+          {variant === 'ribbon' && (
+            <span aria-hidden="true" className={styles.calendarWatermark}>
+              {year}
+            </span>
+          )}
+          <div
+            role="grid"
+            aria-label={`${locale === 'vi' ? 'Lịch tháng' : 'Calendar'} ${month}/${year}`}
+            className={styles.calendarGrid}
+            style={{
+              gridTemplateRows: `repeat(${cells.length / 7 + (variant === 'plain' ? 0 : 1)}, minmax(0, 1fr))`,
+            }}
+          >
+            {variant !== 'plain' &&
+              weekdays.map((w) => (
+                <span role="columnheader" className={styles.weekday} key={w}>
+                  {w}
+                </span>
+              ))}
+            {cells.map((value, index) => (
+              <span
+                role="gridcell"
+                aria-current={value === day ? 'date' : undefined}
+                className={styles.calendarDay}
+                key={index}
+              >
+                {value === day && (
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 40 40"
+                    className={styles.calendarHeart}
+                  >
+                    <path d="M20 36C15 32 2 23 2 13C2 3 14 0 20 9C26 0 38 3 38 13C38 23 25 32 20 36Z" />
+                  </svg>
+                )}
+                <span>{value ?? ''}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section
       aria-label={locale === 'vi' ? 'Lịch sự kiện' : 'Event calendar'}

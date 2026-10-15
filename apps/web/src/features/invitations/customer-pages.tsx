@@ -31,6 +31,7 @@ import catalogStyles from './template-catalog.module.css';
 import workspaceStyles from './customer-workspace.module.css';
 import { Mail, ArrowUpRight, Copy } from 'lucide-react';
 import { StatusBadge } from '../../ui/platform/feedback';
+import { invitationFeatureVisibility } from './feature-visibility';
 
 const message = (error: unknown) =>
   error instanceof BuilderApiError
@@ -574,6 +575,7 @@ function OwnedCustomerInvitationList({
               <p className={workspaceStyles.updated}>
                 Cập nhật{' '}
                 {new Intl.DateTimeFormat('vi-VN', {
+                  timeZone: 'Asia/Ho_Chi_Minh',
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',
@@ -582,7 +584,15 @@ function OwnedCustomerInvitationList({
             )}
             <div className={workspaceStyles.cardLinks}>
               <Link href={`/invitations/${item.id}/edit`}>
-                Chỉnh thông tin thiệp
+                {item.editingMode === 'SERVICE_MANAGED'
+                  ? 'Thông tin bàn giao'
+                  : 'Chỉnh thông tin thiệp'}
+              </Link>
+              <Link href={`/invitations/${item.id}/guests`}>Khách mời</Link>
+              <Link href={`/invitations/${item.id}/interactions`}>
+                {invitationFeatureVisibility.wishes
+                  ? 'Lời chúc'
+                  : 'Phản hồi biểu mẫu'}
               </Link>
               <Link href={`/invitations/${item.id}/rsvps`}>Quản lý RSVP</Link>
               {item.publicUrl && (
