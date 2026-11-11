@@ -15,7 +15,26 @@ Editor admin nhập nội dung trực tiếp trên phần tử, không còn pane
 
 Không cần cài PostgreSQL trực tiếp trên máy.
 
-## Fresh clone đến healthy stack
+## Khởi động nhanh bằng Docker (Khuyên dùng)
+
+Chỉ cần đúng một lệnh để chạy toàn bộ stack (Frontend, Backend, Database PostgreSQL, MinIO S3, Mailpit và tự động migrate DB):
+
+```bash
+docker compose up -d
+```
+
+Sau khi chạy:
+- **Frontend Web**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:3001/api/v1](http://localhost:3001/api/v1) (Tài liệu Swagger: [http://localhost:3001/api/v1/docs](http://localhost:3001/api/v1/docs))
+- **Mailpit (Xem email local)**: [http://localhost:8025](http://localhost:8025)
+- **MinIO Console (S3 Storage)**: [http://localhost:9001](http://localhost:9001)
+
+Dừng hệ thống:
+```bash
+docker compose down
+```
+
+## Fresh clone đến healthy stack (Local Node development)
 
 ```bash
 corepack enable
