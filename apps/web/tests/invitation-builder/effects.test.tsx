@@ -361,6 +361,38 @@ describe('opening renderer lifecycle', () => {
     expect(view.container.querySelector('[data-opening-effect]')).toBeNull();
     expect(view.container.querySelector('[data-falling-effect]')).toBeNull();
   });
+  it('keeps preview content inert and scroll locked until the opening completes', () => {
+    vi.stubGlobal('matchMedia', () => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    const doc = documentWithNodes();
+    doc.settings.openingEffect = defaultOpeningEffect('envelope');
+    const scene = resolveEditorDocument(
+      doc,
+      { schemaVersion: 1 },
+      context,
+    ).scene;
+    const view = render(
+      <CanvasRenderer
+        scene={scene}
+        context={{ ...context, mode: 'preview' }}
+      />,
+    );
+    const surface =
+      view.container.querySelector<HTMLElement>('[data-preview]')!;
+    expect(surface.style.overflowY).toBe('hidden');
+    expect(
+      view.container.querySelector('[data-opening-covered]'),
+    ).toHaveAttribute('inert');
+    fireEvent.click(screen.getByRole('button', { name: 'CHẠM ĐỂ MỞ' }));
+    expect(surface.style.overflowY).toBe('auto');
+    expect(
+      view.container.querySelector('[data-opening-covered]'),
+    ).not.toHaveAttribute('inert');
+    expect(view.container.querySelector('[data-opening-effect]')).toBeNull();
+  });
   it('manual opening completes immediately with reduced motion', () => {
     vi.stubGlobal('matchMedia', () => ({
       matches: true,

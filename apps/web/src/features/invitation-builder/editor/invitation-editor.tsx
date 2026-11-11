@@ -109,6 +109,7 @@ import { resolveEditorDocument } from '../document/editor-document';
 import { CanvasElement } from '../renderer/canvas-renderer';
 import { PublicInvitationView } from '../../invitations/public-invitation-view';
 import { ScenePreview } from '../renderer/scene-preview';
+import { PreviewExit } from './preview-exit';
 import { primitiveNode, widgetNode } from './defaults';
 import {
   EditorProperties,
@@ -401,7 +402,7 @@ function OwnedInvitationEditor({
     [backgroundTab, setBackgroundTab] = useState<'color' | 'image'>('color'),
     [zoom, setZoom] = useState(1),
     [preview, setPreview] = useState(false),
-    [previewWidth, setPreviewWidth] = useState(390),
+    [previewWidth, setPreviewWidth] = useState(500),
     [error, setError] = useState(''),
     [status, setStatus] = useState('Đã lưu'),
     [saving, setSaving] = useState(false),
@@ -1083,7 +1084,11 @@ function OwnedInvitationEditor({
     assetUrls: urls,
   };
   return (
-    <section className={styles.workspace} aria-label="Editor500px">
+    <section
+      className={styles.workspace}
+      aria-label="Editor500px"
+      data-preview={preview}
+    >
       <header className={styles.toolbar}>
         <a
           className={styles.menuLink}
@@ -1125,7 +1130,11 @@ function OwnedInvitationEditor({
         <span className={styles.saveStatus} role="status">
           {status}
         </span>
-        <button type="button" onClick={() => setPreview((v) => !v)}>
+        <button
+          type="button"
+          data-preview-trigger
+          onClick={() => setPreview((v) => !v)}
+        >
           <Eye size={18} />
           {preview ? 'Chỉnh sửa' : 'Xem trước'}
         </button>
@@ -1718,6 +1727,12 @@ function OwnedInvitationEditor({
           </>
         )}
         <div className={styles.stage}>
+          {preview && (
+            <PreviewExit
+              className={styles.previewExit}
+              onClose={() => setPreview(false)}
+            />
+          )}
           {!preview && (
             <button
               className={styles.collapseHandle}

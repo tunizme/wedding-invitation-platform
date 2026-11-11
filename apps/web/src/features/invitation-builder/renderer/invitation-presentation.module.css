@@ -1,6 +1,10 @@
 .surface {
   font-family: 'Invitation Noto Sans v1', sans-serif;
 }
+.surface[data-preview='true'] > [data-opening-effect] {
+  height: var(--invitation-preview-height, min(850px, 100svh));
+  min-height: 0;
+}
 .toolbar {
   position: sticky;
   bottom: 12px;

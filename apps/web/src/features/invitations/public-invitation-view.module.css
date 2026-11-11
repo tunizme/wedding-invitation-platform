@@ -1,0 +1,11 @@
+.preview {
+  height: calc(100svh - 100px);
+  box-shadow: var(--shadow-md, 0 1px 10px rgb(0 0 0 / 12%));
+}
+
+@media (max-width: 600px) {
+  .preview {
+    height: 100svh;
+    box-shadow: none;
+  }
+}

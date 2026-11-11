@@ -1,11 +1,12 @@
 'use client';
 import type { EditorScene } from '../invitation-builder/document/editor-document';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type {
   RenderContext,
   SupportedResolvedScene,
 } from '../invitation-builder/document/types';
 import { InvitationRenderer } from '../invitation-builder/renderer/invitation-renderer';
+import styles from './public-invitation-view.module.css';
 
 function ScaledInvitationView({
   scene,
@@ -15,36 +16,48 @@ function ScaledInvitationView({
   context: RenderContext;
 }) {
   const outer = useRef<HTMLDivElement>(null),
-    [scale, setScale] = useState(1);
+    [scale, setScale] = useState(1),
+    [previewHeight, setPreviewHeight] = useState<number>();
+  const preview = context.mode === 'preview';
   useEffect(() => {
     const element = outer.current;
     if (!element) return;
-    const measure = () =>
-      setScale(Math.min(1, element.clientWidth / scene.canvas.width));
+    const measure = () => {
+      const nextScale = Math.min(1, element.clientWidth / scene.canvas.width);
+      setScale(nextScale);
+      if (preview && nextScale > 0)
+        setPreviewHeight(element.clientHeight / nextScale);
+    };
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     measure();
     return () => observer.disconnect();
-  }, [scene.canvas.width]);
+  }, [scene.canvas.width, preview]);
   return (
     <div
       ref={outer}
       data-testid="public-workarea"
+      className={preview ? styles.preview : undefined}
       style={{
         width: '100%',
         maxWidth: scene.canvas.width,
-        height: scene.canvas.height * scale,
+        height: preview ? undefined : scene.canvas.height * scale,
         margin: '0 auto',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       <div
-        style={{
-          width: scene.canvas.width,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-        }}
+        style={
+          {
+            width: scene.canvas.width,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            '--invitation-preview-height': previewHeight
+              ? `${previewHeight}px`
+              : undefined,
+          } as CSSProperties
+        }
       >
         <InvitationRenderer scene={scene} context={context} />
       </div>

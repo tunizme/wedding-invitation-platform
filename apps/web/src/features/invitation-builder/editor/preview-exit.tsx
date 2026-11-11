@@ -4,7 +4,13 @@ import { useEffect, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import styles from './authoring-workspace.module.css';
 
-export function PreviewExit({ onClose }: { onClose: () => void }) {
+export function PreviewExit({
+  onClose,
+  className,
+}: {
+  onClose: () => void;
+  className?: string;
+}) {
   const button = useRef<HTMLButtonElement>(null);
   const close = useRef(onClose);
   useEffect(() => {
@@ -12,7 +18,7 @@ export function PreviewExit({ onClose }: { onClose: () => void }) {
   }, [onClose]);
   useEffect(() => {
     const previous = button.current
-      ?.closest('[data-preview]')
+      ?.closest('section[data-preview]')
       ?.querySelector<HTMLElement>('[data-preview-trigger]');
     button.current?.focus({ preventScroll: true });
     const escape = (event: KeyboardEvent) => {
@@ -34,7 +40,7 @@ export function PreviewExit({ onClose }: { onClose: () => void }) {
     <button
       ref={button}
       type="button"
-      className={styles.previewExit}
+      className={`${styles.previewExit} ${className ?? ''}`}
       onClick={onClose}
       title="Quay lại chỉnh sửa (Esc)"
     >

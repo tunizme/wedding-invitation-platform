@@ -469,9 +469,10 @@
     transition: none !important;
   }
 }
-/* The canvas has general button styles; opening controls must stay transparent
-   and sit above every decorative layer, including the seal and flowers. */
-.player > .openButton {
+/* Override the editor's general button hover styles so the full-size hit area
+   stays transparent above every decorative layer, including the seal and flowers. */
+.player[data-opening-effect] > .openButton,
+.player[data-opening-effect] > .openButton:hover:not(:disabled) {
   z-index: 20;
   background: transparent;
   color: transparent;

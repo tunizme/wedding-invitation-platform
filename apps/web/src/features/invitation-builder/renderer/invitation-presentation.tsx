@@ -319,7 +319,20 @@ function PresentationBody({
       ref={surface}
       className={styles.surface}
       data-motion-paused={motionPaused}
-      style={{ width: 500, position: 'relative' }}
+      data-preview={context.mode === 'preview' || undefined}
+      data-opening-closed={!opened}
+      style={{
+        width: 500,
+        position: 'relative',
+        ...(context.mode === 'preview'
+          ? {
+              height: 'var(--invitation-preview-height, auto)',
+              overflowX: 'hidden',
+              overflowY: opened ? 'auto' : 'hidden',
+              overscrollBehavior: 'contain',
+            }
+          : {}),
+      }}
     >
       <div
         inert={!opened}
