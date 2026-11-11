@@ -20,6 +20,7 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+.claude/
 .artifacts/
 playwright-report/
 test-results/
